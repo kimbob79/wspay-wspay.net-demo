@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1070" height="141" viewBox="65 0 1070 141">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3 {
+        font-size: 180px;
+      }
+
+      .cls-1, .cls-3 {
+        font-family: "Noto Sans KR";
+        font-weight: 800;
+      }
+
+      .cls-2 {
+        stroke: #000;
+        stroke-linejoin: round;
+        stroke-width: 1px;
+      }
+
+      .cls-3 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <text id="_PAY" data-name=" PAY" class="cls-1" x="801.5" y="137.5"> PAY</text>
+  <text id="SIMPLE_" data-name="SIMPLE " class="cls-2" x="66.5" y="137.5"><tspan class="cls-3">SIMPLE</tspan> </text>
+</svg>

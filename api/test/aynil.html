@@ -1,0 +1,156 @@
+<html lang="ko" data-dark="true"> <head> <meta charset="utf-8">
+</head>
+<form method="POST" enctype="application/x-www-form-urlencoded" action="https://api.withpay.co.kr/aynil/?pid=the8al">
+	<table>
+		<tr>
+			<td>카드번호(last4)</td>
+			<td>last4</td>
+			<td>4</td>
+			<td>&nbsp;</td>
+			<td><input name="last4" value="0000"></td>
+		</tr>
+		<tr>
+			<td>■ [메인PG] 구분</td>
+			<td>van</td>
+			<td>10</td>
+			<td>allat, danal, ksnet</td>
+			<td><input name="van" value="DANAL"></td>
+		</tr>
+		<tr>
+			<td>거래금액</td>
+			<td>amount</td>
+			<td>10</td>
+			<td>&nbsp;</td>
+			<td><input name="amount" value="1000"></td>
+		</tr>
+		<tr>
+			<td>■ [메인PG] 거래고유번호</td>
+			<td>vanTrxId</td>
+			<td>50</td>
+			<td>&nbsp;</td>
+			<td><input name="vanTrxId" value="202202071232040147643400"></td>
+		</tr>
+		<tr>
+			<td>원거래번호</td>
+			<td>rootTrxId</td>
+			<td>13</td>
+			<td>취소시 에이닐 원 거래번호 전달</td>
+			<td><input name="rootTrxId" value=""></td>
+		</tr>
+		<tr>
+			<td>승인번호</td>
+			<td>authCd</td>
+			<td>8</td>
+			<td>&nbsp;</td>
+			<td><input name="authCd" value="00000000"></td>
+		</tr>
+		<tr>
+			<td>터미널ID</td>
+			<td>tmnId</td>
+			<td>50</td>
+			<td>단말기</td>
+			<td><input name="tmnId" value="1046657051"></td>
+		</tr>
+		<tr>
+			<td>주문번호</td>
+			<td>trackId</td>
+			<td>50</td>
+			<td>&nbsp;</td>
+			<td><input name="trackId" value="000000000000"></td>
+		</tr>
+		<tr>
+			<td>카드번호(bin)</td>
+			<td>bin</td>
+			<td>6</td>
+			<td>승인시에만 전달</td>
+			<td><input name="bin" value="000000"></td>
+		</tr>
+		<tr>
+			<td>카드종류</td>
+			<td>cardType</td>
+			<td>10</td>
+			<td>신용/체크 , 승인시에만 전달</td>
+			<td><input name="cardType" value="체크"></td>
+		</tr>
+		<tr>
+			<td>거래구분</td>
+			<td>trxType</td>
+			<td>6</td>
+			<td>승인: PAY / 취소: REFUND</td>
+			<td><input name="trxType" value="PAY"></td>
+		</tr>
+		<tr>
+			<td>매입사</td>
+			<td>acquirer</td>
+			<td>20</td>
+			<td>승인시에만 전달</td>
+			<td><input name="acquirer" value="국민"></td>
+		</tr>
+		<tr>
+			<td>에이닐 거래번호</td>
+			<td>trxId</td>
+			<td>13</td>
+			<td>&nbsp;</td>
+			<td><input name="trxId" value="T2202070000000"></td>
+		</tr>
+		<tr>
+			<td>발행사</td>
+			<td>issuer</td>
+			<td>50</td>
+			<td>승인시에만 전달</td>
+			<td><input name="issuer" value="국민Check카드"></td>
+		</tr>
+		<tr>
+			<td>할부</td>
+			<td>installment</td>
+			<td>2</td>
+			<td>&nbsp;</td>
+			<td><input name="installment" value="00"></td>
+		</tr>
+		<tr>
+			<td>■ 상품명</td>
+			<td>name</td>
+			<td>100</td>
+			<td>* 수기 NOTI 시, 추가필드</td>
+			<td><input name="name" value=""></td>
+		</tr>
+		<tr>
+			<td>■ 전화번호</td>
+			<td>payerTel</td>
+			<td>20</td>
+			<td>* 수기 NOTI 시, 추가필드</td>
+			<td><input name="payerTel" value=""></td>
+		</tr>
+		<tr>
+			<td>에이닐 가맹점 ID</td>
+			<td>mchtId</td>
+			<td>50</td>
+			<td>&nbsp;</td>
+			<td><input name="mchtId" value="test2"></td>
+		</tr>
+		<tr>
+			<td>■ 고객명</td>
+			<td>payerName</td>
+			<td>100</td>
+			<td>* 수기 NOTI 시, 추가필드</td>
+			<td><input name="payerName" value=""></td>
+		</tr>
+		<tr>
+			<td>■ 이메일</td>
+			<td>payerEmail</td>
+			<td>100</td>
+			<td>* 수기 NOTI 시, 추가필드</td>
+			<td><input name="payerEmail" value=""></td>
+		</tr>
+		<tr>
+			<td>승인일시</td>
+			<td>trxDate</td>
+			<td>14</td>
+			<td>20190210112233</td>
+			<td><input name="trxDate" value="20220207123205"></td>
+		</tr>
+	</table>
+	■ 에이닐에서만 사용<br>
+	<button type="submit">전송</button>
+</form>
+</html>

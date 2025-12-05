@@ -1,0 +1,10 @@
+Contact: tel:+82-1555-0985
+Contact: mailto:support@wonsungpayments.com
+Preferred-Languages: ko, en
+Canonical: https://yourdomain.com/.well-known/security.txt
+Policy: https://yourdomain.com/security-policy
+Hiring: https://yourdomain.com/careers
+
+# 원성페이먼츠 보안 정책
+# 보안 취약점 발견 시 위 연락처로 연락 주시기 바랍니다.
+# 운영시간: 평일 09:00 - 18:00 (주말, 공휴일 제외)

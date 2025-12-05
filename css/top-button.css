@@ -1,0 +1,197 @@
+@charset "utf-8";
+
+/* TOP 버튼 디자인 */
+
+.btn_gotop {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.btn_gotop:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn_gotop:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.5);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.btn_gotop:hover:before {
+    opacity: 1;
+}
+
+.btn_gotop:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn_gotop_inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    position: relative;
+    z-index: 1;
+}
+
+.btn_gotop i {
+    color: white;
+    font-size: 18px;
+    transition: transform 0.3s ease;
+    display: block;
+    line-height: 1;
+}
+
+.btn_gotop:hover i {
+    transform: translateY(-2px);
+    animation: bounce-up 0.6s ease-in-out infinite;
+}
+
+.btn_gotop_text {
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+/* 애니메이션 */
+@keyframes bounce-up {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* 펄스 효과 */
+.btn_gotop:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.4);
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    opacity: 0;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* 대체 디자인: 둥근 사각형 */
+.btn_gotop.square {
+    border-radius: 16px;
+}
+
+/* 대체 디자인: 작은 버튼 */
+.btn_gotop.small {
+    width: 48px;
+    height: 48px;
+}
+
+.btn_gotop.small i {
+    font-size: 16px;
+}
+
+.btn_gotop.small .btn_gotop_text {
+    font-size: 9px;
+}
+
+/* 대체 색상: 다크 테마 */
+.btn_gotop.dark {
+    background: linear-gradient(135deg, #1a1d29 0%, #2d3142 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.btn_gotop.dark:hover {
+    background: linear-gradient(135deg, #2d3142 0%, #3d4152 100%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* 대체 색상: 그린 테마 */
+.btn_gotop.green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.btn_gotop.green:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
+}
+
+/* 모바일 반응형 */
+@media screen and (max-width: 768px) {
+    .btn_gotop {
+        right: 20px;
+        bottom: 20px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .btn_gotop i {
+        font-size: 16px;
+    }
+
+    .btn_gotop_text {
+        font-size: 9px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .btn_gotop {
+        right: 16px;
+        bottom: 16px;
+        width: 46px;
+        height: 46px;
+    }
+
+    .btn_gotop i {
+        font-size: 15px;
+    }
+
+    .btn_gotop_text {
+        font-size: 8px;
+    }
+}
+
+/* 프린트 시 숨김 */
+@media print {
+    .btn_gotop {
+        display: none !important;
+    }
+}

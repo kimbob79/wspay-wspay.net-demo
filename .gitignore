@@ -1,0 +1,15 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# PHP / Node / 빌드 산출물 등
+vendor/
+node_modules/
+dist/
+build/
+.cache/

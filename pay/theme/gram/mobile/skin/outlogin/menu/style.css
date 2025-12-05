@@ -1,0 +1,9 @@
+@charset "utf-8";
+
+.login_mn:after {display:block;visibility:hidden;clear:both;content:""}
+.login_after {text-align:center}
+.login_mn h2 {width:0;height:0;overflow:hidden}
+.login_mn ul {width:260px;margin:10px auto 0}
+.login_mn ul li {display:inline-block;width:33.333%;float:left;text-align:center}
+.login_mn ul li span {line-height:30px}
+.login_mn ul.log li:hover span {color:#ff4a4a}

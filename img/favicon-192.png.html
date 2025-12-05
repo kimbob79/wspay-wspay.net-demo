@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Favicon PNG Generator</title>
+</head>
+<body>
+<canvas id="canvas" width="192" height="192"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Background gradient
+const gradient = ctx.createLinearGradient(0, 0, 192, 192);
+gradient.addColorStop(0, '#3B82F6');
+gradient.addColorStop(1, '#2563EB');
+
+// Draw rounded rectangle
+ctx.fillStyle = gradient;
+roundRect(ctx, 0, 0, 192, 192, 36);
+ctx.fill();
+
+// Draw W
+ctx.strokeStyle = 'white';
+ctx.lineWidth = 12;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+ctx.beginPath();
+ctx.moveTo(36, 60);
+ctx.lineTo(54, 132);
+ctx.lineTo(72, 84);
+ctx.lineTo(96, 132);
+ctx.lineTo(120, 84);
+ctx.lineTo(138, 132);
+ctx.lineTo(156, 60);
+ctx.stroke();
+
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+// Download
+setTimeout(() => {
+  const link = document.createElement('a');
+  link.download = 'favicon-192.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}, 100);
+</script>
+</body>
+</html>

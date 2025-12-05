@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond 43268 80
+RewriteRule ^(.\*)$ https://mpc.icu/$1 [R,L]

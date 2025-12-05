@@ -1,0 +1,28 @@
+
+.theme-dark .dark\:logo {
+	border-bottom:1px solid #333;
+}
+
+
+.logo {
+	margin-top:0.3em;
+	padding-bottom: 1.3em;
+    border-bottom: 1px solid #ddd;
+}
+
+.theme-dark .dark\:menu>li {
+	border-bottom:1px solid #222;
+}
+
+.menu li {
+	border-bottom:1px solid #efefef;
+}
+
+
+.theme-dark .dark\:menu>li>ul>li {
+	border-bottom:0;
+}
+
+.menu li ul li {
+	border-bottom:0;
+}

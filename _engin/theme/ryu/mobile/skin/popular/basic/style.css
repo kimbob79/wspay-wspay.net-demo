@@ -1,0 +1,9 @@
+@charset "utf-8";
+
+/* 인기검색어 */
+#popular {display:block;text-align:left;padding:15px;border: 1px solid #ececec;border-bottom:0;background:#fff}
+#popular h2 {line-height:22px;font-size:1.2em;margin-bottom:10px}
+#popular h2 i {display:inline-block;margin-left:5px;color:#000;font-weight:bold}
+#popular div {clear:both;display:inline-block}
+#popular a {display:inline-block;height:22px;line-height:20px;background:#e1eaf3;color:#687389;margin-bottom:5px;margin-right:2px;padding:0 10px}
+#popular a:hover {background:#2faeaf;border-color:#694ecc;color:#fff}

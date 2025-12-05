@@ -1,0 +1,31 @@
+# robots.txt for 원성페이먼츠 판매자센터
+# 판매자 전용 시스템 - 크롤링 차단
+
+User-agent: *
+Disallow: /
+
+# 관리자 페이지 차단
+Disallow: /adm/
+Disallow: /_engin/
+Disallow: /data/
+
+# 로그인 및 보안 페이지 차단
+Disallow: /login.php
+Disallow: /login_check.php
+Disallow: /logout.php
+
+# 개인정보 및 결제 정보 차단
+Disallow: /payment*.php
+Disallow: /settlement*.php
+Disallow: /member*.php
+Disallow: /tid*.php
+
+# 시스템 파일 차단
+Disallow: /*.sql
+Disallow: /*.log
+Disallow: /*.bak
+Disallow: /vendor/
+Disallow: /PHPExcel/
+
+# Sitemap (내부용)
+# Sitemap: https://yourdomain.com/sitemap.xml

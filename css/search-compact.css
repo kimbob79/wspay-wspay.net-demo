@@ -1,0 +1,335 @@
+@charset "utf-8";
+
+/* 콤팩트 검색 영역 디자인 */
+
+.search-compact {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+}
+
+.search-compact .search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+/* 검색 그룹 */
+.search-compact .search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-compact .search-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+/* 입력 필드 스타일 */
+.search-compact .frm_input {
+    height: 40px !important;
+    padding: 0 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    background: #fff !important;
+}
+
+.search-compact .frm_input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* 날짜 입력 그룹 */
+.search-compact .date-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-compact .date-range input {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-compact .date-range span {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* 단축 버튼 그룹 */
+.search-compact .shortcut-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.search-compact .shortcut-buttons .btn_b {
+    height: 32px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+    color: #475569 !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+}
+
+.search-compact .shortcut-buttons .btn_b:hover {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-1px);
+}
+
+.search-compact .shortcut-buttons .btn_b:active {
+    transform: translateY(0);
+}
+
+/* 라디오 버튼 그룹 */
+.search-compact .radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.search-compact .radio-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    margin: 0;
+}
+
+.search-compact .radio-group input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3b82f6;
+    cursor: pointer;
+}
+
+/* 체크박스 그룹 */
+.search-compact .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.search-compact .checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    margin: 0;
+}
+
+.search-compact .checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3b82f6;
+    cursor: pointer;
+}
+
+/* 검색 입력 및 버튼 */
+.search-compact .search-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-compact .search-input-group input {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* 액션 버튼 */
+.search-compact .btn_b02,
+.search-compact .btn_b06 {
+    height: 40px !important;
+    padding: 0 20px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+}
+
+.search-compact .btn_b02 {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.search-compact .btn_b02:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+.search-compact .btn_b06 {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.search-compact .btn_b06:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+.search-compact .btn_b02:active,
+.search-compact .btn_b06:active {
+    transform: translateY(0);
+}
+
+/* 전체 버튼 */
+.search-compact .btn_b09 {
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    background: #fff !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    transition: all 0.2s ease !important;
+}
+
+.search-compact .btn_b09:hover {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* 모바일 반응형 */
+@media screen and (max-width: 768px) {
+    .search-compact {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .search-compact .search-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .search-compact .shortcut-buttons {
+        gap: 4px;
+    }
+
+    .search-compact .shortcut-buttons .btn_b {
+        height: 28px !important;
+        padding: 0 10px !important;
+        font-size: 11px !important;
+    }
+
+    .search-compact .radio-group,
+    .search-compact .checkbox-group {
+        gap: 8px;
+    }
+
+    .search-compact .radio-group label,
+    .search-compact .checkbox-group label {
+        font-size: 12px;
+    }
+
+    .search-compact .search-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-compact .search-input-group input {
+        width: 100%;
+    }
+
+    .search-compact .btn_b02,
+    .search-compact .btn_b06 {
+        width: 100%;
+    }
+}
+
+/* 구분선 */
+.search-compact .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    margin: 12px 0;
+    grid-column: 1 / -1;
+}
+
+/* 아이콘 스타일 */
+.search-compact .btn_b i {
+    margin-right: 4px;
+}
+
+/* 전체 레이아웃 개선 */
+.search-compact .search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.search-compact .search-row > * {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* 날짜 + 전체 버튼 통합 */
+.search-compact .date-control {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-compact .date-control .date-range {
+    flex: 1;
+}
+
+/* 라벨 스타일 개선 */
+.search-compact .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 인라인 레이아웃 */
+.search-compact .inline-group {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.search-compact .inline-group > div {
+    flex: 1;
+    min-width: 150px;
+}

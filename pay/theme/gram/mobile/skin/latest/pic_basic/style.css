@@ -1,0 +1,24 @@
+@charset "utf-8";
+
+/* 최근게시물 갤러리 탭 슬라이더 스킨 (latest) */
+
+.pic_ul {padding:20px 20px 12px;display:inline-block}
+.pic_ul li {position:relative;float:left;text-align:center;margin-left:8px;margin-bottom:8px}
+.pic_ul li:nth-child(3n+1) {margin-left:0;clear:both}
+.pic_ul li:after {display:block;visibility:hidden;clear:both;content:""}
+.pic_ul li .lt_img {}
+.pic_ul li .lt_img img {width:148px;height:148px}
+
+@media (max-width:480px){
+	.pic_ul li .lt_img img {width:100%;height:auto}	
+}
+
+.pic_ul li:hover .pic_cnt {display:inline-block}
+.pic_ul li .pic_cnt {display:none;position:absolute;top:0;left:0;width:100%;height:auto;line-height:148px;background:rgba(255, 74, 73, 0.5);color:#fff}
+.pic_ul li .fa-lock {display:inline-block;width:16px;line-height:14px;margin-right:5px;font-size:0.833em;color:#fff;background:#000;text-align:center;border-radius:2px;font-size:12px;border:1px solid #000}
+
+
+@media (max-width:720px){
+	.pic_tab li {width:calc(97% / 3);margin-left:1%;margin-bottom:1%;overflow:hidden}
+	.pic_ul li:nth-child(3n+1) {margin-left:1%;clear:both}
+}

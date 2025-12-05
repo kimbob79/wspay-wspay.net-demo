@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b /ad \"D:\\백업\\mpchosting_www\")",
+      "Bash(copy \"c:\\workspace_grooember\\mpchosting_www\\receipt.php\" \"c:\\workspace_grooember\\mpchosting_www\\receipt.php.bak\")",
+      "Bash(cmd /c copy \"c:\\workspace_grooember\\mpchosting_www\\receipt.php\" \"c:\\workspace_grooember\\mpchosting_www\\receipt.php.bak\")",
+      "Bash(dir \"C:\\workspace_grooember\\mpchosting_www\\img\")",
+      "Bash(findstr:*)",
+      "Bash(del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")",
+      "Bash(cmd /c del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,60 @@
+
+/* 기본 버튼 스타일 */
+a.btn_b, button.btn_b, input.btn_b {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3px;
+	padding: 0 10px;
+	text-decoration: none;
+	height: 24px;
+	line-height: 22px;
+	font-size: 11px;
+	font-weight: 500;
+	transition: all 0.15s ease;
+	gap: 4px;
+}
+
+a.btn_b:hover, button.btn_b:hover, input.btn_b:hover {
+	opacity: 0.85;
+}
+
+/* 테이블 내 버튼 - 더 콤팩트 */
+.table_list a.btn_b, .table_list button.btn_b, .table_list input.btn_b,
+.table_view a.btn_b, .table_view button.btn_b, .table_view input.btn_b {
+	height: 22px;
+	line-height: 20px;
+	padding: 0 8px;
+	font-size: 10px;
+	border-radius: 3px;
+}
+
+a.btn_b01, .btn_b01 {color:#555;background:#fff;border:1px solid #ddd;}
+a.btn_b01:hover, .btn_b01:hover {color:#333;background:#f5f5f5;}
+
+a.btn_b02, .btn_b02 {color:#fff;background:#333;border:1px solid #333;}
+a.btn_b02:hover, .btn_b02:hover {background:#444;color:#fff;}
+
+a.btn_b03, .btn_b03 {color:#fff;background:#1976d2;border:1px solid #1976d2;}
+a.btn_b03:hover, .btn_b03:hover {color:#fff;background:#1565c0;}
+
+a.btn_b04, .btn_b04 {color:#666;background:#fff;border:1px solid #ccc;}
+a.btn_b04:hover, .btn_b04:hover {color:#555;background:#f5f5f5;}
+
+a.btn_b05, .btn_b05 {color:#333;background:#fff;border:1px solid #333;}
+a.btn_b05:hover, .btn_b05:hover {color:#fff;background:#333;}
+
+a.btn_b06, .btn_b06 {color:#fff;background:#2e7d32;border:1px solid #2e7d32;}
+a.btn_b06:hover, .btn_b06:hover {color:#fff;background:#388e3c;}
+
+a.btn_b07, .btn_b07 {color:#555;background:#f5f5f5;border:1px solid #e0e0e0;}
+a.btn_b07:hover, .btn_b07:hover {color:#333;background:#eee;border:1px solid #ccc;}
+
+a.btn_b08, .btn_b08 {color:#333;background:#f8f9fa;border:1px solid #e0e0e0;}
+a.btn_b08:hover, .btn_b08:hover {color:#fff;background:#333;border:1px solid #333;}
+
+a.btn_b09, .btn_b09 {color:#555;background:#f5f5f5;border:1px solid #e0e0e0;}
+a.btn_b09:hover, .btn_b09:hover {color:#333;background:#fff;border:1px solid #333;}
+
+a.btn_b10, .btn_b10 {color:#fff;background:#e53935;border:1px solid #e53935;}
+a.btn_b10:hover, .btn_b10:hover {color:#fff;background:#c62828;}

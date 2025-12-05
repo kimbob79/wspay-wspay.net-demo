@@ -1,0 +1,114 @@
+<html lang="ko" data-dark="true"> <head> <meta charset="utf-8">
+</head>
+<form method="POST" enctype="application/x-www-form-urlencoded" action="https://api.withpay.co.kr/k1/?pid=the8al">
+	<table>
+		<tr>
+			<td>카드번호(last4)</td>
+			<td>last4</td>
+			<td>4</td>
+			<td>신용카드번호 뒤 4자리</td>
+			<td><input name="last4" value="1234"></td>
+		</tr>
+		<tr>
+			<td>거래금액</td>
+			<td>amount</td>
+			<td>10</td>
+			<td>&nbsp;</td>
+			<td><input name="amount" value="1004"></td>
+		</tr>
+		<tr>
+			<td>■ 원거래번호</td>
+			<td>rootTrxId</td>
+			<td>13</td>
+			<td>취소 거래 시 원 거래번호 전달</td>
+			<td><input name="rootTrxId" value=""></td>
+		</tr>
+		<tr>
+			<td>승인번호</td>
+			<td>authCd</td>
+			<td>8</td>
+			<td>&nbsp;</td>
+			<td><input name="authCd" value="24005717"></td>
+		</tr>
+		<tr>
+			<td>터미널ID</td>
+			<td>tmnId</td>
+			<td>50</td>
+			<td></td>
+			<td><input name="tmnId" value="pswht1111"></td>
+		</tr>
+		<tr>
+			<td>■ 주문번호</td>
+			<td>trackId</td>
+			<td>50</td>
+			<td>가맹점 주문번호(취소시 번호바뀜)</td>
+			<td><input name="trackId" value="20200218142719126570"></td>
+		</tr>
+		<tr>
+			<td>카드번호(bin)</td>
+			<td>bin</td>
+			<td>6</td>
+			<td>신용카드번호 앞 6자리</td>
+			<td><input name="bin" value="123456"></td>
+		</tr>
+		<tr>
+			<td>카드종류</td>
+			<td>cardType</td>
+			<td>10</td>
+			<td>신용/체크 , 승인시에만 전달</td>
+			<td><input name="cardType" value="체크"></td>
+		</tr>
+		<tr>
+			<td>■ 거래구분</td>
+			<td>trxType</td>
+			<td>6</td>
+			<td>승인: PAY / 취소: REFUND</td>
+			<td><input name="trxType" value="PAY"></td>
+		</tr>
+		<tr>
+			<td>매입사</td>
+			<td>acquirer</td>
+			<td>20</td>
+			<td>&nbsp;</td>
+			<td><input name="acquirer" value="국민"></td>
+		</tr>
+		<tr>
+			<td>■ 광원 거래번호</td>
+			<td>trxId</td>
+			<td>13</td>
+			<td>&nbsp;</td>
+			<td><input name="trxId" value="T200218084212"></td>
+		</tr>
+		<tr>
+			<td>발행사</td>
+			<td>issuer</td>
+			<td>50</td>
+			<td></td>
+			<td><input name="issuer" value="국민"></td>
+		</tr>
+		<tr>
+			<td>할부기간</td>
+			<td>installment</td>
+			<td>2</td>
+			<td>&nbsp;</td>
+			<td><input name="installment" value="00"></td>
+		</tr>
+		<tr>
+			<td>가맹점 ID</td>
+			<td>mchtId</td>
+			<td>50</td>
+			<td>&nbsp;</td>
+			<td><input name="mchtId" value="test"></td>
+		</tr>
+		<tr>
+			<td>■ 승인일시</td>
+			<td>trxDate</td>
+			<td>14</td>
+			<td>Ex) 20200206152343</td>
+			<td><input name="trxDate" value="20200218142719"></td>
+		</tr>
+	</table>
+	■ 취소시 변경 됨<br>
+	<button type="submit">전송</button>
+</form>
+</html>
