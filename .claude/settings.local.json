@@ -7,7 +7,8 @@
       "Bash(dir \"C:\\workspace_grooember\\mpchosting_www\\img\")",
       "Bash(findstr:*)",
       "Bash(del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")",
-      "Bash(cmd /c del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")"
+      "Bash(cmd /c del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")",
+      "Bash(dir /s /b \"C:\\workspace_grooember\\mpchosting_www\\*data*\")"
     ],
     "deny": [],
     "ask": []

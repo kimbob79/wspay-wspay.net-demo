@@ -528,10 +528,7 @@ jQuery(function($) {
 			<h2>BOARD <? if($is_admin){?><div class="arrow_box"><span class="arrow"></span></div><?}?></h2>
 			<ul id="gnb_1dul" class="drop_ul">
 				<li class="gnb_1dli">
-					<a href="<?php echo G5_BBS_URL; ?>/board.php?bo_table=notice" target="_self" class="gnb_1da <?php if($bo_table == "notice") { echo "on"; } ?>"><span>공지사항</span></a>
-				</li>
-				<li class="gnb_1dli">
-					<a href="<?php echo G5_BBS_URL; ?>/board.php?bo_table=qa" target="_self" class="gnb_1da <?php if($bo_table == "qa") { echo "on"; } ?>"><span>질문답변</span></a>
+					<a href="./?p=bbs&t=notice" target="_self" class="gnb_1da <?php if($p == "bbs" && $t == "notice") { echo "on"; } ?>"><span>공지사항</span></a>
 				</li>
 			</ul>
 		</div>
