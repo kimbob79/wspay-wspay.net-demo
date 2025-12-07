@@ -341,9 +341,9 @@ function update_daou(pg_id) {
 }
 
 function payment_copy(pay_id) {
-	PopupCenter('./payment_copy.php?pay_id='+pay_id, 'payment_copy', 300, 150, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
+	PopupCenter('./payment_copy.php?pay_id='+pay_id, 'payment_copy', 450, 550, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
-
+ 
 function payment_memo(pay_id) {
 	PopupCenter('./memo.php?pay_id='+pay_id, 'payment_memo', 600, 400, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
