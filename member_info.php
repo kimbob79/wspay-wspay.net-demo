@@ -304,9 +304,9 @@
 				</td>
 				<td>
 				<textarea style="width:100%; height:120px; border:0" readonly id="copy_<?php echo $i; ?>">
-- 워너페이 판매자센터 -
+- 선샤인페이 판매자센터 -
 상호명 : <?php echo $row['mb_nick']; ?> (<?php echo $stitle; ?>)
-접속주소 : http://www.mpc.icu
+접속주소 : https://wspay.net
 아이디 : <?php echo $row['mb_id']; ?>
 
 비밀번호 : <?php echo $row['mb_birth']; ?></textarea>

@@ -185,8 +185,8 @@
 .logo-container {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+    align-items: flex-end;
+    gap: 4px;
 }
 
 /* 폰트 비교 레이아웃 */
@@ -212,25 +212,38 @@
 
 .logo-main {
     font-family: 'Exo 2', sans-serif !important;
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    color: #fff !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: #FFB300 !important;
     background: none !important;
     -webkit-background-clip: unset !important;
-    -webkit-text-fill-color: #fff !important;
+    -webkit-text-fill-color: #FFB300 !important;
     background-clip: unset !important;
-    letter-spacing: 1px !important;
+    letter-spacing: 1.5px !important;
     line-height: 1;
+    text-shadow: 0 2px 8px rgba(255, 179, 0, 0.3);
+}
+
+.logo-pay {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    text-shadow: none;
 }
 
 .logo-sub {
     font-family: 'Exo 2', sans-serif !important;
-    font-size: 15px !important;
+    font-size: 10px !important;
     font-weight: 300 !important;
-    color: #93C5FD !important;
-    letter-spacing: 1px !important;
+    color: #fff !important;
+    letter-spacing: 0.5px !important;
     text-transform: none !important;
     line-height: 1;
+}
+
+.logo-small {
+    font-size: 10px !important;
+    font-weight: 300 !important;
+    letter-spacing: 0.3px !important;
 }
 
 /* 오른쪽 버튼 그룹 */
@@ -455,7 +468,11 @@
     }
 
     .logo-sub {
-        font-size: 15px !important;
+        font-size: 9px !important;
+    }
+
+    .logo-small {
+        font-size: 9px !important;
     }
 
     .header_ct {

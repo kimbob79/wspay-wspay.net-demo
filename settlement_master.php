@@ -491,7 +491,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php } ?>
 					<th colspan="2">가맹점</th>
 					<?php if($is_admin) { ?>
-					<th>계좌정보</th>
+					<th rowspan="2">계좌정보</th>
 					<?php } ?>
 				</tr>
 				<tr>
@@ -527,10 +527,6 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 					<th>수수료</th>
 					<th>수익금</th>
-
-					<?php if($is_admin) { ?>
-					<th style="width:10%;">계좌정보</th>
-					<?php } ?>
 				</tr>
 			</thead>
 			<tbody>
@@ -761,7 +757,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php } ?>
 					<th colspan="2">가맹점</th>
 					<?php if($is_admin) { ?>
-					<th>계좌정보</th>
+					<th rowspan="2">계좌정보</th>
 					<?php } ?>
 				</tr>
 				<tr>
@@ -788,9 +784,6 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<td style="text-align:right" colspan="3"><?php echo number_format($mb_pay5_total); ?></td>
 					<?php } ?>
 					<td style="text-align:right" colspan="2"><?php echo number_format($mb_pay6_total); ?></td>
-					<?php if($is_admin) { ?>
-					<td colspan="3"></td>
-					<?php } ?>
 				</tr>
 			</tfoot>
 		</table>

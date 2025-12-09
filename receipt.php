@@ -228,7 +228,7 @@ body {
 		</div>
 		<div class="row">
 			<span class="label">카드</span>
-			<span class="value"><?php echo $row['pay_card_name']; ?> / ****<?php echo $row['pay_card_num']; ?></span>
+			<span class="value"><?php echo $row['pay_card_name']; ?> / <?php echo $row['pay_card_num']; ?></span>
 		</div>
 		<div class="row">
 			<span class="label">할부</span>
@@ -280,7 +280,8 @@ body {
 		신용카드매출천표를 발급한 경우에는 세금계산서를 발행(교부)하지 않습니다.
 		</div>
 		<div class="contact">
-			등록번호: 02-004-00210<span>|</span><?php echo $pgc_tel; ?>
+			전자금융업 등록번호 02-004-00210<br>
+			대표번호 : <?php echo $pgc_tel; ?>
 		</div>
 	</div>
 

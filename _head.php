@@ -234,8 +234,8 @@ jQuery(function($) {
 		<div id="logo">
 			<a href="./">
 				<div class="logo-container">
-					<span class="logo-main">WONSUNG</span>
-					<span class="logo-sub">Payments</span>
+					<span class="logo-main">Sunshine <span class="logo-pay">Pay</span></span>
+					<span class="logo-sub">판매자센터</span>
 				</div>
 			</a>
 		</div>
