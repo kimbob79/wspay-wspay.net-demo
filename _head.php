@@ -91,7 +91,7 @@
 	<link rel="stylesheet" href="./css/mobile.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/table.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/search.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="/_engin/js/font-awesome/css/font-awesome.min.css?ver=2106181">
+	<link rel="stylesheet" href="/___engin/js/font-awesome/css/font-awesome.min.css?ver=2106181">
 	<link rel="stylesheet" href="./css/etc.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/board.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/popular.css?v=<?php echo time(); ?>">
@@ -101,7 +101,7 @@
 	<link rel="stylesheet" href="./css/header-custom.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/top-button.css?v=<?php echo time(); ?>">
 	<link type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" />
-	<script src="/_engin/js/jquery-1.12.4.min.js?v=<?php echo time(); ?>"></script>
+	<script src="/___engin/js/jquery-1.12.4.min.js?v=<?php echo time(); ?>"></script>
 	<script src="/js/mui.min.js?v=<?php echo time(); ?>"></script>
 </head>
 <body <? if($p == "main") {?>class="b_main"<?}?>>

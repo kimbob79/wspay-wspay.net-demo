@@ -12,8 +12,8 @@
 	<title>결제 메모 관리</title>
 	<link rel="stylesheet" href="./css/mobile.css?ver=<?php echo time(); ?>">
 	<link rel="stylesheet" href="./css/btn.css?ver=<?php echo time(); ?>">
-	<link rel="stylesheet" href="/_engin/js/font-awesome/css/font-awesome.min.css">
-	<script src="/_engin/js/jquery-1.12.4.min.js?ver=2106185"></script>
+	<link rel="stylesheet" href="/___engin/js/font-awesome/css/font-awesome.min.css">
+	<script src="/___engin/js/jquery-1.12.4.min.js?ver=2106185"></script>
 	<style>
 		:root {
 			--primary-color: #3b82f6;

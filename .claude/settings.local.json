@@ -10,7 +10,8 @@
       "Bash(cmd /c del \"C:\\workspace_grooember\\mpchosting_www\\img\\favicon-192.png.html\")",
       "Bash(dir /s /b \"C:\\workspace_grooember\\mpchosting_www\\*data*\")",
       "Bash(dir:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(move _engin ___engin)"
     ],
     "deny": [],
     "ask": []
