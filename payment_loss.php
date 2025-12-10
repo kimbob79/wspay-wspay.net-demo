@@ -494,9 +494,9 @@
 						$pg_name = "??";
 					}
 					if($row['dv_type'] == "1") {
-						$dv_type = "단말기";
+						$dv_type = "오프라인";
 					} else if($row['dv_type'] == "2") {
-						$dv_type = "수기";
+						$dv_type = "온라인";
 					}
 				?>
 				<tr class='<?php echo $bgcolor; ?>'>

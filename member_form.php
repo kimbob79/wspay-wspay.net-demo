@@ -258,6 +258,14 @@
 				</td>
 			</tr>
 
+			<tr>
+				<th style="color:red;"><label for="mb_settle_gbn">재정산 여부</label></th>
+				<td>
+					<label><input type="radio" name="mb_settle_gbn" value="Y" id="mb_settle_gbn_y" class="frm_input" <?php if($mb['mb_settle_gbn'] == 'Y') { echo "checked"; } ?>> 재정산</label>
+					<label style="margin-left:10px;"><input type="radio" name="mb_settle_gbn" value="N" id="mb_settle_gbn_n" class="frm_input" <?php if($mb['mb_settle_gbn'] != 'Y') { echo "checked"; } ?>> 미재정산</label>
+				</td>
+			</tr>
+
 			<?php /*
 			<input name="apiId./v2/user/me.query.property_keys" type="text" class="frm_input" placeholder="Property 키 목록, JSON Array를[&quot;properties.nickname&quot;]과 같은 형식 사용" value="">
 			*/ ?>

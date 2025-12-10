@@ -22,10 +22,10 @@
     white-space: nowrap;
 }
 
-.table_list tr.cancel1 {background:#fff5f5;}
-.table_list tr.cancel1:hover {background:#ffecec !important;}
-.table_list tr.cancel2 {background:#fffbfb;}
-.table_list tr.cancel2:hover {background:#fff5f5 !important;}
+.table_list tr.cancel1 {background:#ffc8c8;}
+.table_list tr.cancel1:hover {background:#ffb0b0 !important;}
+.table_list tr.cancel2 {background:#ffd8d8;}
+.table_list tr.cancel2:hover {background:#ffc0c0 !important;}
 .table_list tr {background:#fff;transition: background 0.15s ease;}
 .table_list tr:hover {background:#f8f9fa !important;}
 

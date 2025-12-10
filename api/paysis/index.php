@@ -32,63 +32,7 @@ $connCD = isset($_REQUEST['connCD']) ? trim($_REQUEST['connCD']) : '';					// �
 
 if($payMethod) {
 
-
-
-	$urls = [
-		'http://redpay.kr/api/paysis/index.php',
-		'https://pay.wnapay.net/paysis.do'
-	];
-
-	
-	$data = array('gid' => $gid, 'vid' => $vid, 'mid' => $mid, 'payMethod' => $payMethod, 'appCardCd' => $appCardCd, 'cancelYN' => $cancelYN, 'tid' => $tid, 'ediNo' => $ediNo, 'appDtm' => $appDtm, 'ccDnt' => $ccDnt, 'amt' => $amt, 'remainAmt' => $remainAmt, 'buyerId' => $buyerId, 'ordNm' => $ordNm, 'ordNo' => $ordNo, 'goodsName' => $goodsName, 'appNo' => $appNo, 'quota' => $quota, 'notiDnt' => $notiDnt, 'cardNo' => $cardNo, 'catId' => $catId, 'tPhone' => $tPhone, 'connCD' => $connCD);
-
-	$mh = curl_multi_init();
-	$handles = [];
-
-	foreach ($urls as $url) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_multi_add_handle($mh, $ch);
-		$handles[] = $ch;
-	}
-	do {
-		$status = curl_multi_exec($mh, $active);
-		if ($active) {
-			curl_multi_select($mh);
-		}
-	} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
-	$results = [];
-	foreach ($handles as $ch) {
-		$results[] = curl_multi_getcontent($ch);
-	}
-	foreach ($handles as $ch) {
-		curl_multi_remove_handle($mh, $ch);
-		curl_close($ch);
-	}
-	curl_multi_close($mh);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/******** 카정으로 전송 ************/
+	/******** 외부 전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
 
 	$pay_type = "Y";
 	$pay_cdatetime = "";

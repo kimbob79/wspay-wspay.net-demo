@@ -1,4 +1,7 @@
 <?php
+	error_reporting(E_ERROR | E_PARSE);
+	ini_set('display_errors', 1);
+
 	if(!$is_admin) { alert("관리자만 접속 가능합니다."); }
 	include_once(G5_LIB_PATH.'/register.lib.php');
 
@@ -23,6 +26,7 @@
 	$mb_id    = isset($_POST['mb_id']) ? trim($_POST['mb_id']) : ''; // 아이디
 	$mb_adult    = isset($_POST['mb_adult']) ? trim($_POST['mb_adult']) : ''; // 차액정산
 	$mb_dupinfo    = isset($_POST['mb_dupinfo']) ? trim($_POST['mb_dupinfo']) : ''; // 정산주기
+	$mb_settle_gbn    = isset($_POST['mb_settle_gbn']) ? trim($_POST['mb_settle_gbn']) : 'N'; // 재정산 여부
 
 
 	if($mb_level == 8) { // 본사
@@ -344,6 +348,7 @@
 						mb_certify = '{$mb_certify}',
 						mb_adult = '{$mb_adult}',
 						mb_dupinfo = '{$mb_dupinfo}',
+						mb_settle_gbn = '{$mb_settle_gbn}',
 						mb_zip1 = '$mb_zip1',
 						mb_zip2 = '$mb_zip2',
 						mb_addr1 = '{$mb_addr1}',
@@ -375,7 +380,6 @@
 
 	if($w == "u") {
 		$sql = " update {$g5['member_table']} set {$sql_common} where mb_id = '$mb_id' ";
-		sql_query($sql2);
 		$alert_msg = "수정";
 	} else {
 		$sql = " insert into {$g5['member_table']} set {$sql_common} , mb_datetime = '".G5_TIME_YMDHIS."', mb_id   = '{$mb_id}' ";

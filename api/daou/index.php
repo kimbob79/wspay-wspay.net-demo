@@ -27,26 +27,7 @@ $tmnId = isset($_REQUEST['tmnId']) ? trim($_REQUEST['tmnId']) : '';					//
 if($catId) {
 
 
-	/******** 카정으로 전송 ************/
-
-	$data = array('gid' => $gid, 'wTid' => $wTid, 'cardNm' => $cardNm, 'cancelYN' => $cancelYN, 'tid' => $tid, 'ediNo' => $ediNo, 'appDtm' => $appDtm, 'ccDnt' => $ccDnt, 'amt' => $amt, 'ordNm' => $ordNm, 'goodsName' => $goodsName, 'appNo' => $appNo, 'quota' => $quota, 'cardNo' => $cardNo, 'catId' => $catId, 'tmnId' => $tmnId);
-
-	$url = 'http://redpay.kr/api/daou/index.php';
-
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 요청 결과를 문자열로 받음
-	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // curl이 첫 응답 시간에 대한 timeout
-	curl_setopt($ch, CURLOPT_TIMEOUT, 60); // curl 전체 실행 시간에 대한 timeout
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 원격 서버의 인증서가 유효한지 검사하지 않음
-	$result = curl_exec($ch); // 요청 결과
-	curl_close($ch);
-
-	/******** 카정으로 전송 ************/
+	/******** 외부 전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
 
 	$pay_type = "Y";
 	$pay_cdatetime = "";

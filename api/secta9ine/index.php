@@ -44,77 +44,14 @@ if($paymethod) {
 
 
 
-	$urls = [
-		'http://redpay.kr/api/secta9ine/index.php',
-		'https://pay.wnapay.net/secta9ine.do'
-	];
-
-	
-	$data = array('cmd' => $cmd, 'paymethod' => $paymethod, 'payType' => $payType, 'requestFlag' => $requestFlag, 'mbrRefNo' => $mbrRefNo, 'mbrNo' => $mbrNo, 'refNo' => $refNo, 'tranDate' => $tranDate, 'tranTime' => $tranTime, 'orgRefNo' => $orgRefNo, 'orgTranDate' => $orgTranDate, 'vanCatId' => $vanCatId, 'cardMerchNo' => $cardMerchNo, 'applNo' => $applNo, 'issueCompanyNo' => $issueCompanyNo, 'acqCompanyNo' => $acqCompanyNo, 'cardNo' => $cardNo, 'installNo' => $installNo, 'goodsName' => $goodsName, 'amount' => $amount, 'customerName' => $customerName, 'customerTelNo' => $customerTelNo, 'customerEmail' => $customerEmail, 'sid' => $sid, 'retailerCode' => $retailerCode);
-
-	$mh = curl_multi_init();
-	$handles = [];
-
-	foreach ($urls as $url) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_multi_add_handle($mh, $ch);
-		$handles[] = $ch;
-	}
-	do {
-		$status = curl_multi_exec($mh, $active);
-		if ($active) {
-			curl_multi_select($mh);
-		}
-	} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
-	$results = [];
-	foreach ($handles as $ch) {
-		$results[] = curl_multi_getcontent($ch);
-	}
-	foreach ($handles as $ch) {
-		curl_multi_remove_handle($mh, $ch);
-		curl_close($ch);
-	}
-	curl_multi_close($mh);
+	/******** 외부 전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
 
 
 
 
 
 
-	// MBR 노티전송
-	$sql = "SELECT * FROM g5_noti WHERE nt_mbrno = '{$mbrNo}'";
-	$url_row = sql_fetch($sql);
-
-	if ($url_row['nt_id']) {
-		
-		$data = array('cmd' => $cmd, 'paymethod' => $paymethod, 'payType' => $payType, 'requestFlag' => $requestFlag, 'mbrRefNo' => $mbrRefNo, 'mbrNo' => $mbrNo, 'refNo' => $refNo, 'tranDate' => $tranDate, 'tranTime' => $tranTime, 'orgRefNo' => $orgRefNo, 'orgTranDate' => $orgTranDate, 'vanCatId' => $vanCatId, 'cardMerchNo' => $cardMerchNo, 'applNo' => $applNo, 'issueCompanyNo' => $issueCompanyNo, 'acqCompanyNo' => $acqCompanyNo, 'cardNo' => $cardNo, 'installNo' => $installNo, 'goodsName' => $goodsName, 'amount' => $amount, 'customerName' => $customerName, 'customerTelNo' => $customerTelNo, 'customerEmail' => $customerEmail, 'sid' => $sid, 'retailerCode' => $retailerCode);
-
-		$url = $url_row['nt_url'];
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 요청 결과를 문자열로 받음
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // curl이 첫 응답 시간에 대한 timeout
-		curl_setopt($ch, CURLOPT_TIMEOUT, 60); // curl 전체 실행 시간에 대한 timeout
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 원격 서버의 인증서가 유효한지 검사하지 않음
-		$result = curl_exec($ch); // 요청 결과
-		curl_close($ch);
-		
-		$sql = " update g5_noti set lastupdate = '".G5_TIME_YMDHIS."' where nt_id = '{$url_row['nt_id']}' ";
-		sql_query($sql);
-		
-	}
+	/******** MBR 노티전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
 
 
 

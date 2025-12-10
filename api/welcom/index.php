@@ -180,73 +180,7 @@ if ($hash_value == $hash_value_2) {
 
 
 
-	/*
-	$data = array('mid' => $mid, 'pay_type' => $pay_type, 'bank_code' => $bank_code, 'transaction_flag' => $transaction_flag, 'order_no' => $order_no, 'transaction_no' => $transaction_no, 'approval_ymdhms' => $approval_ymdhms, 'cancel_ymdhms' => $cancel_ymdhms, 'amount' => $amount, 'remain_amount' => $remain_amount, 'user_id' => $user_id, 'user_name' => $user_name, 'product_code' => $product_code, 'product_name' => $product_name, 'approval_no' => $approval_no, 'card_sell_mm' => $card_sell_mm, 'account_no' => $account_no, 'deposit_ymdhms' => $deposit_ymdhms, 'deposit_amount' => $deposit_amount, 'deposit_name' => $deposit_name, 'cash_seq' => $cash_seq, 'cash_approval_no' => $cash_approval_no, 'bank_name' => $bank_name);
-
-	//$url = 'https://noti.payvery.kr/api/v2/noti/welcome';
-	//$url = 'http://noti.payvery.kr/api/v2/noti/welcome';
-	$url = 'http://noti.payvery.kr/api/v1/noti/welcome';
-	
-
-	
-
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-
-	curl_setopt($ch, CURLOPT_POST, true);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 요청 결과를 문자열로 받음
-	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // curl이 첫 응답 시간에 대한 timeout
-	curl_setopt($ch, CURLOPT_TIMEOUT, 60); // curl 전체 실행 시간에 대한 timeout
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 원격 서버의 인증서가 유효한지 검사하지 않음
-	$result = curl_exec($ch); // 요청 결과
-	curl_close($ch);
-	*/
-//	'https://pgapi.thegoodpay.co.kr/api/webhooks/wanna',
-
-	$urls = [
-		'http://noti.payvery.kr/api/v2/noti/welcome',
-		'http://redpay.kr/api/welcom/index.php',
-		'https://pgapi.thegoodpay.co.kr/api/webhooks/wanna',
-		'https://pay.wnapay.net/welcom.do'
-	];
-
-	
-	$data = array('mid' => $mid, 'pay_type' => $pay_type, 'bank_code' => $bank_code, 'transaction_flag' => $transaction_flag, 'order_no' => $order_no, 'transaction_no' => $transaction_no, 'approval_ymdhms' => $approval_ymdhms, 'cancel_ymdhms' => $cancel_ymdhms, 'amount' => $amount, 'remain_amount' => $remain_amount, 'user_id' => $user_id, 'user_name' => $user_name, 'product_code' => $product_code, 'product_name' => $product_name, 'approval_no' => $approval_no, 'card_sell_mm' => $card_sell_mm, 'account_no' => $account_no, 'deposit_ymdhms' => $deposit_ymdhms, 'deposit_amount' => $deposit_amount, 'deposit_name' => $deposit_name, 'cash_seq' => $cash_seq, 'cash_approval_no' => $cash_approval_no, 'bank_name' => $bank_name);
-
-	$mh = curl_multi_init();
-	$handles = [];
-
-	foreach ($urls as $url) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_multi_add_handle($mh, $ch);
-		$handles[] = $ch;
-	}
-	do {
-		$status = curl_multi_exec($mh, $active);
-		if ($active) {
-			curl_multi_select($mh);
-		}
-	} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
-	$results = [];
-	foreach ($handles as $ch) {
-		$results[] = curl_multi_getcontent($ch);
-	}
-	foreach ($handles as $ch) {
-		curl_multi_remove_handle($mh, $ch);
-		curl_close($ch);
-	}
-	curl_multi_close($mh);
-
-	/******** 타사이트로 전송 ************/
+	/******** 외부 전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
 
 
 

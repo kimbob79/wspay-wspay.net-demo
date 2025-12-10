@@ -88,21 +88,21 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" href="/img/favicon.svg?v=<?php echo time(); ?>" as="image" type="image/svg+xml">
 	<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="./css/mobile.css?ver=<?php echo cssjs; ?>&t=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/table.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/search.css?ver=<?php echo cssjs; ?>">
+	<link rel="stylesheet" href="./css/mobile.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/table.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/search.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="/_engin/js/font-awesome/css/font-awesome.min.css?ver=2106181">
-	<link rel="stylesheet" href="./css/etc.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/board.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/popular.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/mui.min.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/btn.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/tooltip.css?ver=<?php echo cssjs; ?>">
-	<link rel="stylesheet" href="./css/header-custom.css?ver=<?php echo cssjs; ?>&t=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/top-button.css?ver=<?php echo cssjs; ?>">
+	<link rel="stylesheet" href="./css/etc.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/board.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/popular.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/mui.min.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/btn.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/tooltip.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/header-custom.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="./css/top-button.css?v=<?php echo time(); ?>">
 	<link type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" />
-	<script src="/_engin/js/jquery-1.12.4.min.js?ver=<?php echo cssjs; ?>"></script>
-	<script src="/js/mui.min.js?ver=<?php echo cssjs; ?>"></script>
+	<script src="/_engin/js/jquery-1.12.4.min.js?v=<?php echo time(); ?>"></script>
+	<script src="/js/mui.min.js?v=<?php echo time(); ?>"></script>
 </head>
 <body <? if($p == "main") {?>class="b_main"<?}?>>
 

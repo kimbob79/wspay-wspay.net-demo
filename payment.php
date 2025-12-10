@@ -9,7 +9,7 @@
 	$fr_dates = date("Y-m-d", strtotime($fr_date));
 	$to_dates = date("Y-m-d", strtotime($to_date));
 
-	$sql_common = " from g5_payment ";
+	$sql_common = " from g5_payment LEFT JOIN g5_member ON g5_payment.mb_6 = g5_member.mb_id ";
 
 	if($is_admin) {
 
@@ -372,7 +372,7 @@
 			<label><input type="radio" name="sfl" value="pay_num" <?php echo get_checked($sfl, "pay_num"); ?> checked>승번</label>
 			<label><input type="radio" name="sfl" value="mb_6_name" <?php echo get_checked($sfl, "mb_6_name"); ?>>가맹</label>
 			<label><input type="radio" name="sfl" value="dv_tid" <?php echo get_checked($sfl, "dv_tid"); ?>>TID</label>
-			<label><input type="radio" name="sfl" value="dv_tid_ori" <?php echo get_checked($sfl, "dv_tid_ori"); ?>>본TID</label>
+			<label><input type="radio" name="sfl" value="dv_tid_ori" <?php echo get_checked($sfl, "dv_tid_ori"); ?>>MID</label>
 			<label><input type="radio" name="sfl" value="pay" <?php echo get_checked($sfl, "pay"); ?>>금액</label>
 			<label><input type="radio" name="sfl" value="pay_card_name" <?php echo get_checked($sfl, "pay_card_name"); ?>>카드</label>
 			<label><input type="radio" name="sfl" value="pay_card_num" <?php echo get_checked($sfl, "pay_card_num"); ?>>카번</label>
@@ -435,7 +435,7 @@
 					<th>승인번호</th>
 					<th>TID</th>
 					<?php if($is_admin) { ?>
-					<th>본TID</th>
+					<th>MID</th>
 					<?php } ?>
 					<th>구분</th>
 					<th>결제종류</th>
@@ -453,7 +453,7 @@
 					$num = number_format($total_count - ($page - 1) * $rows - $i);
 
 					if($row['pay_type'] == "Y" && $row['pay_cdatetime'] > '0000-00-00 00:00:00') {
-						$pay_type = "승인취소";
+						$pay_type = "승인";
 						$bgcolor = 'cancel1';
 					} else if($row['pay_type'] == "Y") {
 						$pay_type = "승인";
@@ -504,14 +504,14 @@
 						$pg_name = "??";
 					}
 					if($row['dv_type'] == "1") {
-						$dv_type = "단말기";
+						$dv_type = "오프라인";
 					} else if($row['dv_type'] == "2") {
-						$dv_type = "수기";
+						$dv_type = "온라인";
 					}
 				?>
 				<tr class='<?php echo $bgcolor; ?>'>
 					<td class="center"><?php echo $num; ?></td>
-					<td class="td_name"><?php if($is_admin) { ?><span class="simptip-position-bottom simptip-movable half-arrow simptip-multiline simptip-black" data-tooltip="본　사 : <?php if($row['mb_1_name']) { echo $row['mb_1_name']. " / ".$row['mb_1_fee']; } ?>&#10;지　사 : <?php if($row['mb_2_name']) { echo $row['mb_2_name']. " / ".$row['mb_2_fee']; } ?>&#10;총　판 : <?php if($row['mb_3_name']) { echo $row['mb_3_name']. " / ".$row['mb_3_fee']; } ?>&#10;대리점 : <?php if($row['mb_4_name']) { echo $row['mb_4_name']. " / ".$row['mb_4_fee']; } ?>&#10;영업점 : <?php if($row['mb_5_name']) { echo $row['mb_5_name']. " / ".$row['mb_5_fee']; } ?>"><?php } ?><?php echo $row['mb_6_name']; ?><?php if($is_admin) { ?></span><?php } ?></td>
+					<td class="td_name"><?php if($is_admin) { ?><span class="simptip-position-bottom simptip-movable half-arrow simptip-multiline simptip-black" data-tooltip="본　사 : <?php if($row['mb_1_name']) { echo $row['mb_1_name']. " / ".$row['mb_1_fee']; } ?>&#10;지　사 : <?php if($row['mb_2_name']) { echo $row['mb_2_name']. " / ".$row['mb_2_fee']; } ?>&#10;총　판 : <?php if($row['mb_3_name']) { echo $row['mb_3_name']. " / ".$row['mb_3_fee']; } ?>&#10;대리점 : <?php if($row['mb_4_name']) { echo $row['mb_4_name']. " / ".$row['mb_4_fee']; } ?>&#10;영업점 : <?php if($row['mb_5_name']) { echo $row['mb_5_name']. " / ".$row['mb_5_fee']; } ?>"><?php } ?><?php if($is_admin) { echo $row['mb_settle_gbn'] == 'Y' ? '(O) ' : '(X) '; } ?><?php echo $row['mb_6_name']; ?><?php if($is_admin) { ?></span><?php } ?></td>
 					<td class="center"><?php echo $row['pay_datetime']; ?></td>
 					<td class="right"><?php echo number_format($row['pay']); ?><?php /* if($row['pay_cdatetime'] > 0) { echo "<del>"; }  echo number_format($row['pay']); if($row['pay_cdatetime'] > 0) { echo "</del>"; } */?></td>
 					<?php if($expansion == "y") { ?>

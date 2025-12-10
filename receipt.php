@@ -293,8 +293,56 @@ body {
 
 <script>
 $(function() {
-	$("#btnPrint").click(function() { window.print(); });
-	$("#btnClose").click(function() { self.close(); });
+	// 인쇄 버튼 - 모든 브라우저 지원
+	$("#btnPrint").click(function(e) {
+		e.preventDefault();
+		try {
+			window.print();
+		} catch(err) {
+			alert('인쇄 기능을 사용할 수 없습니다.');
+		}
+		return false;
+	});
+
+	// 닫기 버튼 - 모든 브라우저 지원
+	$("#btnClose").click(function(e) {
+		e.preventDefault();
+
+		// 방법 1: 팝업 창인 경우 닫기 시도
+		if (window.opener) {
+			try {
+				window.close();
+				return false;
+			} catch(err) {
+				// 닫기 실패시 다음 방법으로
+			}
+		}
+
+		// 방법 2: 히스토리가 있으면 뒤로가기
+		if (window.history.length > 1) {
+			window.history.back();
+		} else {
+			// 방법 3: 메인 페이지로 이동
+			window.location.href = './';
+		}
+
+		return false;
+	});
+
+	// 키보드 단축키 지원
+	$(document).keydown(function(e) {
+		// Ctrl+P 또는 Cmd+P - 인쇄
+		if ((e.ctrlKey || e.metaKey) && e.keyCode == 80) {
+			e.preventDefault();
+			$("#btnPrint").click();
+			return false;
+		}
+		// ESC - 닫기
+		if (e.keyCode == 27) {
+			$("#btnClose").click();
+			return false;
+		}
+	});
 });
 </script>
 </body>

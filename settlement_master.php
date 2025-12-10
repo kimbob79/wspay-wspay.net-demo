@@ -435,8 +435,8 @@ td span .fee_name {font-family: 'NanumGothic';}
 		<!-- 타입 선택 -->
 		<div class="radio-group">
 			<label><input type="radio" name="dv_type" value="" <?php if(!$dv_type) { echo "checked"; } ?>>전체</label>
-			<label><input type="radio" name="dv_type" value="2" <?php if($dv_type == "2") { echo "checked"; } ?>>수기</label>
-			<label><input type="radio" name="dv_type" value="1" <?php if($dv_type == "1") { echo "checked"; } ?>>단말기</label>
+			<label><input type="radio" name="dv_type" value="2" <?php if($dv_type == "2") { echo "checked"; } ?>>온라인</label>
+			<label><input type="radio" name="dv_type" value="1" <?php if($dv_type == "1") { echo "checked"; } ?>>오프라인</label>
 		</div>
 
 		<div class="search-divider"></div>
