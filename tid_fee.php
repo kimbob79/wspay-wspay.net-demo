@@ -7,60 +7,60 @@
 	if($is_admin) { // 관리자
 
 		if(adm_sql_common) {
-			$adm_sql = " mb_1 IN (".adm_sql_common.")";
+			$adm_sql = " a.mb_1 IN (".adm_sql_common.")";
 		} else {
 			$adm_sql = " (1)";
 		}
 
 	} else if($member['mb_level'] == 7) { // 지사
-		$sql_search = " mb_2 = '{$member['mb_id']}' ";
+		$sql_search = " a.mb_2 = '{$member['mb_id']}' ";
 	} else if($member['mb_level'] == 6) { // 총판
-		$sql_search = " mb_3 = '{$member['mb_id']}' ";
+		$sql_search = " a.mb_3 = '{$member['mb_id']}' ";
 	} else if($member['mb_level'] == 5) { // 대리점
-		$sql_search = " mb_4 = '{$member['mb_id']}' ";
+		$sql_search = " a.mb_4 = '{$member['mb_id']}' ";
 	} else if($member['mb_level'] == 4) { // 영업점
-		$sql_search = " mb_5 = '{$member['mb_id']}' ";
+		$sql_search = " a.mb_5 = '{$member['mb_id']}' ";
 	}
 
-	$sql_common = " from g5_device where ".$adm_sql;
+	$sql_common = " from g5_device a left join g5_member b on a.mb_6 = b.mb_id where ".$adm_sql;
 	/*
 	if ($is_admin != 'super')
 		$sql_search .= " and (gr_admin = '{$member['mb_id']}') ";
 	*/
 
-	if($l2) { $sql_search .= " and mb_pid2 = '{$l2}' "; }
-	if($l3) { $sql_search .= " and mb_pid3 = '{$l3}' "; }
-	if($l4) { $sql_search .= " and mb_pid4 = '{$l4}' "; }
-	if($l5) { $sql_search .= " and mb_pid5 = '{$l5}' "; }
-	if($l6) { $sql_search .= " and mb_pid6 = '{$l6}' "; }
-	if($l7) { $sql_search .= " and mb_pid7 = '{$l7}' "; }
-	if($device_type) { $sql_search .= " and dv_type = '{$device_type}' "; }
+	if($l2) { $sql_search .= " and a.mb_pid2 = '{$l2}' "; }
+	if($l3) { $sql_search .= " and a.mb_pid3 = '{$l3}' "; }
+	if($l4) { $sql_search .= " and a.mb_pid4 = '{$l4}' "; }
+	if($l5) { $sql_search .= " and a.mb_pid5 = '{$l5}' "; }
+	if($l6) { $sql_search .= " and a.mb_pid6 = '{$l6}' "; }
+	if($l7) { $sql_search .= " and a.mb_pid7 = '{$l7}' "; }
+	if($device_type) { $sql_search .= " and a.dv_type = '{$device_type}' "; }
 
 
 
 
-	if($dv_pg != null) { $sql_search .= " and dv_pg = '{$dv_pg}' "; }
-	if($dv_type) { $sql_search .= " and dv_type = '{$dv_type}' "; }
-	if($dv_certi) { $sql_search .= " and dv_certi = '{$dv_certi}' "; }
+	if($dv_pg != null) { $sql_search .= " and a.dv_pg = '{$dv_pg}' "; }
+	if($dv_type) { $sql_search .= " and a.dv_type = '{$dv_type}' "; }
+	if($dv_certi) { $sql_search .= " and a.dv_certi = '{$dv_certi}' "; }
 
 
-	if($membera) {	$sql_search .= " and mb_1 = '$membera' ";	}
-	if($memberb) {	$sql_search .= " and mb_2 = '$memberb' ";	}
-	if($memberc) {	$sql_search .= " and mb_3 = '$memberc' ";	}
-	if($memberd) {	$sql_search .= " and mb_4 = '$memberd' ";	}
-	if($membere) {	$sql_search .= " and mb_5 = '$membere' ";	}
-	if($memberf) {	$sql_search .= " and mb_6 = '$memberf' ";	}
-	if($mb_nick) {	$sql_search .= " and mb_6_name like '%$mb_nick%' ";	}
+	if($membera) {	$sql_search .= " and a.mb_1 = '$membera' ";	}
+	if($memberb) {	$sql_search .= " and a.mb_2 = '$memberb' ";	}
+	if($memberc) {	$sql_search .= " and a.mb_3 = '$memberc' ";	}
+	if($memberd) {	$sql_search .= " and a.mb_4 = '$memberd' ";	}
+	if($membere) {	$sql_search .= " and a.mb_5 = '$membere' ";	}
+	if($memberf) {	$sql_search .= " and a.mb_6 = '$memberf' ";	}
+	if($mb_nick) {	$sql_search .= " and a.mb_6_name like '%$mb_nick%' ";	}
 
-	if($mb_1_name) { $sql_search .= " and mb_1_name like '%{$mb_1_name}%' "; }
-	if($mb_2_name) { $sql_search .= " and mb_2_name like '%{$mb_2_name}%' "; }
-	if($mb_3_name) { $sql_search .= " and mb_3_name like '%{$mb_3_name}%' "; }
-	if($mb_4_name) { $sql_search .= " and mb_4_name like '%{$mb_4_name}%' "; }
-	if($mb_5_name) { $sql_search .= " and mb_5_name like '%{$mb_5_name}%' "; }
-	if($mb_6_name) { $sql_search .= " and mb_6_name like '%{$mb_6_name}%' "; }
+	if($mb_1_name) { $sql_search .= " and a.mb_1_name like '%{$mb_1_name}%' "; }
+	if($mb_2_name) { $sql_search .= " and a.mb_2_name like '%{$mb_2_name}%' "; }
+	if($mb_3_name) { $sql_search .= " and a.mb_3_name like '%{$mb_3_name}%' "; }
+	if($mb_4_name) { $sql_search .= " and a.mb_4_name like '%{$mb_4_name}%' "; }
+	if($mb_5_name) { $sql_search .= " and a.mb_5_name like '%{$mb_5_name}%' "; }
+	if($mb_6_name) { $sql_search .= " and a.mb_6_name like '%{$mb_6_name}%' "; }
 
-	if($dv_tid) { $sql_search .= " and dv_tid like '%{$dv_tid}%' "; }
-	if($mb_6_name) { $sql_search .= " and mb_6_name like '%{$mb_6_name}%' "; }
+	if($dv_tid) { $sql_search .= " and a.dv_tid like '%{$dv_tid}%' "; }
+	if($mb_6_name) { $sql_search .= " and a.mb_6_name like '%{$mb_6_name}%' "; }
 
 	if ($stx) {
 		$sql_search .= " and ( ";
@@ -79,7 +79,7 @@
 	if ($sst)
 		$sql_order = " order by {$sst} {$sod} ";
 	else
-		$sql_order = " order by dv_id desc ";
+		$sql_order = " order by a.dv_id desc ";
 
 	$sql = " select count(*) as cnt {$sql_common} {$sql_search} {$sql_order} ";
 	$row = sql_fetch($sql);
@@ -96,8 +96,8 @@
 	if ($page < 1) $page = 1; // 페이지가 없으면 첫 페이지 (1 페이지)
 	$from_record = ($page - 1) * $rows; // 시작 열을 구함
 
-	$sql = " select * {$sql_common} {$sql_search} {$sql_order} limit {$from_record}, {$rows} ";
-	$xlsx_sql = "select * {$sql_common} {$sql_search} {$sql_order} ";
+	$sql = " select a.*, b.mb_settle_gbn {$sql_common} {$sql_search} {$sql_order} limit {$from_record}, {$rows} ";
+	$xlsx_sql = "select a.*, b.mb_settle_gbn {$sql_common} {$sql_search} {$sql_order} ";
 	$result = sql_query($sql);
 
 //	echo $sql."<br><br>";
@@ -442,6 +442,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 			<thead>
 				<tr>
 					<th style="width:50px;" rowspan="2">번호</th>
+					<?php if($is_admin) { ?>
+					<th style="width:50px;" rowspan="2">구분</th>
+					<?php } ?>
 
 					<?php if($member['mb_level'] >= 8) { ?>
 					<th colspan="2">본사</th>
@@ -612,6 +615,11 @@ td span .fee_name {font-family: 'NanumGothic';}
 				?>
 				<tr>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;"><?php echo $num; ?></td>
+					<?php if($is_admin) { ?>
+					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>; <?php if($results != "ok") { echo "background:#ffff99"; } ?>">
+						<?php echo $row['mb_settle_gbn'] == 'Y' ? 'O' : 'X'; ?>
+					</td>
+					<?php } ?>
 
 					<?php if($member['mb_level'] >= 8) { ?>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;" class="td_name"><?php if($row['mb_1_name']) { ?><?php echo $row['mb_1_name']; ?><?php } ?></td>
@@ -680,6 +688,11 @@ td span .fee_name {font-family: 'NanumGothic';}
 				<?php } else { ?>
 				<tr>
 					<td><?php echo $num; ?></td>
+					<?php if($is_admin) { ?>
+					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>">
+						<?php echo $row['mb_settle_gbn'] == 'Y' ? 'O' : 'X'; ?>
+					</td>
+					<?php } ?>
 
 					<?php if($member['mb_level'] >= 8) { ?>
 					<td class="td_name"><?php if($row['mb_1_name']) { echo $row['mb_1_name']; } ?></td>

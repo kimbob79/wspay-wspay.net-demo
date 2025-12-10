@@ -258,6 +258,9 @@ select { width:100px; }
 					<?php } ?>
 					<?php } ?>
 					<th>그룹</th>
+					<?php if($is_admin && $level == '3') { ?>
+					<th>구분</th>
+					<?php } ?>
 					<?php if($level == '3') { ?>
 					<th>수기</th>
 					<?php } ?>
@@ -361,6 +364,11 @@ select { width:100px; }
 					</td>
 					<?php } ?>
 					<td><?php echo $title_s; ?></td>
+					<?php if($is_admin && $level == '3') { ?>
+					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>">
+						<?php echo $row['mb_settle_gbn'] == 'Y' ? 'O' : 'X'; ?>
+					</td>
+					<?php } ?>
 					<?php if($level == '3') { ?>
 					<td><?php echo $mb_mailling; ?></td>
 					<?php } ?>

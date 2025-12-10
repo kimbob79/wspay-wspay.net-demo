@@ -468,6 +468,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 		<table class="table_list td_pd">
 			<thead>
 				<tr>
+					<?php if($is_admin) { ?>
+					<th rowspan="2">구분</th>
+					<?php } ?>
 					<th rowspan="2">가맹점명</th>
 					<th rowspan="2">TID</th>
 					<th rowspan="2">승인</th>
@@ -678,7 +681,12 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 				?>
 				<tr>
-					<td class="td_name"><?php if($is_admin) { echo $row['mb_settle_gbn'] == 'Y' ? '(O) ' : '(X) '; } ?><?php echo $row['mb_6_name']; ?></td>
+					<?php if($is_admin) { ?>
+					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>">
+						<?php echo $row['mb_settle_gbn'] == 'Y' ? 'O' : 'X'; ?>
+					</td>
+					<?php } ?>
+					<td class="td_name"><?php echo $row['mb_6_name']; ?></td>
 					<td><span class='tid'><?php echo $row['dv_tid']; ?></span></td>
 
 					<td><?php echo $row['scnt']; ?></td>
@@ -734,6 +742,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 			</tbody>
 			<tfoot>
 				<tr style="border-top:1px solid #e5e5e5;">
+					<?php if($is_admin) { ?>
+					<th>구분</th>
+					<?php } ?>
 					<th>가맹점명</th>
 					<th>TID</th>
 					<th>승인</th>
@@ -762,7 +773,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php } ?>
 				</tr>
 				<tr>
-					<td colspan="2">합계</td>
+					<td colspan="<?php echo $is_admin ? '3' : '2'; ?>">합계</td>
 					<td><?php echo number_format($scnt_total); ?></td>
 					<td><?php echo number_format($ccnt_total); ?></td>
 
