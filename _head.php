@@ -379,8 +379,9 @@ jQuery(function($) {
 			<h2>NOTI <div class="arrow_box"><span class="arrow"></span></div></h2>
 			<ul id="gnb_1dul" class="drop_ul">
 				<li class="gnb_1dli">
-					<a href="/?p=noti_list" target="_self" class="gnb_1da <?php if($p == "noti_list") { echo "on"; } ?>"><span>섹타나인 NOTI 외부전송</span></a>
+					<a href="/?p=noti_list" target="_self" class="gnb_1da <?php if($p == "noti_list") { echo "on"; } ?>"><span>NOTI외부전송</span></a>
 				</li>
+				<?php /*
 				<li class="gnb_1dli">
 					<a href="/?p=payment_k1" target="_self" class="gnb_1da <?php if($p == "payment_k1") { echo "on"; } ?>"><span>광원</span></a>
 				</li>
@@ -393,15 +394,18 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/?p=payment_welcom" target="_self" class="gnb_1da <?php if($p == "payment_welcom") { echo "on"; } ?>"><span>웰컴</span></a>
 				</li>
+				*/ ?>
 				<li class="gnb_1dli">
 					<a href="/?p=payment_paysis" target="_self" class="gnb_1da <?php if($p == "payment_paysis") { echo "on"; } ?>"><span>페이시스</span></a>
 				</li>
 				<li class="gnb_1dli">
 					<a href="/?p=payment_stn" target="_self" class="gnb_1da <?php if($p == "payment_stn") { echo "on"; } ?>"><span>섹타나인</span></a>
 				</li>
+				<?php /*
 				<li class="gnb_1dli">
 					<a href="/?p=payment_daou" target="_self" class="gnb_1da <?php if($p == "payment_daou") { echo "on"; } ?>"><span>다우</span></a>
 				</li>
+				*/ ?>
 			</ul>
 		</div>
 		<?php } ?>
