@@ -163,9 +163,9 @@ if( is_admin($mb['mb_id']) && is_dir(G5_DATA_PATH.'/tmp/') ){
 
 
 if($url) {
-	$link = "./?p=".$url;
+	$link = "./".$url;
 } else {
-	$link = "./?p=main";
+	$link = "./main";
 }
 
 goto_url($link);

@@ -8,7 +8,7 @@
 
 <!-- SEO Meta Tags -->
 <meta name="description" content="원성페이먼츠 판매자센터 로그인 - 결제 관리, 정산 조회, 가맹점 관리를 위한 통합 솔루션" />
-<meta name="keywords" content="원성페이먼츠, 판매자센터, 로그인, 결제관리, 정산조회, 가맹점관리, WONSUNG Payments" />
+<meta name="keywords" content="Sunshine Pay, 판매자센터, 로그인, 결제관리, 정산조회, 가맹점관리" />
 <meta name="author" content="원성페이먼츠" />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="googlebot" content="noindex, nofollow" />
@@ -486,14 +486,18 @@ body {
 .logo-main {
 	font-size: 28px;
 	font-weight: 800;
-	color: #fff;
+	color: #FFC107;
 	letter-spacing: 1px;
+}
+
+.logo-pay {
+	color: #fff;
 }
 
 .logo-sub {
 	font-size: 18px;
 	font-weight: 500;
-	color: var(--accent-light);
+	color: #fff;
 	font-style: italic;
 }
 
@@ -831,10 +835,9 @@ body {
 			<!-- Logo Section -->
 			<div class="logo-section">
 				<div class="logo-title">
-					<span class="logo-main">WONSUNG</span>
-					<span class="logo-sub">Payments</span>
+					<span class="logo-main">Sunshine <span class="logo-pay">Pay</span></span>
 				</div>
-				<p class="logo-desc">가맹점 관리자 솔루션</p>
+				<p class="logo-desc">판매자센터</p>
 			</div>
 
 			<!-- Login Form -->

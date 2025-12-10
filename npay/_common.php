@@ -1,5 +1,5 @@
 <?php
-	include_once('../___engin/common.php');
+	include_once('../gnu_module/common.php');
 	/*
 	if($member['mb_level'] < "3") {
 		alert("회원만 가능합니다.");

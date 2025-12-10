@@ -1,6 +1,6 @@
 <?php
 define('G5_IS_ADMIN', true);
-require_once '../___engin/common.php';
+require_once '../gnu_module/common.php';
 
 if (isset($token)) {
 	$token = @htmlspecialchars(strip_tags($token), ENT_QUOTES);

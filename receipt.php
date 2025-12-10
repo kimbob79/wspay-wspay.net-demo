@@ -40,7 +40,7 @@
 <meta name="format-detection" content="telephone=no">
 <title>신용카드 매출전표</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<script src="<?php echo G5_JS_URL; ?>/jquery-1.12.4.min.js?ver=210618"></script>
+<script src="/gnu_module/js/jquery-1.12.4.min.js?ver=210618"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {

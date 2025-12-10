@@ -6,7 +6,7 @@ Disallow: /
 
 # 관리자 페이지 차단
 Disallow: /adm/
-Disallow: /___engin/
+Disallow: /gnu_module/
 Disallow: /data/
 
 # 로그인 및 보안 페이지 차단

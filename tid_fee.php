@@ -307,6 +307,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 				<option value="">인증/비인증</option>
 				<option value="1" <?php if($dv_certi == "1") { echo "selected"; } ?>>인증</option>
 				<option value="2" <?php if($dv_certi == "2") { echo "selected"; } ?>>비인증</option>
+				<option value="3" <?php if($dv_certi == "3") { echo "selected"; } ?>>구인증</option>
 			</select>
 		</div>
 		<div class="search-divider"></div>
@@ -539,8 +540,10 @@ td span .fee_name {font-family: 'NanumGothic';}
 					}
 					if($row['dv_certi'] == 1) {
 						$dv_certis = "인증";
-					} else {
+					} else if($row['dv_certi'] == 2) {
 						$dv_certis = "비인증";
+					} else if($row['dv_certi'] == 3) {
+						$dv_certis = "구인증";
 					}
 
 
@@ -665,6 +668,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 							<option value="">인증/비인증</option>
 							<option value="1" <?php if($row['dv_certi'] == "1") { echo "selected"; } ?>>인증</option>
 							<option value="2" <?php if($row['dv_certi'] == "2") { echo "selected"; } ?>>비인증</option>
+							<option value="3" <?php if($row['dv_certi'] == "3") { echo "selected"; } ?>>구인증</option>
 						</select>
 					</td>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;"><input type="text" autocomplete="off" name="sftp_mbrno" value="<?php echo $row['sftp_mbrno']; ?>" class="frm_input" size="4"></td>

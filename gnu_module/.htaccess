@@ -2,7 +2,7 @@
 #### 그누보드5 rewrite BEGIN #####
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /___engin/
+RewriteBase /gnu_module/
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]

@@ -935,7 +935,7 @@ body{background:#ffffff}
 #logo a{color:#fff;font-size: unset;font-weight: 700;letter-spacing: -0.5px;text-decoration:none;}
 #logo a img{height:14px}
 
-/* WONSUNG Payments Logo - Clean Typography Style */
+/* Sunshine Pay Logo - Clean Typography Style */
 .logo-container {
 	display: flex;
 	align-items: baseline;
@@ -946,6 +946,10 @@ body{background:#ffffff}
 	font-size: 18px;
 	font-weight: 700;
 	letter-spacing: 0.5px;
+	color: #FFC107;
+}
+
+.logo-pay {
 	color: #fff;
 }
 
@@ -953,7 +957,7 @@ body{background:#ffffff}
 	font-size: 18px;
 	font-weight: 300;
 	letter-spacing: 0.5px;
-	color: #93C5FD;
+	color: #fff;
 }
 
 .logo-container:hover .logo-main {
@@ -961,7 +965,7 @@ body{background:#ffffff}
 }
 
 .logo-container:hover .logo-sub {
-	color: #BFDBFE;
+	opacity: 0.9;
 }
 
 .logo-main, .logo-sub {

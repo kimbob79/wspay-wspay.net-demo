@@ -11,7 +11,8 @@
       "Bash(dir /s /b \"C:\\workspace_grooember\\mpchosting_www\\*data*\")",
       "Bash(dir:*)",
       "Bash(cmd /c:*)",
-      "Bash(move _engin ___engin)"
+      "Bash(move _engin ___engin)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

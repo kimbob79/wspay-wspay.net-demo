@@ -1,3 +1,39 @@
 RewriteEngine On
-RewriteCond 43268 80
-RewriteRule ^(.\*)$ https://mpc.icu/$1 [R,L]
+
+# 메인 페이지
+RewriteRule ^main/?$ index.php?p=main [QSA,L]
+
+# 결제 관련
+RewriteRule ^txn/merchant/?$ index.php?p=payment_member [QSA,L]
+RewriteRule ^txn/missing/?$ index.php?p=payment_loss [QSA,L]
+RewriteRule ^txn/daily/?$ index.php?p=payment_day [QSA,L]
+RewriteRule ^txn/cancel/?$ index.php?p=cancel_payment [QSA,L]
+RewriteRule ^txn/memo/?$ index.php?p=payment_memo [QSA,L]
+RewriteRule ^txn/?$ index.php?p=payment [QSA,L]
+
+# 정산 관련
+RewriteRule ^calc/simple/?$ index.php?p=settlement_master2 [QSA,L]
+RewriteRule ^calc/store/?$ index.php?p=settlement_master3 [QSA,L]
+RewriteRule ^calc/?$ index.php?p=settlement [QSA,L]
+
+# 차액정산
+RewriteRule ^diff/member/?$ index.php?p=sftp_member [QSA,L]
+RewriteRule ^diff/tid/?$ index.php?p=sftp_tid [QSA,L]
+RewriteRule ^diff/data/?$ index.php?p=sftp_payment [QSA,L]
+RewriteRule ^diff/files/?$ index.php?p=sftp_data [QSA,L]
+
+# 수수료/TID 관리
+RewriteRule ^fee/alt/?$ index.php?p=tid_fee2 [QSA,L]
+RewriteRule ^fee/tid/?$ index.php?p=tid_pay [QSA,L]
+RewriteRule ^fee/?$ index.php?p=tid_fee [QSA,L]
+RewriteRule ^manage/tid/?$ index.php?p=adm_tid [QSA,L]
+
+# 회원/접속 정보
+RewriteRule ^access/?$ index.php?p=member_info [QSA,L]
+RewriteRule ^store/?$ index.php?p=member [QSA,L]
+
+# 게시판
+RewriteRule ^board/?$ index.php?p=bbs [QSA,L]
+
+# 로그아웃
+RewriteRule ^logout/?$ index.php?p=logout [QSA,L]

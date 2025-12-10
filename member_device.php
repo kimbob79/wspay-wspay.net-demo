@@ -119,6 +119,7 @@
 					<option value="">인증/비인증 선택</option>
 					<option value="1" <?php if($row['dv_certi'] == "1") { echo "selected"; } ?>>인증</option>
 					<option value="2" <?php if($row['dv_certi'] == "2") { echo "selected"; } ?>>비인증</option>
+					<option value="3" <?php if($row['dv_certi'] == "3") { echo "selected"; } ?>>구인증</option>
 				</select>
 			</td>
 		</tr>

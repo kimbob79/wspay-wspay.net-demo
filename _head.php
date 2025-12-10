@@ -9,7 +9,7 @@
 
 	<!-- SEO Meta Tags -->
 	<meta name="description" content="원성페이먼츠 판매자센터 - 결제 관리, 정산 조회, 가맹점 관리를 위한 통합 솔루션. 실시간 결제내역 확인 및 정산 관리 시스템.">
-	<meta name="keywords" content="원성페이먼츠, 판매자센터, 결제관리, 정산조회, 가맹점관리, PG, 결제시스템, WONSUNG Payments">
+	<meta name="keywords" content="Sunshine Pay, 판매자센터, 결제관리, 정산조회, 가맹점관리, PG, 결제시스템">
 	<meta name="author" content="원성페이먼츠">
 	<meta name="robots" content="noindex, nofollow">
 	<meta name="googlebot" content="noindex, nofollow">
@@ -88,20 +88,20 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" href="/img/favicon.svg?v=<?php echo time(); ?>" as="image" type="image/svg+xml">
 	<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="./css/mobile.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/table.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/search.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="/___engin/js/font-awesome/css/font-awesome.min.css?ver=2106181">
-	<link rel="stylesheet" href="./css/etc.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/board.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/popular.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/mui.min.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/btn.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/tooltip.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/header-custom.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="./css/top-button.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/mobile.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/table.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/search.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/gnu_module/js/font-awesome/css/font-awesome.min.css?ver=2106181">
+	<link rel="stylesheet" href="/css/etc.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/board.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/popular.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/mui.min.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/btn.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/tooltip.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/header-custom.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/top-button.css?v=<?php echo time(); ?>">
 	<link type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" />
-	<script src="/___engin/js/jquery-1.12.4.min.js?v=<?php echo time(); ?>"></script>
+	<script src="/gnu_module/js/jquery-1.12.4.min.js?v=<?php echo time(); ?>"></script>
 	<script src="/js/mui.min.js?v=<?php echo time(); ?>"></script>
 </head>
 <body <? if($p == "main") {?>class="b_main"<?}?>>
@@ -228,11 +228,11 @@ jQuery(function($) {
 				<span class="sound_only">모바일 전체메뉴</span>
 			</a>
 			<?php if($is_admin) { ?>
-				<a href="./" class="mu_home" style="top: 0px;"><i class="fa fa-home" aria-hidden="true"></i></a>
+				<a href="/" class="mu_home" style="top: 0px;"><i class="fa fa-home" aria-hidden="true"></i></a>
 			<?php } ?>
 		</div>
 		<div id="logo">
-			<a href="./">
+			<a href="/">
 				<div class="logo-container">
 					<span class="logo-main">Sunshine <span class="logo-pay">Pay</span></span>
 					<span class="logo-sub">판매자센터</span>
@@ -288,7 +288,7 @@ jQuery(function($) {
 						<li><a href="https://theme.sir.kr/gnuboard55/bbs/point.php" target="_blank">포인트<span class="arm_on">1,000</span></a></li>
 						<li><a href="https://theme.sir.kr/gnuboard55/bbs/scrap.php" target="_blank">스크랩<span>0</span></a></li>
 						*/ ?>
-						<li class="tnb_logout"><a href="./?p=logout">로그아웃</a></li>
+						<li class="tnb_logout"><a href="/logout">로그아웃</a></li>
 					</ul>
 				</div>
 				<script>
@@ -328,7 +328,7 @@ jQuery(function($) {
 	<div id="gnb">
 		<!--<div class="gnb_side logo_gnb">
 			<div id="logo">
-				<a href="./">
+				<a href="/">
 					<img src="./img/pg_logo.png" alt="WANNA" class="pc_logo">
 					<img src="./img/mpg_logo.png" alt="WANNA" class="mob_logo">
 					<?/*WANNA*/?>
@@ -340,7 +340,7 @@ jQuery(function($) {
 			<h2>PAY</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./npay/" target="_target" class="gnb_1da <?php if($p == "npay") { echo "on"; } ?>"><span>수기결제</span></a>
+					<a href="/npay/" target="_target" class="gnb_1da <?php if($p == "npay") { echo "on"; } ?>"><span>수기결제</span></a>
 				</li>
 			</ul>
 		</div>
@@ -349,27 +349,27 @@ jQuery(function($) {
 			<h2>PAYMENT</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=payment" target="_self" class="gnb_1da <?php if($p == "payment") { echo "on"; } ?>"><span>실시간 결제내역</span></a>
+					<a href="/txn" target="_self" class="gnb_1da <?php if($p == "payment") { echo "on"; } ?>"><span>실시간 결제내역</span></a>
 				</li>
 				<?php /*if($member['mb_level'] >= 4) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_member" target="_self" class="gnb_1da <?php if($p == "payment_member") { echo "on"; } ?>"><span>가맹점별 결제내역</span></a>
+					<a href="/txn/merchant" target="_self" class="gnb_1da <?php if($p == "payment_member") { echo "on"; } ?>"><span>가맹점별 결제내역</span></a>
 				</li>
 				<?php }*/ ?>
 				<?php if($is_admin) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_loss" target="_self" class="gnb_1da <?php if($p == "payment_loss") { echo "on"; } ?>"><span>누락 결제내역</span></a>
+					<a href="/txn/missing" target="_self" class="gnb_1da <?php if($p == "payment_loss") { echo "on"; } ?>"><span>누락 결제내역</span></a>
 				</li>
 				<?php /*?>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_day" target="_self" class="gnb_1da <?php if($p == "payment_day") { echo "on"; } ?>"><span>일간 결제내역</span></a>
+					<a href="/txn/daily" target="_self" class="gnb_1da <?php if($p == "payment_day") { echo "on"; } ?>"><span>일간 결제내역</span></a>
 				</li>
 				<?php */ ?>
 				<li class="gnb_1dli">
-					<a href="./?p=cancel_payment" target="_self" class="gnb_1da <?php if($p == "cancel_payment") { echo "on"; } ?>"><span>취소 내역</span></a>
+					<a href="/txn/cancel" target="_self" class="gnb_1da <?php if($p == "cancel_payment") { echo "on"; } ?>"><span>취소 내역</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_memo" target="_self" class="gnb_1da <?php if($p == "payment_memo") { echo "on"; } ?>"><i class="fa fa-sticky-note-o"></i> <span>결제내역 메모</span></a>
+					<a href="/txn/memo" target="_self" class="gnb_1da <?php if($p == "payment_memo") { echo "on"; } ?>"><i class="fa fa-sticky-note-o"></i> <span>결제내역 메모</span></a>
 				</li>
 				<?php } ?>
 			</ul>
@@ -379,28 +379,28 @@ jQuery(function($) {
 			<h2>NOTI <div class="arrow_box"><span class="arrow"></span></div></h2>
 			<ul id="gnb_1dul" class="drop_ul">
 				<li class="gnb_1dli">
-					<a href="./?p=noti_list" target="_self" class="gnb_1da <?php if($p == "noti_list") { echo "on"; } ?>"><span>섹타나인 NOTI 외부전송</span></a>
+					<a href="/?p=noti_list" target="_self" class="gnb_1da <?php if($p == "noti_list") { echo "on"; } ?>"><span>섹타나인 NOTI 외부전송</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_k1" target="_self" class="gnb_1da <?php if($p == "payment_k1") { echo "on"; } ?>"><span>광원</span></a>
+					<a href="/?p=payment_k1" target="_self" class="gnb_1da <?php if($p == "payment_k1") { echo "on"; } ?>"><span>광원</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_korpay" target="_self" class="gnb_1da <?php if($p == "payment_korpay") { echo "on"; } ?>"><span>코페이</span></a>
+					<a href="/?p=payment_korpay" target="_self" class="gnb_1da <?php if($p == "payment_korpay") { echo "on"; } ?>"><span>코페이</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_danal" target="_self" class="gnb_1da <?php if($p == "payment_danal") { echo "on"; } ?>"><span>다날</span></a>
+					<a href="/?p=payment_danal" target="_self" class="gnb_1da <?php if($p == "payment_danal") { echo "on"; } ?>"><span>다날</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_welcom" target="_self" class="gnb_1da <?php if($p == "payment_welcom") { echo "on"; } ?>"><span>웰컴</span></a>
+					<a href="/?p=payment_welcom" target="_self" class="gnb_1da <?php if($p == "payment_welcom") { echo "on"; } ?>"><span>웰컴</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_paysis" target="_self" class="gnb_1da <?php if($p == "payment_paysis") { echo "on"; } ?>"><span>페이시스</span></a>
+					<a href="/?p=payment_paysis" target="_self" class="gnb_1da <?php if($p == "payment_paysis") { echo "on"; } ?>"><span>페이시스</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_stn" target="_self" class="gnb_1da <?php if($p == "payment_stn") { echo "on"; } ?>"><span>섹타나인</span></a>
+					<a href="/?p=payment_stn" target="_self" class="gnb_1da <?php if($p == "payment_stn") { echo "on"; } ?>"><span>섹타나인</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=payment_daou" target="_self" class="gnb_1da <?php if($p == "payment_daou") { echo "on"; } ?>"><span>다우</span></a>
+					<a href="/?p=payment_daou" target="_self" class="gnb_1da <?php if($p == "payment_daou") { echo "on"; } ?>"><span>다우</span></a>
 				</li>
 			</ul>
 		</div>
@@ -409,14 +409,14 @@ jQuery(function($) {
 			<h2>SETTLEMENT</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=settlement<?php if($member['mb_level'] == "3") { ?>&MM=<?php echo date("n"); ?>&YYYY=<?php echo date("Y"); ?><?php } ?>" target="_self" class="gnb_1da <?php if($p == "settlement") { echo "on"; } ?>"><span>실시간 정산조회</span></a>
+					<a href="/calc<?php if($member['mb_level'] == "3") { ?>?MM=<?php echo date("n"); ?>&YYYY=<?php echo date("Y"); ?><?php } ?>" target="_self" class="gnb_1da <?php if($p == "settlement") { echo "on"; } ?>"><span>실시간 정산조회</span></a>
 				</li>
 				<?php /*if($is_admin) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=settlement_master2" target="_self" class="gnb_1da <?php if($p == "settlement_master2") { echo "on"; } ?>"><span>정산조회 - 간소화</span></a>
+					<a href="/calc/simple" target="_self" class="gnb_1da <?php if($p == "settlement_master2") { echo "on"; } ?>"><span>정산조회 - 간소화</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=settlement_master3" target="_self" class="gnb_1da <?php if($p == "settlement_master3") { echo "on"; } ?>"><span>정산조회 - 가맹점</span></a>
+					<a href="/calc/store" target="_self" class="gnb_1da <?php if($p == "settlement_master3") { echo "on"; } ?>"><span>정산조회 - 가맹점</span></a>
 				</li>
 				<?php }*/ ?>
 			</ul>
@@ -426,16 +426,16 @@ jQuery(function($) {
 			<h2>SETTLEMENT SFTP</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=sftp_member" target="_self" class="gnb_1da <?php if($p == "sftp_member") { echo "on"; } ?>"><span>차액정산 회원관리</span></a>
+					<a href="/diff/member" target="_self" class="gnb_1da <?php if($p == "sftp_member") { echo "on"; } ?>"><span>차액정산 회원관리</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=sftp_tid" target="_self" class="gnb_1da <?php if($p == "sftp_tid") { echo "on"; } ?>"><span>차액정산 TID</span></a>
+					<a href="/diff/tid" target="_self" class="gnb_1da <?php if($p == "sftp_tid") { echo "on"; } ?>"><span>차액정산 TID</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=sftp_payment" target="_self" class="gnb_1da <?php if($p == "sftp_payment") { echo "on"; } ?>"><span>차액정산 데이터 생성</span></a>
+					<a href="/diff/data" target="_self" class="gnb_1da <?php if($p == "sftp_payment") { echo "on"; } ?>"><span>차액정산 데이터 생성</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=sftp_data" target="_self" class="gnb_1da <?php if($p == "sftp_data") { echo "on"; } ?>"><span>차액정산 파일조회</span></a>
+					<a href="/diff/files" target="_self" class="gnb_1da <?php if($p == "sftp_data") { echo "on"; } ?>"><span>차액정산 파일조회</span></a>
 				</li>
 			</ul>
 		</div>
@@ -445,14 +445,14 @@ jQuery(function($) {
 			<h2>TID/FEE</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=tid_fee" target="_self" class="gnb_1da <?php if($p == "tid_fee") { echo "on"; } ?>"><span>수수료 관리</span></a>
+					<a href="/fee" target="_self" class="gnb_1da <?php if($p == "tid_fee") { echo "on"; } ?>"><span>수수료 관리</span></a>
 				</li>
 				<?php /*if($is_admin) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=tid_fee2" target="_self" class="gnb_1da <?php if($p == "tid_fee2") { echo "on"; } ?>"><span>수수료 관리2</span></a>
+					<a href="/fee/alt" target="_self" class="gnb_1da <?php if($p == "tid_fee2") { echo "on"; } ?>"><span>수수료 관리2</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="./?p=tid_pay" target="_self" class="gnb_1da <?php if($p == "tid_pay") { echo "on"; } ?>"><span>TID별 결제금액</span></a>
+					<a href="/fee/tid" target="_self" class="gnb_1da <?php if($p == "tid_pay") { echo "on"; } ?>"><span>TID별 결제금액</span></a>
 				</li>
 				<?php }*/ ?>
 			</ul>
@@ -461,7 +461,7 @@ jQuery(function($) {
 			<h2>MEMBERSHIP</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=member_info" target="_self" class="gnb_1da <?php if($p == "member_info") { echo "on"; } ?>"><span>접속정보</span></a>
+					<a href="/access" target="_self" class="gnb_1da <?php if($p == "member_info") { echo "on"; } ?>"><span>접속정보</span></a>
 				</li>
 				<?php /*
 				<li class="gnb_1dli">
@@ -470,42 +470,42 @@ jQuery(function($) {
 				*/ ?>
 				<?php if($is_admin) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=10" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "10") { echo "on"; } } ?>"><span>관리자 관리</span></a>
+					<a href="/store?level=10" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "10") { echo "on"; } } ?>"><span>관리자 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 8) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=8" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "8") { echo "on"; } } ?>"><span>본사 관리</span></a>
+					<a href="/store?level=8" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "8") { echo "on"; } } ?>"><span>본사 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 7) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=7" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "7") { echo "on"; } } ?>"><span>지사 관리</span></a>
+					<a href="/store?level=7" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "7") { echo "on"; } } ?>"><span>지사 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 6) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=6" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "6") { echo "on"; } } ?>"><span>총판 관리</span></a>
+					<a href="/store?level=6" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "6") { echo "on"; } } ?>"><span>총판 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 5) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=5" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "5") { echo "on"; } } ?>"><span>대리점 관리</span></a>
+					<a href="/store?level=5" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "5") { echo "on"; } } ?>"><span>대리점 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 4) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=4" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "4") { echo "on"; } } ?>"><span>영업점 관리</span></a>
+					<a href="/store?level=4" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "4") { echo "on"; } } ?>"><span>영업점 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 3) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=3" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "3") { echo "on"; } } ?>"><span>가맹점 관리</span></a>
+					<a href="/store?level=3" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "3") { echo "on"; } } ?>"><span>가맹점 관리</span></a>
 				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 8) { ?>
 				<li class="gnb_1dli">
-					<a href="./?p=member&level=1" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "1") { echo "on"; } } ?>"><span>삭제회원 관리</span></a>
+					<a href="/store?level=1" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "1") { echo "on"; } } ?>"><span>삭제회원 관리</span></a>
 				</li>
 				<?php } ?>
 			</ul>
@@ -528,7 +528,7 @@ jQuery(function($) {
 			<h2>BOARD <? if($is_admin){?><div class="arrow_box"><span class="arrow"></span></div><?}?></h2>
 			<ul id="gnb_1dul" class="drop_ul">
 				<li class="gnb_1dli">
-					<a href="./?p=bbs&t=notice" target="_self" class="gnb_1da <?php if($p == "bbs" && $t == "notice") { echo "on"; } ?>"><span>공지사항</span></a>
+					<a href="/board?t=notice" target="_self" class="gnb_1da <?php if($p == "bbs" && $t == "notice") { echo "on"; } ?>"><span>공지사항</span></a>
 				</li>
 			</ul>
 		</div>
@@ -537,7 +537,7 @@ jQuery(function($) {
 			<h2>ADMIN</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="./?p=adm_tid" target="_self" class="gnb_1da <?php if($p == "adm_tid") { echo "on"; } ?>"><span>TID 분리관리</span></a>
+					<a href="/manage/tid" target="_self" class="gnb_1da <?php if($p == "adm_tid") { echo "on"; } ?>"><span>TID 분리관리</span></a>
 				</li>
 			</ul>
 		</div>

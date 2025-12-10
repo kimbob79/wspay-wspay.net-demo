@@ -1,5 +1,5 @@
 <?php
-include_once('../___engin/common.php');
+include_once('../gnu_module/common.php');
 
 // 커뮤니티 사용여부
 if(defined('G5_COMMUNITY_USE') && G5_COMMUNITY_USE === false) {
