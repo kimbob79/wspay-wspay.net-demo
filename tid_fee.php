@@ -300,8 +300,8 @@ td span .fee_name {font-family: 'NanumGothic';}
 			</select>
 			<select name="dv_type" id="dv_type">
 				<option value="">결제종류</option>
-				<option value="1" <?php if($dv_type == "1") { echo "selected"; } ?>>단말기</option>
-				<option value="2" <?php if($dv_type == "2") { echo "selected"; } ?>>수기</option>
+				<option value="1" <?php if($dv_type == "1") { echo "selected"; } ?>>오프라인</option>
+				<option value="2" <?php if($dv_type == "2") { echo "selected"; } ?>>온라인</option>
 			</select>
 			<select name="dv_certi" id="dv_certi">
 				<option value="">인증/비인증</option>
@@ -469,7 +469,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 					<th rowspan="2">TID</th>
 					<th rowspan="2">PG</th>
-					<th rowspan="2">단말기/수기</th>
+					<th rowspan="2">오프라인/온라인</th>
 					<th rowspan="2">인증/비인증</th>
 					<th rowspan="2">차액정산 MBR</th>
 					<th rowspan="2">등록일시</th>
@@ -534,9 +534,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 					}
 
 					if($row['dv_type'] == 1) {
-						$dv_types = "단말기";
+						$dv_types = "오프라인";
 					} else {
-						$dv_types = "수기";
+						$dv_types = "온라인";
 					}
 					if($row['dv_certi'] == 1) {
 						$dv_certis = "인증";
@@ -659,8 +659,8 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;">
 						<select name="dv_type" required class="required" style="width:70px">
 							<option value="">결제종류</option>
-							<option value="1" <?php if($row['dv_type'] == "1") { echo "selected"; } ?>>단말기</option>
-							<option value="2" <?php if($row['dv_type'] == "2") { echo "selected"; } ?>>수기</option>
+							<option value="1" <?php if($row['dv_type'] == "1") { echo "selected"; } ?>>오프라인</option>
+							<option value="2" <?php if($row['dv_type'] == "2") { echo "selected"; } ?>>온라인</option>
 						</select>
 					</td>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;">

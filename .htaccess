@@ -1,5 +1,5 @@
 RewriteEngine On
-
+ 
 # 메인 페이지
 RewriteRule ^main/?$ index.php?p=main [QSA,L]
 

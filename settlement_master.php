@@ -36,6 +36,7 @@
 	$sql_fild .= ", a.mb_4_fee as mb_4_fee "; // 본사 수수료
 	$sql_fild .= ", a.mb_5_fee as mb_5_fee "; // 본사 수수료
 	$sql_fild .= ", a.mb_6_fee as mb_6_fee "; // 본사 수수료
+	$sql_fild .= ", b.mb_settle_gbn as mb_settle_gbn "; // 재정산 구분
 
 	$sql_fild .= ", sum(a.mb_1_pay) as mb_1_pay "; // 본사 수수료
 	$sql_fild .= ", sum(a.mb_2_pay) as mb_2_pay "; // 지사 수수료
@@ -677,7 +678,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 				?>
 				<tr>
-					<td class="td_name"><?php echo $row['mb_6_name']; ?></td>
+					<td class="td_name"><?php if($is_admin) { echo $row['mb_settle_gbn'] == 'Y' ? '(O) ' : '(X) '; } ?><?php echo $row['mb_6_name']; ?></td>
 					<td><span class='tid'><?php echo $row['dv_tid']; ?></span></td>
 
 					<td><?php echo $row['scnt']; ?></td>
