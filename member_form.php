@@ -448,24 +448,54 @@
 						} else {
 							$paths = G5_DATA_URL."/member/".$mb_id;
 						}
-						$file_url = $paths."/".$file[$i]['file'];
-						$ext = substr(strrchr($file_url, '.'), 1);
+						$download_url = $file[$i]['href'];
+						$direct_url = isset($file[$i]['direct_url']) ? $file[$i]['direct_url'] : '';
+						$ext = substr(strrchr($file[$i]['file'], '.'), 1);
 
+						$filename = $file[$i]['source'];
+						$filesize = $file[$i]['size'];
+
+						// 파일 아이콘 결정
 						if($ext == "gif" || $ext == "jpeg" || $ext == "jpg" || $ext == "png") {
-							$files = '<a href="'.$file_url.'" target="_blank"><img src="'.$file_url.'" style="width:200px"></a>';
+							$icon = '<i class="fa fa-file-image-o" style="color:#4caf50"></i>';
+							$file_type = '이미지';
 						} else if($ext == "pdf") {
-							$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank">PDF파일 보기</a>';
+							$icon = '<i class="fa fa-file-pdf-o" style="color:#f44336"></i>';
+							$file_type = 'PDF';
 						} else if($ext == "xls" || $ext == "xlsx") {
-							$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank">엑셀파일 보기</a>';
+							$icon = '<i class="fa fa-file-excel-o" style="color:#4caf50"></i>';
+							$file_type = '엑셀';
 						} else if($ext == "doc" || $ext == "docx") {
-							$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank">워드파일 보기</a>';
+							$icon = '<i class="fa fa-file-word-o" style="color:#2196f3"></i>';
+							$file_type = '워드';
 						} else if($ext == "ppt" || $ext == "pptx") {
-							$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank">파워포인트파일 보기</a>';
+							$icon = '<i class="fa fa-file-powerpoint-o" style="color:#ff9800"></i>';
+							$file_type = 'PPT';
 						} else {
-							$files = '<span style="color: #f14668;">파일없음</span>';
+							$icon = '<i class="fa fa-file-o" style="color:#999"></i>';
+							$file_type = '파일';
 						}
 					?>
-					<div><?php echo $files; ?></div>
+					<div style="padding:10px; background:#f8f9fa; border-radius:4px; margin-bottom:5px;">
+						<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+							<span style="font-size:24px;"><?php echo $icon; ?></span>
+							<div style="flex:1;">
+								<div style="font-weight:600; color:#333; font-size:14px;"><?php echo htmlspecialchars($filename); ?></div>
+								<div style="color:#999; font-size:12px;"><?php echo $file_type; ?> · <?php echo $filesize; ?> · 다운로드 <?php echo $file[$i]['download']; ?>회</div>
+							</div>
+						</div>
+						<?php if($ext == "gif" || $ext == "jpeg" || $ext == "jpg" || $ext == "png") { ?>
+						<div style="margin-bottom:8px;">
+							<img src="<?php echo $download_url; ?>&inline=1"
+								 style="max-width:200px; max-height:150px; height:auto; border-radius:4px; border:1px solid #ddd; cursor:pointer; object-fit:cover;"
+								 onclick="openImageModal('<?php echo $download_url; ?>&inline=1')"
+								 title="클릭하여 크게 보기">
+						</div>
+						<?php } ?>
+						<a href="<?php echo $download_url; ?>" class="btn_b btn_b02" style="display:inline-block;">
+							<i class="fa fa-download"></i> 다운로드
+						</a>
+					</div>
 					<div class="file_del">
 						<input type="checkbox" id="bf_file_del<?php echo $i ?>" name="bf_file_del[<?php echo $i;  ?>]" value="1"> <label for="bf_file_del<?php echo $i ?>">파일 삭제</label>
 					</div>
@@ -840,6 +870,34 @@ $(document).ready(function() {
 	}
 </script>
 
+<!-- 이미지 모달 -->
+<div id="imageModal" onclick="closeImageModal()" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); cursor:pointer;">
+	<span style="position:absolute; top:15px; right:25px; color:#fff; font-size:35px; font-weight:bold; cursor:pointer; z-index:10000;">&times;</span>
+	<div style="display:flex; align-items:center; justify-content:center; height:100%; padding:40px;">
+		<img id="modalImage" src="" onclick="event.stopPropagation()" style="max-width:80%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.5); cursor:default;">
+	</div>
+</div>
+
+<script>
+function openImageModal(imageSrc) {
+	document.getElementById('imageModal').style.display = 'block';
+	document.getElementById('modalImage').src = imageSrc;
+	document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+	document.getElementById('imageModal').style.display = 'none';
+	document.getElementById('modalImage').src = '';
+	document.body.style.overflow = 'auto';
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(event) {
+	if (event.key === 'Escape') {
+		closeImageModal();
+	}
+});
+</script>
 
 <?php
 	include_once("./_tail.php");

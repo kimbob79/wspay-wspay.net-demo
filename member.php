@@ -417,20 +417,20 @@ select { width:100px; }
 								$paths = G5_DATA_URL."/member/".$row['mb_id'];
 							}
 
-							$file_url = $paths."/".$file[$k]['file'];
-							//echo $file[$k]['file']."a<br>";
-							$ext = substr(strrchr($file_url, '.'), 1);
+							$download_url = $file[$k]['href'];
+							$direct_url = isset($file[$k]['direct_url']) ? $file[$k]['direct_url'] : '';
+							$ext = substr(strrchr($file[$k]['file'], '.'), 1);
 
 							if($ext == "gif" || $ext == "jpeg" || $ext == "jpg" || $ext == "png") {
-								$files = '<a href="'.$file_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
+								$files = '<img src="'.$download_url.'&inline=1" style="max-width:50px; max-height:50px; cursor:pointer; border-radius:4px; object-fit:cover;" onclick="openImageModal(\''.$download_url.'&inline=1\')" title="클릭하여 크게 보기">';
 							} else if($ext == "pdf") {
-								$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
+								$files = '<a href="'.$download_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
 							} else if($ext == "xls" || $ext == "xlsx") {
-								$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
+								$files = '<a href="'.$download_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
 							} else if($ext == "doc" || $ext == "docx") {
-								$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
+								$files = '<a href="'.$download_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
 							} else if($ext == "ppt" || $ext == "pptx") {
-								$files = '<a href="http://docs.google.com/gview?url='.$file_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
+								$files = '<a href="'.$download_url.'" target="_blank"><i style="color:blue" class="fa fa-file"></i></a>';
 							} else {
 								$files = '<i style="color:#ddd" class="fa fa-file"></i>';
 							}
@@ -495,5 +495,34 @@ select { width:100px; }
 // 엑셀 다운로드
 $("#xlsx").on("click", function() {
 	$("#frm_xlsx").submit();
+});
+</script>
+
+<!-- 이미지 모달 -->
+<div id="imageModal" onclick="closeImageModal()" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); cursor:pointer;">
+	<span style="position:absolute; top:15px; right:25px; color:#fff; font-size:35px; font-weight:bold; cursor:pointer; z-index:10000;">&times;</span>
+	<div style="display:flex; align-items:center; justify-content:center; height:100%; padding:40px;">
+		<img id="modalImage" src="" onclick="event.stopPropagation()" style="max-width:80%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.5); cursor:default;">
+	</div>
+</div>
+
+<script>
+function openImageModal(imageSrc) {
+	document.getElementById('imageModal').style.display = 'block';
+	document.getElementById('modalImage').src = imageSrc;
+	document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+	document.getElementById('imageModal').style.display = 'none';
+	document.getElementById('modalImage').src = '';
+	document.body.style.overflow = 'auto';
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(event) {
+	if (event.key === 'Escape') {
+		closeImageModal();
+	}
 });
 </script>

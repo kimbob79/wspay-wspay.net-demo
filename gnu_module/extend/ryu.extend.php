@@ -136,10 +136,13 @@ function get_member_file($mb_id)
     {
         $no = (int) $row['bf_no'];
         $bf_content = $row['bf_content'] ? html_purifier($row['bf_content']) : '';
-        $file[$no]['href'] = G5_BBS_URL."/download.php?bo_table=$bo_table&amp;wr_id=$wr_id&amp;no=$no" . $qstr;
+        // member_download.php는 웹 루트에 있음
+        $file[$no]['href'] = '/member_download.php?mb_id='.$mb_id.'&no='.$no;
         $file[$no]['download'] = $row['bf_download'];
         // 4.00.11 - 파일 path 추가
-        $file[$no]['path'] = G5_DATA_URL.'/member/'.$bo_table;
+        $file[$no]['path'] = G5_DATA_URL.'/member/'.$mb_id;
+        // 웹 루트 기준 상대 경로로 수정
+        $file[$no]['direct_url'] = '/gnu_module/data/member/'.$mb_id.'/'.$row['bf_file'];
         $file[$no]['size'] = get_filesize($row['bf_filesize']);
         $file[$no]['datetime'] = $row['bf_datetime'];
         $file[$no]['source'] = addslashes($row['bf_source']);
@@ -157,7 +160,7 @@ function get_member_file($mb_id)
         $file['count']++;
     }
 
-    return run_replace('get_files', $file, $bo_table, $mb_id);
+    return run_replace('get_files', $file, 'member', $mb_id);
 }
 
 // 파일명 치환

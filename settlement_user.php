@@ -29,6 +29,38 @@
 
 ?>
 
+<style>
+/* 정산 헤더 스타일 */
+.settlement-header {
+	background: linear-gradient(135deg, #7b1fa2 0%, #8e24aa 100%);
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 10px;
+	box-shadow: 0 2px 8px rgba(123, 31, 162, 0.2);
+}
+.settlement-title {
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.settlement-title i {
+	font-size: 14px;
+	opacity: 0.8;
+}
+.settlement-notice {
+	background: #fff3e0;
+	border-left: 3px solid #ff9800;
+	padding: 10px 12px;
+	margin-bottom: 10px;
+	border-radius: 4px;
+	font-size: 13px;
+	color: #e65100;
+}
+</style>
+
 <link rel="stylesheet" type="text/css" href="./css/calendar.css"/>
 
 <?php
@@ -52,10 +84,10 @@
 	$before = $MM - 1;
 	$after = $MM + 1;
 
-	$firstday_weeknum = date("w", mktime(0, 0, 0, $MM, 1, $YYYY)); 
+	$firstday_weeknum = date("w", mktime(0, 0, 0, $MM, 1, $YYYY));
 	$lastday = date("t", mktime(0, 0, 0, $MM, 1, $YYYY));
 
-	if($MM == 2) { 
+	if($MM == 2) {
 		if(($YYYY % 4) == 0 && ($YYYY % 100) != 0 || ($YYYY % 400) == 0) { $lastday = 29; }
 	}
 	/*
@@ -65,21 +97,15 @@
 	*/
 ?>
 
-<div class="index_menu">
-	<ul class="shortcut">
-		<li class="sc_current"><a>실시간 정산조회</a></li>
-		<li class="sc_visit">
-			<aside id="visit">
-				<ul>
-					<li>실제 정산금은 달라질 수 있습니다.</li>
-					<?php /*
-					<li>유심비 1회<span>7,700원</span></li>
-					<li>매월 통신비<span style="color:#ffff00;">11,000원</span></li>
-					*/ ?>
-				</ul>
-			</aside>
-		</li>
-	</ul>
+<div class="settlement-header">
+	<div class="settlement-title">
+		<i class="fa fa-calendar"></i>
+		실시간 정산조회
+	</div>
+</div>
+
+<div class="settlement-notice">
+	<i class="fa fa-info-circle"></i> 실제 정산금은 달라질 수 있습니다.
 </div>
 
 <div class="calendar">

@@ -302,7 +302,7 @@
 
 		// 업로드된 파일 내용에서 가장 큰 번호를 얻어 거꾸로 확인해 가면서
 		// 파일 정보가 없다면 테이블의 내용을 삭제합니다.
-		$row = sql_fetch(" select max(bf_no) as max_bf_no from g5_member_file where and mb_id = '{$mb_id}' ");
+		$row = sql_fetch(" select max(bf_no) as max_bf_no from g5_member_file where mb_id = '{$mb_id}' ");
 		for ($i=(int)$row['max_bf_no']; $i>=0; $i--)
 		{
 			$row2 = sql_fetch(" select bf_file from g5_member_file where mb_id = '{$mb_id}' and bf_no = '{$i}' ");
