@@ -12,7 +12,8 @@
       "Bash(dir:*)",
       "Bash(cmd /c:*)",
       "Bash(move _engin ___engin)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php\" \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php.bak\")"
     ],
     "deny": [],
     "ask": []
