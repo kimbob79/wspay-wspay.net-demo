@@ -335,16 +335,16 @@ jQuery(function($) {
 				</a>
 			</div>
 		</div>-->
-		<?php /*if($is_admin or $member['mb_mailling'] == '1') { ?>
+		<?php if($is_admin or $member['mb_mailling'] == '1') { ?>
 		<div class="gnb_side no_logo">
 			<h2>PAY</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="/npay/" target="_target" class="gnb_1da <?php if($p == "npay") { echo "on"; } ?>"><span>수기결제</span></a>
+					<a href="/pay" target="_self" class="gnb_1da <?php if($p == "manual_payment") { echo "on"; } ?>"><i class="fa fa-credit-card"></i> <span>수기결제</span></a>
 				</li>
 			</ul>
 		</div>
-		<?php }*/ ?>
+		<?php } ?>
 		<div class="gnb_side no_logo">
 			<h2>PAYMENT</h2>
 			<ul id="gnb_1dul">

@@ -1,7 +1,83 @@
 RewriteEngine On
- 
+
+# ========================================
+# Nginx 설정 방법 (nginx.conf 또는 site.conf에 추가)
+# ========================================
+# location / {
+#     try_files $uri $uri/ /index.php?$query_string;
+# }
+#
+# # 수기결제
+# location /pay {
+#     rewrite ^/pay/?$ /index.php?p=manual_payment last;
+# }
+#
+# # 메인 페이지
+# location /main {
+#     rewrite ^/main/?$ /index.php?p=main last;
+# }
+#
+# # 결제 관련
+# location /txn {
+#     rewrite ^/txn/?$ /index.php?p=payment last;
+#     rewrite ^/txn/merchant/?$ /index.php?p=payment_member last;
+#     rewrite ^/txn/missing/?$ /index.php?p=payment_loss last;
+#     rewrite ^/txn/daily/?$ /index.php?p=payment_day last;
+#     rewrite ^/txn/cancel/?$ /index.php?p=cancel_payment last;
+#     rewrite ^/txn/memo/?$ /index.php?p=payment_memo last;
+# }
+#
+# # 정산 관련
+# location /calc {
+#     rewrite ^/calc/?$ /index.php?p=settlement last;
+#     rewrite ^/calc/simple/?$ /index.php?p=settlement_master2 last;
+#     rewrite ^/calc/store/?$ /index.php?p=settlement_master3 last;
+# }
+#
+# # 차액정산
+# location /diff {
+#     rewrite ^/diff/member/?$ /index.php?p=sftp_member last;
+#     rewrite ^/diff/tid/?$ /index.php?p=sftp_tid last;
+#     rewrite ^/diff/data/?$ /index.php?p=sftp_payment last;
+#     rewrite ^/diff/files/?$ /index.php?p=sftp_data last;
+# }
+#
+# # 수수료/TID 관리
+# location /fee {
+#     rewrite ^/fee/?$ /index.php?p=tid_fee last;
+#     rewrite ^/fee/alt/?$ /index.php?p=tid_fee2 last;
+#     rewrite ^/fee/tid/?$ /index.php?p=tid_pay last;
+# }
+#
+# location /manage {
+#     rewrite ^/manage/tid/?$ /index.php?p=adm_tid last;
+# }
+#
+# # 회원/접속 정보
+# location /access {
+#     rewrite ^/access/?$ /index.php?p=member_info last;
+# }
+#
+# location /store {
+#     rewrite ^/store/?$ /index.php?p=member last;
+# }
+#
+# # 게시판
+# location /board {
+#     rewrite ^/board/?$ /index.php?p=bbs last;
+# }
+#
+# # 로그아웃
+# location /logout {
+#     rewrite ^/logout/?$ /index.php?p=logout last;
+# }
+# ========================================
+
 # 메인 페이지
 RewriteRule ^main/?$ index.php?p=main [QSA,L]
+
+# 수기결제
+RewriteRule ^pay/?$ index.php?p=manual_payment [QSA,L]
 
 # 결제 관련
 RewriteRule ^txn/merchant/?$ index.php?p=payment_member [QSA,L]
