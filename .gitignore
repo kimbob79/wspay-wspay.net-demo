@@ -15,4 +15,4 @@ dist/
 build/
 .cache/
 gnu_module/data/member/
-gnu_module/data/member/
+gnu_module/data/file/
