@@ -51,11 +51,13 @@ if(sql_num_rows($check_table) == 0) {
         `mkc_time_start` varchar(5) DEFAULT '00:00' COMMENT '결제가능시작시간',
         `mkc_time_end` varchar(5) DEFAULT '23:59' COMMENT '결제가능종료시간',
         `mkc_oid` varchar(4) DEFAULT NULL COMMENT '가맹점OID (대표가맹점설정 사용시 주문번호 구분용)',
+        `mkc_status` enum('active','deleted') DEFAULT 'active' COMMENT '상태 (active/deleted)',
         `mkc_datetime` datetime DEFAULT NULL COMMENT '등록일시',
         `mkc_update` datetime DEFAULT NULL COMMENT '수정일시',
         PRIMARY KEY (`mkc_id`),
         KEY `idx_mb_id` (`mb_id`),
         KEY `idx_mpc_id` (`mpc_id`),
+        KEY `idx_status` (`mkc_status`),
         UNIQUE KEY `idx_mkc_oid` (`mkc_oid`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='가맹점별 Keyin 설정'";
     sql_query($create_sql);
@@ -92,6 +94,13 @@ if(sql_num_rows($check_oid_column) == 0) {
     }
 }
 
+// mkc_status 컬럼 추가 (마이그레이션)
+$check_status_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mkc_status'");
+if(sql_num_rows($check_status_column) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mkc_status` enum('active','deleted') DEFAULT 'active' COMMENT '상태 (active/deleted)' AFTER `mkc_oid`");
+    sql_query("ALTER TABLE `{$table_name}` ADD KEY `idx_status` (`mkc_status`)");
+}
+
 // 가맹점 OID 생성 함수 (4자리: 첫자리 A-Z, 나머지 3자리 영숫자)
 // 주문번호 형식: XXXX-YYMM-HHMM-SSRR (OID-년월-시분-초+랜덤2자리)
 function generate_merchant_oid($table_name) {
@@ -121,10 +130,10 @@ function generate_merchant_oid($table_name) {
 // 처리
 $mode = isset($_POST['mode']) ? $_POST['mode'] : (isset($_GET['mode']) ? $_GET['mode'] : '');
 
-// 삭제 처리
+// 삭제 처리 (소프트 삭제 - status를 deleted로 변경)
 if($mode == 'delete' && isset($_GET['mkc_id'])) {
     $mkc_id = (int)$_GET['mkc_id'];
-    sql_query("DELETE FROM {$table_name} WHERE mkc_id = '{$mkc_id}' AND mb_id = '{$mb_id}'");
+    sql_query("UPDATE {$table_name} SET mkc_status = 'deleted' WHERE mkc_id = '{$mkc_id}' AND mb_id = '{$mb_id}'");
     goto_url("./?p=member_keyin_config&mb_id={$mb_id}&level={$level}&page={$page}&mb_nick={$mb_nick}&dv_tid={$dv_tid}");
 }
 
@@ -262,10 +271,10 @@ if(isset($_GET['mkc_id']) && $_GET['mkc_id']) {
 }
 
 // 대표가맹점 설정 목록 조회
-$master_configs = sql_query("SELECT * FROM g5_manual_payment_config WHERE mpc_use = 'Y' ORDER BY mpc_pg_code, mpc_type");
+$master_configs = sql_query("SELECT * FROM g5_manual_payment_config WHERE mpc_use = 'Y' AND mpc_status = 'active' ORDER BY mpc_pg_code, mpc_type");
 
-// 가맹점별 설정 목록 조회
-$list = sql_query("SELECT * FROM {$table_name} WHERE mb_id = '{$mb_id}' ORDER BY mkc_id DESC");
+// 가맹점별 설정 목록 조회 (삭제되지 않은 항목만)
+$list = sql_query("SELECT * FROM {$table_name} WHERE mb_id = '{$mb_id}' AND mkc_status = 'active' ORDER BY mkc_id DESC");
 
 include_once('./_head.php');
 ?>
@@ -327,20 +336,36 @@ include_once('./_head.php');
     color: #ff6f00;
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* 테이블 폼 스타일 */
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.form-group label {
-    display: block;
+.form-table th,
+.form-table td {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+.form-table th {
+    background: #f8f9fa;
     font-size: 13px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 6px;
+    text-align: left;
+    width: 90px;
+    white-space: nowrap;
 }
 
-.form-group label .required {
+.form-table th .required {
     color: #e53935;
+    margin-left: 2px;
+}
+
+.form-table td {
+    background: #fff;
 }
 
 .form-control {
@@ -358,22 +383,19 @@ include_once('./_head.php');
     border-color: #ff6f00;
 }
 
+.form-control-inline {
+    display: inline-block;
+    width: auto;
+    min-width: 150px;
+}
+
 select.form-control {
     height: 42px;
     appearance: auto;
 }
 
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-.form-row .form-group.small {
-    flex: 0 0 180px;
+textarea.form-control {
+    resize: vertical;
 }
 
 /* 설정 타입 선택 */
@@ -659,98 +681,6 @@ select.form-control {
     color: #c2185b;
 }
 
-/* 콤팩트 설정 영역 */
-.compact-settings {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 12px;
-    margin-top: 12px;
-}
-
-.setting-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.setting-row:last-child {
-    margin-bottom: 0;
-}
-
-.setting-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.setting-item label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #666;
-    white-space: nowrap;
-    margin: 0;
-    min-width: 40px;
-}
-
-.setting-item.time-item {
-    flex: 0 0 auto;
-}
-
-.setting-item.limit-item {
-    flex: 1;
-    min-width: 120px;
-}
-
-.setting-item.memo-item {
-    flex: 2;
-    min-width: 150px;
-}
-
-.form-control-sm {
-    height: 30px;
-    padding: 4px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 12px;
-    background: #fff;
-}
-
-.form-control-sm:focus {
-    outline: none;
-    border-color: #ff6f00;
-}
-
-select.form-control-sm {
-    min-width: 55px;
-    padding-right: 4px;
-}
-
-input[type="number"].form-control-sm {
-    width: 100%;
-    min-width: 80px;
-}
-
-input[type="text"].form-control-sm {
-    width: 100%;
-}
-
-.time-select-wrap {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.time-select-wrap span {
-    color: #666;
-    font-size: 12px;
-}
-
-.time-sel {
-    width: 60px;
-}
-
 /* 콤팩트 카드 */
 .keyin-card.compact {
     margin-bottom: 8px;
@@ -851,8 +781,24 @@ input[type="text"].form-control-sm {
         flex-direction: column;
     }
 
-    .form-row {
-        flex-direction: column;
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .form-table th {
+        border-bottom: none;
+        padding-bottom: 4px;
+    }
+
+    .form-table td {
+        border-top: none;
+        padding-top: 4px;
+    }
+
+    .form-control-inline {
+        width: 100%;
     }
 
     .keyin-card-header {
@@ -864,20 +810,6 @@ input[type="text"].form-control-sm {
     .keyin-card-row {
         flex-direction: column;
         gap: 12px;
-    }
-
-    .setting-row {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .setting-item {
-        width: 100%;
-    }
-
-    .setting-item.limit-item,
-    .setting-item.memo-item {
-        min-width: 100%;
     }
 }
 </style>
@@ -936,95 +868,103 @@ input[type="text"].form-control-sm {
 
                             <!-- 대표가맹점 선택 패널 -->
                             <div class="master-config-panel <?php echo (!$edit_data || $edit_data['mpc_id']) ? 'active' : ''; ?>" id="masterPanel">
-                                <div class="form-group">
-                                    <label>대표가맹점 설정 선택 <span class="required">*</span></label>
-                                    <select name="mpc_id" class="form-control" id="mpc_id">
-                                        <option value="">선택하세요</option>
-                                        <?php
-                                        while($mc = sql_fetch_array($master_configs)) {
-                                            $type_label = $mc['mpc_type'] == 'nonauth' ? '비인증' : '구인증';
-                                            $selected = ($edit_data && $edit_data['mpc_id'] == $mc['mpc_id']) ? 'selected' : '';
-                                        ?>
-                                        <option value="<?php echo $mc['mpc_id']; ?>" <?php echo $selected; ?>>
-                                            <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (MID: <?php echo $mc['mpc_mid']; ?>)
-                                        </option>
-                                        <?php } ?>
-                                    </select>
-                                </div>
+                                <table class="form-table">
+                                    <tr>
+                                        <th>대표설정 <span class="required">*</span></th>
+                                        <td>
+                                            <select name="mpc_id" class="form-control" id="mpc_id">
+                                                <option value="">선택하세요</option>
+                                                <?php
+                                                while($mc = sql_fetch_array($master_configs)) {
+                                                    $type_label = $mc['mpc_type'] == 'nonauth' ? '비인증' : '구인증';
+                                                    $selected = ($edit_data && $edit_data['mpc_id'] == $mc['mpc_id']) ? 'selected' : '';
+                                                ?>
+                                                <option value="<?php echo $mc['mpc_id']; ?>" <?php echo $selected; ?>>
+                                                    <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (MID: <?php echo $mc['mpc_mid']; ?>)
+                                                </option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
 
                             <!-- 개별 설정 패널 -->
                             <div class="custom-config-panel <?php echo ($edit_data && !$edit_data['mpc_id']) ? 'active' : ''; ?>" id="customPanel">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>PG사 선택 <span class="required">*</span></label>
-                                        <select name="mkc_pg_code" class="form-control" id="mkc_pg_code" onchange="setPgName(this)">
-                                            <option value="">선택하세요</option>
-                                            <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
-                                        </select>
-                                        <input type="hidden" name="mkc_pg_name" id="mkc_pg_name" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_pg_name'] : ''; ?>">
-                                    </div>
-                                    <div class="form-group small">
-                                        <label>인증 타입 <span class="required">*</span></label>
-                                        <select name="mkc_type" class="form-control" id="mkc_type">
-                                            <option value="">선택</option>
-                                            <option value="nonauth" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_type'] == 'nonauth') echo 'selected'; ?>>비인증</option>
-                                            <option value="auth" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_type'] == 'auth') echo 'selected'; ?>>구인증</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>API KEY (dal-api-key) <span class="required">*</span></label>
-                                    <input type="text" name="mkc_api_key" class="form-control" placeholder="API KEY (32자)" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_api_key'] : ''; ?>">
-                                </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>상점 ID (mid) <span class="required">*</span></label>
-                                        <input type="text" name="mkc_mid" class="form-control" placeholder="페이시스 제공 MID (10자)" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mid'] : ''; ?>">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>암호화 키 (mkey) <span class="required">*</span></label>
-                                        <input type="text" name="mkc_mkey" class="form-control" placeholder="암호화 키 (100자)" maxlength="200" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mkey'] : ''; ?>">
-                                    </div>
-                                </div>
+                                <input type="hidden" name="mkc_pg_name" id="mkc_pg_name" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_pg_name'] : ''; ?>">
+                                <table class="form-table">
+                                    <tr>
+                                        <th>PG사 선택 <span class="required">*</span></th>
+                                        <td>
+                                            <select name="mkc_pg_code" class="form-control form-control-inline" id="mkc_pg_code" onchange="setPgName(this)">
+                                                <option value="">선택하세요</option>
+                                                <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
+                                            </select>
+                                        </td>
+                                        <th>인증 타입 <span class="required">*</span></th>
+                                        <td>
+                                            <select name="mkc_type" class="form-control form-control-inline" id="mkc_type">
+                                                <option value="">선택</option>
+                                                <option value="nonauth" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_type'] == 'nonauth') echo 'selected'; ?>>비인증</option>
+                                                <option value="auth" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_type'] == 'auth') echo 'selected'; ?>>구인증</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>API KEY <span class="required">*</span></th>
+                                        <td>
+                                            <input type="text" name="mkc_api_key" class="form-control" placeholder="API KEY (32자)" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_api_key'] : ''; ?>">
+                                        </td>
+                                        <th>상점 ID <span class="required">*</span></th>
+                                        <td>
+                                            <input type="text" name="mkc_mid" class="form-control" placeholder="MID (10자)" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mid'] : ''; ?>">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>암호화 키 <span class="required">*</span></th>
+                                        <td colspan="3">
+                                            <input type="text" name="mkc_mkey" class="form-control" placeholder="암호화 키 (100자)" maxlength="200" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mkey'] : ''; ?>">
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
 
-                            <!-- 공통 설정 + 결제 제한 설정 (콤팩트) -->
-                            <div class="compact-settings">
-                                <div class="setting-row">
-                                    <div class="setting-item">
-                                        <label>사용</label>
-                                        <select name="mkc_use" class="form-control-sm">
-                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_use'] == 'Y') echo 'selected'; ?>>Y</option>
-                                            <option value="N" <?php if($edit_data && $edit_data['mkc_use'] == 'N') echo 'selected'; ?>>N</option>
+                            <!-- 공통 설정 테이블 -->
+                            <table class="form-table" style="margin-top: 16px;">
+                                <tr>
+                                    <th>사용여부</th>
+                                    <td>
+                                        <select name="mkc_use" class="form-control form-control-inline">
+                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_use'] == 'Y') echo 'selected'; ?>>사용</option>
+                                            <option value="N" <?php if($edit_data && $edit_data['mkc_use'] == 'N') echo 'selected'; ?>>미사용</option>
                                         </select>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label>취소</label>
-                                        <select name="mkc_cancel_yn" class="form-control-sm">
-                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_cancel_yn'] == 'Y') echo 'selected'; ?>>Y</option>
-                                            <option value="N" <?php if($edit_data && $edit_data['mkc_cancel_yn'] == 'N') echo 'selected'; ?>>N</option>
+                                    </td>
+                                    <th>취소가능</th>
+                                    <td>
+                                        <select name="mkc_cancel_yn" class="form-control form-control-inline">
+                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_cancel_yn'] == 'Y') echo 'selected'; ?>>가능</option>
+                                            <option value="N" <?php if($edit_data && $edit_data['mkc_cancel_yn'] == 'N') echo 'selected'; ?>>불가</option>
                                         </select>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label>중복</label>
-                                        <select name="mkc_duplicate_yn" class="form-control-sm">
-                                            <option value="Y" <?php if($edit_data && $edit_data['mkc_duplicate_yn'] == 'Y') echo 'selected'; ?>>Y</option>
-                                            <option value="N" <?php if(!$edit_data || $edit_data['mkc_duplicate_yn'] == 'N') echo 'selected'; ?>>N</option>
+                                    </td>
+                                    <th>중복결제</th>
+                                    <td>
+                                        <select name="mkc_duplicate_yn" class="form-control form-control-inline">
+                                            <option value="Y" <?php if($edit_data && $edit_data['mkc_duplicate_yn'] == 'Y') echo 'selected'; ?>>허용</option>
+                                            <option value="N" <?php if(!$edit_data || $edit_data['mkc_duplicate_yn'] == 'N') echo 'selected'; ?>>차단</option>
                                         </select>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label>주말</label>
-                                        <select name="mkc_weekend_yn" class="form-control-sm">
-                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_weekend_yn'] == 'Y') echo 'selected'; ?>>Y</option>
-                                            <option value="N" <?php if($edit_data && $edit_data['mkc_weekend_yn'] == 'N') echo 'selected'; ?>>N</option>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>주말결제</th>
+                                    <td>
+                                        <select name="mkc_weekend_yn" class="form-control form-control-inline">
+                                            <option value="Y" <?php if(!$edit_data || $edit_data['mkc_weekend_yn'] == 'Y') echo 'selected'; ?>>허용</option>
+                                            <option value="N" <?php if($edit_data && $edit_data['mkc_weekend_yn'] == 'N') echo 'selected'; ?>>차단</option>
                                         </select>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label>할부</label>
-                                        <select name="mkc_max_installment" class="form-control-sm">
+                                    </td>
+                                    <th>최대할부</th>
+                                    <td>
+                                        <select name="mkc_max_installment" class="form-control form-control-inline">
                                             <?php
                                             $installments = array(0 => '0', 2 => '2', 3 => '3', 4 => '4', 5 => '5', 6 => '6', 7 => '7', 8 => '8', 9 => '9', 10 => '10', 11 => '11', 12 => '12');
                                             $current_inst = $edit_data ? $edit_data['mkc_max_installment'] : 12;
@@ -1034,47 +974,48 @@ input[type="text"].form-control-sm {
                                             }
                                             ?>
                                         </select>
-                                    </div>
-                                    <div class="setting-item time-item">
-                                        <label>결제시간</label>
-                                        <div class="time-select-wrap">
-                                            <?php
-                                            $current_start = $edit_data ? intval(substr($edit_data['mkc_time_start'], 0, 2)) : 0;
-                                            $current_end = $edit_data ? intval(substr($edit_data['mkc_time_end'], 0, 2)) : 23;
-                                            ?>
-                                            <select name="mkc_time_start" class="form-control-sm time-sel">
-                                                <?php for($h=0; $h<=23; $h++) { ?>
-                                                <option value="<?php echo sprintf('%02d:00', $h); ?>" <?php if($current_start == $h) echo 'selected'; ?>><?php echo $h; ?>시</option>
-                                                <?php } ?>
-                                            </select>
-                                            <span>~</span>
-                                            <select name="mkc_time_end" class="form-control-sm time-sel">
-                                                <?php for($h=0; $h<=23; $h++) { ?>
-                                                <option value="<?php echo sprintf('%02d:59', $h); ?>" <?php if($current_end == $h) echo 'selected'; ?>><?php echo $h; ?>시</option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-item limit-item">
-                                        <label>1회한도</label>
-                                        <input type="number" name="mkc_limit_once" class="form-control-sm" min="0" step="10000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_once'] : 0; ?>">
-                                    </div>
-                                    <div class="setting-item limit-item">
-                                        <label>일한도</label>
-                                        <input type="number" name="mkc_limit_daily" class="form-control-sm" min="0" step="10000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_daily'] : 0; ?>">
-                                    </div>
-                                    <div class="setting-item limit-item">
-                                        <label>월한도</label>
-                                        <input type="number" name="mkc_limit_monthly" class="form-control-sm" min="0" step="100000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_monthly'] : 0; ?>">
-                                    </div>
-                                    <div class="setting-item memo-item">
-                                        <label>메모</label>
-                                        <input type="text" name="mkc_memo" class="form-control-sm" placeholder="관리용 메모" value="<?php echo htmlspecialchars($edit_data['mkc_memo']); ?>">
-                                    </div>
-                                </div>
-                            </div>
+                                    </td>
+                                    <th>결제시간</th>
+                                    <td>
+                                        <?php
+                                        $current_start = $edit_data ? intval(substr($edit_data['mkc_time_start'], 0, 2)) : 0;
+                                        $current_end = $edit_data ? intval(substr($edit_data['mkc_time_end'], 0, 2)) : 23;
+                                        ?>
+                                        <select name="mkc_time_start" class="form-control form-control-inline" style="width:70px;">
+                                            <?php for($h=0; $h<=23; $h++) { ?>
+                                            <option value="<?php echo sprintf('%02d:00', $h); ?>" <?php if($current_start == $h) echo 'selected'; ?>><?php echo $h; ?>시</option>
+                                            <?php } ?>
+                                        </select>
+                                        <span style="margin:0 4px;">~</span>
+                                        <select name="mkc_time_end" class="form-control form-control-inline" style="width:70px;">
+                                            <?php for($h=0; $h<=23; $h++) { ?>
+                                            <option value="<?php echo sprintf('%02d:59', $h); ?>" <?php if($current_end == $h) echo 'selected'; ?>><?php echo $h; ?>시</option>
+                                            <?php } ?>
+                                        </select>
+                                        <span style="margin-left:8px; font-size:11px; color:#888;">(예: ~17시 = 17:59까지)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>1회한도</th>
+                                    <td>
+                                        <input type="number" name="mkc_limit_once" class="form-control" min="0" step="10000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_once'] : 0; ?>">
+                                    </td>
+                                    <th>일한도</th>
+                                    <td>
+                                        <input type="number" name="mkc_limit_daily" class="form-control" min="0" step="10000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_daily'] : 0; ?>">
+                                    </td>
+                                    <th>월한도</th>
+                                    <td>
+                                        <input type="number" name="mkc_limit_monthly" class="form-control" min="0" step="100000" placeholder="0=무제한" value="<?php echo $edit_data ? $edit_data['mkc_limit_monthly'] : 0; ?>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>메모</th>
+                                    <td colspan="5">
+                                        <input type="text" name="mkc_memo" class="form-control" placeholder="관리용 메모" value="<?php echo htmlspecialchars($edit_data['mkc_memo']); ?>">
+                                    </td>
+                                </tr>
+                            </table>
 
                             <div class="keyin-btn-group">
                                 <button type="submit" class="keyin-btn keyin-btn-primary">

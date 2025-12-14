@@ -81,11 +81,11 @@
 	// Keyin 설정 필터
 	$keyin_filter = isset($_GET['keyin_filter']) ? $_GET['keyin_filter'] : '';
 	if($keyin_filter == 'Y') {
-		// Keyin 설정이 있는 가맹점만
-		$sql_search .= " and a.mb_id IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y') ";
+		// Keyin 설정이 있는 가맹점만 (수기결제 허용 + Keyin 설정 있음)
+		$sql_search .= " and a.mb_mailling = '1' and a.mb_id IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y' AND mkc_status = 'active') ";
 	} else if($keyin_filter == 'N') {
-		// Keyin 설정이 없는 가맹점만
-		$sql_search .= " and a.mb_id NOT IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y') ";
+		// Keyin 설정이 없는 가맹점만 (수기결제 허용했지만 Keyin 설정 없음)
+		$sql_search .= " and a.mb_mailling = '1' and a.mb_id NOT IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y' AND mkc_status = 'active') ";
 	}
 
 	$sql = " select count(*) as cnt {$sql_common} {$sql_search} order by mb_no desc ";
@@ -260,8 +260,8 @@ select { width:100px; }
 			<?php if($is_admin) { ?>
 			<select name="keyin_filter" class="keyin-filter-select">
 				<option value="">Keyin 전체</option>
-				<option value="Y" <?php if($keyin_filter == 'Y') echo 'selected'; ?>>Keyin 있음</option>
-				<option value="N" <?php if($keyin_filter == 'N') echo 'selected'; ?>>Keyin 없음</option>
+				<option value="Y" <?php if($keyin_filter == 'Y') echo 'selected'; ?>>수기허용+설정있음</option>
+				<option value="N" <?php if($keyin_filter == 'N') echo 'selected'; ?>>수기허용+설정없음</option>
 			</select>
 			<?php } ?>
 			<?php } ?>
@@ -403,14 +403,18 @@ select { width:100px; }
 						</div>
 					</td>
 					<td>
+						<?php if($row['mb_mailling'] == 1) { ?>
 						<?php
 						// Keyin 설정 개수 조회
-						$keyin_count_row = sql_fetch("SELECT COUNT(*) as cnt FROM g5_member_keyin_config WHERE mb_id = '{$row['mb_id']}' AND mkc_use = 'Y'");
+						$keyin_count_row = sql_fetch("SELECT COUNT(*) as cnt FROM g5_member_keyin_config WHERE mb_id = '{$row['mb_id']}' AND mkc_use = 'Y' AND mkc_status = 'active'");
 						$keyin_count = $keyin_count_row['cnt'];
 						?>
 						<a href="./?p=member_keyin_config&mb_id=<?php echo $row['mb_id']; ?>&level=<?php echo $level; ?>&mb_nick=<?php echo $mb_nick; ?>&dv_tid=<?php echo $dv_tid; ?>&page=<?php echo $page; ?>" class="btn_b <?php echo $keyin_count > 0 ? 'btn_b01' : 'btn_b04'; ?>">
 							Keyin<?php if($keyin_count > 0) echo " ({$keyin_count})"; ?>
 						</a>
+						<?php } else { ?>
+						<span style="color:#999; font-size:11px;">-</span>
+						<?php } ?>
 					</td>
 					<?php } ?>
 					<td><?php echo $title_s; ?></td>

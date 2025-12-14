@@ -985,7 +985,7 @@ input:read-only {
 					$keyin_members_sql = "SELECT DISTINCT m.mb_id, m.mb_nick, m.mb_name
 						FROM {$g5['member_table']} m
 						INNER JOIN g5_member_keyin_config k ON m.mb_id = k.mb_id
-						WHERE m.mb_level = 3 AND k.mkc_use = 'Y'
+						WHERE m.mb_level = 3 AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
 						ORDER BY m.mb_nick";
 					$keyin_members = sql_query($keyin_members_sql);
 				?>
@@ -1027,7 +1027,7 @@ input:read-only {
 								 m.mpc_api_key as master_api_key, m.mpc_mid as master_mid, m.mpc_mkey as master_mkey
 								 FROM g5_member_keyin_config k
 								 LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
-								 WHERE k.mb_id = '{$target_mb_id}' AND k.mkc_use = 'Y'
+								 WHERE k.mb_id = '{$target_mb_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
 								 ORDER BY k.mkc_id ASC";
 					$keyin_result = sql_query($keyin_sql);
 					while($row = sql_fetch_array($keyin_result)) {
@@ -1085,7 +1085,7 @@ input:read-only {
 				?>
 
 				<!-- PG 모듈 선택 -->
-				<div class="pg-select-area" id="pgSelectArea">
+				<div class="pg-select-area" id="pgSelectArea" <?php echo (count($keyin_configs) == 1) ? 'style="display: none;"' : ''; ?>>
 					<h3><i class="fa fa-list"></i> PG 모듈 선택</h3>
 					<?php if(empty($keyin_configs) && empty($unavailable_configs)) { ?>
 					<p style="margin-bottom: 10px; color: #999; font-size: 13px; text-align: center; padding: 30px 0;">
@@ -2074,6 +2074,23 @@ function initFirstPgModule() {
 			$('#dal_api_key').val(apiKey);
 			$('#mid').val(mid);
 			$('#mkey').val(mkey);
+		}
+
+		// PG 모듈이 1개만 있을 경우 자동으로 입력 필드로 포커스
+		var pgModuleCount = $('.pg-module-item').length;
+		if(pgModuleCount === 1) {
+			setTimeout(function() {
+				// 비인증: 주문번호로 포커스, 구인증: 상품명으로 포커스
+				if(certiType == 'auth') {
+					$('#pay_product').focus();
+				} else {
+					$('#ordNo').focus();
+				}
+				// 결제 폼으로 스크롤
+				$('html, body').animate({
+					scrollTop: $('.payment-form-area').offset().top - 50
+				}, 300);
+			}, 100);
 		}
 	}
 }

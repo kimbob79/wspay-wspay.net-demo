@@ -24,13 +24,22 @@ if(sql_num_rows($check_table) == 0) {
         `mpc_mkey` varchar(200) NOT NULL COMMENT '암호화 키',
         `mpc_use` enum('Y','N') DEFAULT 'Y' COMMENT '사용여부',
         `mpc_memo` text COMMENT '메모',
+        `mpc_status` enum('active','deleted') DEFAULT 'active' COMMENT '상태 (active/deleted)',
         `mpc_datetime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
         `mpc_update` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
         PRIMARY KEY (`mpc_id`),
         KEY `idx_pg_code` (`mpc_pg_code`),
-        KEY `idx_type` (`mpc_type`)
+        KEY `idx_type` (`mpc_type`),
+        KEY `idx_status` (`mpc_status`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='수기결제 PG 설정'";
     sql_query($create_sql);
+}
+
+// mpc_status 컬럼 추가 (마이그레이션)
+$check_status_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mpc_status'");
+if(sql_num_rows($check_status_column) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_status` enum('active','deleted') DEFAULT 'active' COMMENT '상태 (active/deleted)' AFTER `mpc_memo`");
+    sql_query("ALTER TABLE `{$table_name}` ADD KEY `idx_status` (`mpc_status`)");
 }
 
 // 저장 처리
@@ -73,11 +82,11 @@ if($_POST['mode'] == 'save') {
     exit;
 }
 
-// 삭제 처리
+// 삭제 처리 (소프트 삭제 - status를 deleted로 변경)
 if($_GET['mode'] == 'delete') {
     $mpc_id = (int)$_GET['mpc_id'];
     if($mpc_id > 0) {
-        sql_query("DELETE FROM {$table_name} WHERE mpc_id = {$mpc_id}");
+        sql_query("UPDATE {$table_name} SET mpc_status = 'deleted' WHERE mpc_id = {$mpc_id}");
         echo "<script>alert('삭제되었습니다.'); location.href='?p=manual_payment_config';</script>";
         exit;
     }
@@ -90,8 +99,8 @@ if($_GET['mpc_id']) {
     $edit_data = sql_fetch("SELECT * FROM {$table_name} WHERE mpc_id = {$mpc_id}");
 }
 
-// 목록 조회
-$list = sql_query("SELECT * FROM {$table_name} ORDER BY mpc_pg_code, mpc_type");
+// 목록 조회 (삭제되지 않은 항목만)
+$list = sql_query("SELECT * FROM {$table_name} WHERE mpc_status = 'active' ORDER BY mpc_pg_code, mpc_type");
 
 include_once('./_head.php');
 ?>
@@ -146,21 +155,36 @@ include_once('./_head.php');
     color: #5c6bc0;
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* 테이블 폼 스타일 */
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.form-group label {
-    display: block;
+.form-table th,
+.form-table td {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+.form-table th {
+    background: #f8f9fa;
     font-size: 13px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 6px;
+    text-align: left;
+    width: 90px;
+    white-space: nowrap;
 }
 
-.form-group label .required {
+.form-table th .required {
     color: #e53935;
     margin-left: 2px;
+}
+
+.form-table td {
+    background: #fff;
 }
 
 .form-control {
@@ -170,6 +194,7 @@ include_once('./_head.php');
     border: 1px solid #ddd;
     border-radius: 6px;
     transition: border-color 0.2s;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
@@ -177,22 +202,19 @@ include_once('./_head.php');
     border-color: #5c6bc0;
 }
 
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-.form-row .form-group.small {
-    flex: 0 0 180px;
+.form-control-inline {
+    display: inline-block;
+    width: auto;
+    min-width: 150px;
 }
 
 select.form-control {
     height: 42px;
     appearance: auto;
+}
+
+textarea.form-control {
+    resize: vertical;
 }
 
 .config-btn-group {
@@ -469,13 +491,24 @@ select.form-control {
         padding: 10px;
     }
 
-    .form-row {
-        flex-direction: column;
-        gap: 0;
+    .form-table th,
+    .form-table td {
+        display: block;
+        width: 100%;
     }
 
-    .form-row .form-group.small {
-        flex: 1;
+    .form-table th {
+        border-bottom: none;
+        padding-bottom: 4px;
+    }
+
+    .form-table td {
+        border-top: none;
+        padding-top: 4px;
+    }
+
+    .form-control-inline {
+        width: 100%;
     }
 
     .config-table {
@@ -512,53 +545,54 @@ select.form-control {
                         <form method="post" action="?p=manual_payment_config">
                             <input type="hidden" name="mode" value="save">
                             <input type="hidden" name="mpc_id" value="<?php echo $edit_data['mpc_id']; ?>">
+                            <input type="hidden" name="mpc_pg_name" id="mpc_pg_name" value="<?php echo $edit_data['mpc_pg_name']; ?>">
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>PG사 선택 <span class="required">*</span></label>
-                                    <select name="mpc_pg_code" class="form-control" required onchange="setPgName(this)">
-                                        <option value="">선택하세요</option>
-                                        <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
-                                    </select>
-                                    <input type="hidden" name="mpc_pg_name" id="mpc_pg_name" value="<?php echo $edit_data['mpc_pg_name']; ?>">
-                                </div>
-                                <div class="form-group small">
-                                    <label>인증 타입 <span class="required">*</span></label>
-                                    <select name="mpc_type" class="form-control" required>
-                                        <option value="">선택</option>
-                                        <option value="nonauth" <?php if($edit_data['mpc_type'] == 'nonauth') echo 'selected'; ?>>비인증</option>
-                                        <option value="auth" <?php if($edit_data['mpc_type'] == 'auth') echo 'selected'; ?>>구인증</option>
-                                    </select>
-                                </div>
-                                <div class="form-group small">
-                                    <label>사용여부</label>
-                                    <select name="mpc_use" class="form-control">
-                                        <option value="Y" <?php if($edit_data['mpc_use'] != 'N') echo 'selected'; ?>>사용</option>
-                                        <option value="N" <?php if($edit_data['mpc_use'] == 'N') echo 'selected'; ?>>미사용</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>API KEY (dal-api-key) <span class="required">*</span></label>
-                                <input type="text" name="mpc_api_key" class="form-control" value="<?php echo $edit_data['mpc_api_key']; ?>" placeholder="페이시스에서 발급받은 API KEY (32자)" maxlength="100" required>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>상점 ID (mid) <span class="required">*</span></label>
-                                    <input type="text" name="mpc_mid" class="form-control" value="<?php echo $edit_data['mpc_mid']; ?>" placeholder="페이시스에서 발급받은 MID (10자)" maxlength="20" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>암호화 키 (mkey) <span class="required">*</span></label>
-                                    <input type="text" name="mpc_mkey" class="form-control" value="<?php echo $edit_data['mpc_mkey']; ?>" placeholder="hashKey 생성용 암호화 키 (100자)" maxlength="200" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>메모</label>
-                                <textarea name="mpc_memo" class="form-control" rows="2" placeholder="관리용 메모 (선택사항)"><?php echo $edit_data['mpc_memo']; ?></textarea>
-                            </div>
+                            <table class="form-table">
+                                <tr>
+                                    <th>PG사 선택 <span class="required">*</span></th>
+                                    <td>
+                                        <select name="mpc_pg_code" class="form-control form-control-inline" required onchange="setPgName(this)">
+                                            <option value="">선택하세요</option>
+                                            <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
+                                        </select>
+                                    </td>
+                                    <th>인증 타입 <span class="required">*</span></th>
+                                    <td>
+                                        <select name="mpc_type" class="form-control form-control-inline" required>
+                                            <option value="">선택</option>
+                                            <option value="nonauth" <?php if($edit_data['mpc_type'] == 'nonauth') echo 'selected'; ?>>비인증</option>
+                                            <option value="auth" <?php if($edit_data['mpc_type'] == 'auth') echo 'selected'; ?>>구인증</option>
+                                        </select>
+                                    </td>
+                                    <th>사용여부</th>
+                                    <td>
+                                        <select name="mpc_use" class="form-control form-control-inline">
+                                            <option value="Y" <?php if($edit_data['mpc_use'] != 'N') echo 'selected'; ?>>사용</option>
+                                            <option value="N" <?php if($edit_data['mpc_use'] == 'N') echo 'selected'; ?>>미사용</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>API KEY <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_api_key" class="form-control" value="<?php echo $edit_data['mpc_api_key']; ?>" placeholder="API KEY (32자)" maxlength="100" required>
+                                    </td>
+                                    <th>상점 ID <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_mid" class="form-control" value="<?php echo $edit_data['mpc_mid']; ?>" placeholder="MID (10자)" maxlength="20" required>
+                                    </td>
+                                    <th>암호화 키 <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_mkey" class="form-control" value="<?php echo $edit_data['mpc_mkey']; ?>" placeholder="MKEY (100자)" maxlength="200" required>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>메모</th>
+                                    <td colspan="5">
+                                        <textarea name="mpc_memo" class="form-control" rows="2" placeholder="관리용 메모 (선택사항)"><?php echo $edit_data['mpc_memo']; ?></textarea>
+                                    </td>
+                                </tr>
+                            </table>
 
                             <div class="config-btn-group">
                                 <button type="submit" class="config-btn config-btn-primary">
