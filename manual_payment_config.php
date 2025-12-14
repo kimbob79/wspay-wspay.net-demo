@@ -1,0 +1,641 @@
+<?php
+include_once('./_common.php');
+
+// 관리자 권한 체크
+if(!$is_admin) {
+    alert("관리자만 접근할 수 있습니다.");
+}
+
+$title1 = "수기 대표가맹점 설정";
+$title2 = "수기 대표가맹점 설정";
+
+// 테이블 존재 여부 확인 및 생성
+$table_name = "g5_manual_payment_config";
+$check_table = sql_query("SHOW TABLES LIKE '{$table_name}'");
+if(sql_num_rows($check_table) == 0) {
+    // 테이블 생성
+    $create_sql = "CREATE TABLE `{$table_name}` (
+        `mpc_id` int(11) NOT NULL AUTO_INCREMENT,
+        `mpc_pg_code` varchar(20) NOT NULL COMMENT 'PG사 코드',
+        `mpc_pg_name` varchar(50) NOT NULL COMMENT 'PG사 이름',
+        `mpc_type` varchar(20) NOT NULL COMMENT '인증타입 (nonauth/auth)',
+        `mpc_api_key` varchar(100) NOT NULL COMMENT 'API KEY',
+        `mpc_mid` varchar(20) NOT NULL COMMENT '상점 ID',
+        `mpc_mkey` varchar(200) NOT NULL COMMENT '암호화 키',
+        `mpc_use` enum('Y','N') DEFAULT 'Y' COMMENT '사용여부',
+        `mpc_memo` text COMMENT '메모',
+        `mpc_datetime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+        `mpc_update` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+        PRIMARY KEY (`mpc_id`),
+        KEY `idx_pg_code` (`mpc_pg_code`),
+        KEY `idx_type` (`mpc_type`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='수기결제 PG 설정'";
+    sql_query($create_sql);
+}
+
+// 저장 처리
+if($_POST['mode'] == 'save') {
+    $mpc_id = (int)$_POST['mpc_id'];
+    $mpc_pg_code = sql_escape_string($_POST['mpc_pg_code']);
+    $mpc_pg_name = sql_escape_string($_POST['mpc_pg_name']);
+    $mpc_type = sql_escape_string($_POST['mpc_type']);
+    $mpc_api_key = sql_escape_string($_POST['mpc_api_key']);
+    $mpc_mid = sql_escape_string($_POST['mpc_mid']);
+    $mpc_mkey = sql_escape_string($_POST['mpc_mkey']);
+    $mpc_use = sql_escape_string($_POST['mpc_use']);
+    $mpc_memo = sql_escape_string($_POST['mpc_memo']);
+
+    if($mpc_id > 0) {
+        // 수정
+        $sql = "UPDATE {$table_name} SET
+            mpc_pg_code = '{$mpc_pg_code}',
+            mpc_pg_name = '{$mpc_pg_name}',
+            mpc_type = '{$mpc_type}',
+            mpc_api_key = '{$mpc_api_key}',
+            mpc_mid = '{$mpc_mid}',
+            mpc_mkey = '{$mpc_mkey}',
+            mpc_use = '{$mpc_use}',
+            mpc_memo = '{$mpc_memo}'
+            WHERE mpc_id = {$mpc_id}";
+        sql_query($sql);
+        $msg = "수정되었습니다.";
+    } else {
+        // 신규 등록
+        $sql = "INSERT INTO {$table_name}
+            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_use, mpc_memo)
+            VALUES
+            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_use}', '{$mpc_memo}')";
+        sql_query($sql);
+        $msg = "등록되었습니다.";
+    }
+
+    echo "<script>alert('{$msg}'); location.href='?p=manual_payment_config';</script>";
+    exit;
+}
+
+// 삭제 처리
+if($_GET['mode'] == 'delete') {
+    $mpc_id = (int)$_GET['mpc_id'];
+    if($mpc_id > 0) {
+        sql_query("DELETE FROM {$table_name} WHERE mpc_id = {$mpc_id}");
+        echo "<script>alert('삭제되었습니다.'); location.href='?p=manual_payment_config';</script>";
+        exit;
+    }
+}
+
+// 수정할 데이터 조회
+$edit_data = null;
+if($_GET['mpc_id']) {
+    $mpc_id = (int)$_GET['mpc_id'];
+    $edit_data = sql_fetch("SELECT * FROM {$table_name} WHERE mpc_id = {$mpc_id}");
+}
+
+// 목록 조회
+$list = sql_query("SELECT * FROM {$table_name} ORDER BY mpc_pg_code, mpc_type");
+
+include_once('./_head.php');
+?>
+
+<style>
+.config-container {
+    padding: 0;
+}
+
+.config-header {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(63, 81, 181, 0.2);
+}
+
+.config-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-title i {
+    font-size: 16px;
+}
+
+.config-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.config-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #5c6bc0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-section h3 i {
+    color: #5c6bc0;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.form-group label .required {
+    color: #e53935;
+    margin-left: 2px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #5c6bc0;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-row .form-group.small {
+    flex: 0 0 180px;
+}
+
+select.form-control {
+    height: 42px;
+    appearance: auto;
+}
+
+.config-btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.config-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.config-btn-primary {
+    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    color: #fff !important;
+}
+
+.config-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+}
+
+.config-btn-secondary {
+    background: #f5f5f5;
+    color: #666 !important;
+    border: 1px solid #ddd;
+}
+
+.config-btn-secondary:hover {
+    background: #eee;
+}
+
+.config-btn-danger {
+    background: #e53935;
+    color: #fff !important;
+}
+
+.config-btn-danger:hover {
+    background: #c62828;
+}
+
+.config-btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* 카드 리스트 스타일 */
+.config-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.config-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.config-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.config-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.config-card-no {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #5c6bc0;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.config-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.config-card-meta {
+    color: #666;
+    font-size: 12px;
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid #ddd;
+}
+
+.config-card-meta code {
+    background: #e8eaf6;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+.config-card-body {
+    padding: 16px;
+}
+
+.config-card-body.compact {
+    padding: 12px 16px;
+}
+
+.config-card-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+.config-card-row:last-child {
+    margin-bottom: 0;
+}
+
+.config-card-item {
+    flex: 1;
+    min-width: 0;
+}
+
+.config-card-item.full {
+    flex: 1 1 100%;
+}
+
+.config-card-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.config-card-value {
+    display: block;
+    font-size: 13px;
+    color: #333;
+    word-break: break-all;
+}
+
+.config-card-value code {
+    display: inline-block;
+    background: #f5f5f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    color: #333;
+    max-width: 100%;
+    word-break: break-all;
+}
+
+.config-card-value.memo {
+    background: #fffde7;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+}
+
+.config-empty {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .config-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .config-card-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* 테이블 스타일 (기존 유지) */
+.config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.config-table th {
+    background: #f8f9fa;
+    padding: 12px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #5c6bc0;
+}
+
+.config-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.config-table tr:hover {
+    background: #f8f9ff;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-primary {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-warning {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.badge-success {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.badge-danger {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.text-muted {
+    color: #999;
+    font-size: 12px;
+}
+
+.api-key-mask {
+    font-family: monospace;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .config-container {
+        padding: 10px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-row .form-group.small {
+        flex: 1;
+    }
+
+    .config-table {
+        font-size: 12px;
+    }
+
+    .config-table th,
+    .config-table td {
+        padding: 8px 6px;
+    }
+}
+</style>
+
+<section class="container" id="bbs">
+    <section class="contents contents-bbs">
+        <!-- 헤더 -->
+        <div class="config-header">
+            <div class="config-title">
+                <i class="fa fa-cog"></i>
+                수기 대표가맹점 설정
+            </div>
+        </div>
+
+        <div class="bbs-cont">
+            <div class="inner">
+                <div class="config-container">
+                    <!-- 등록/수정 폼 -->
+                    <div class="config-section">
+                        <h3>
+                            <i class="fa fa-plus-circle"></i>
+                            <?php echo $edit_data ? 'PG 설정 수정' : 'PG 설정 등록'; ?>
+                        </h3>
+
+                        <form method="post" action="?p=manual_payment_config">
+                            <input type="hidden" name="mode" value="save">
+                            <input type="hidden" name="mpc_id" value="<?php echo $edit_data['mpc_id']; ?>">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>PG사 선택 <span class="required">*</span></label>
+                                    <select name="mpc_pg_code" class="form-control" required onchange="setPgName(this)">
+                                        <option value="">선택하세요</option>
+                                        <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
+                                    </select>
+                                    <input type="hidden" name="mpc_pg_name" id="mpc_pg_name" value="<?php echo $edit_data['mpc_pg_name']; ?>">
+                                </div>
+                                <div class="form-group small">
+                                    <label>인증 타입 <span class="required">*</span></label>
+                                    <select name="mpc_type" class="form-control" required>
+                                        <option value="">선택</option>
+                                        <option value="nonauth" <?php if($edit_data['mpc_type'] == 'nonauth') echo 'selected'; ?>>비인증</option>
+                                        <option value="auth" <?php if($edit_data['mpc_type'] == 'auth') echo 'selected'; ?>>구인증</option>
+                                    </select>
+                                </div>
+                                <div class="form-group small">
+                                    <label>사용여부</label>
+                                    <select name="mpc_use" class="form-control">
+                                        <option value="Y" <?php if($edit_data['mpc_use'] != 'N') echo 'selected'; ?>>사용</option>
+                                        <option value="N" <?php if($edit_data['mpc_use'] == 'N') echo 'selected'; ?>>미사용</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>API KEY (dal-api-key) <span class="required">*</span></label>
+                                <input type="text" name="mpc_api_key" class="form-control" value="<?php echo $edit_data['mpc_api_key']; ?>" placeholder="페이시스에서 발급받은 API KEY (32자)" maxlength="100" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>상점 ID (mid) <span class="required">*</span></label>
+                                    <input type="text" name="mpc_mid" class="form-control" value="<?php echo $edit_data['mpc_mid']; ?>" placeholder="페이시스에서 발급받은 MID (10자)" maxlength="20" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>암호화 키 (mkey) <span class="required">*</span></label>
+                                    <input type="text" name="mpc_mkey" class="form-control" value="<?php echo $edit_data['mpc_mkey']; ?>" placeholder="hashKey 생성용 암호화 키 (100자)" maxlength="200" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>메모</label>
+                                <textarea name="mpc_memo" class="form-control" rows="2" placeholder="관리용 메모 (선택사항)"><?php echo $edit_data['mpc_memo']; ?></textarea>
+                            </div>
+
+                            <div class="config-btn-group">
+                                <button type="submit" class="config-btn config-btn-primary">
+                                    <i class="fa fa-save"></i> <?php echo $edit_data ? '수정' : '등록'; ?>
+                                </button>
+                                <?php if($edit_data) { ?>
+                                <a href="?p=manual_payment_config" class="config-btn config-btn-secondary">취소</a>
+                                <?php } ?>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 목록 -->
+                    <div class="config-section">
+                        <h3>
+                            <i class="fa fa-list"></i>
+                            등록된 PG 설정 목록
+                        </h3>
+
+                        <div class="config-list">
+                            <?php
+                            $num = 0;
+                            while($row = sql_fetch_array($list)) {
+                                $num++;
+                                $type_badge = $row['mpc_type'] == 'nonauth' ? '<span class="badge badge-warning">비인증</span>' : '<span class="badge badge-primary">구인증</span>';
+                                $use_badge = $row['mpc_use'] == 'Y' ? '<span class="badge badge-success">사용</span>' : '<span class="badge badge-danger">미사용</span>';
+                            ?>
+                            <div class="config-card">
+                                <div class="config-card-header">
+                                    <div class="config-card-title">
+                                        <span class="config-card-no"><?php echo $num; ?></span>
+                                        <strong><?php echo $row['mpc_pg_name']; ?></strong>
+                                        <?php echo $type_badge; ?>
+                                        <?php echo $use_badge; ?>
+                                        <span class="config-card-meta">MID: <code><?php echo $row['mpc_mid']; ?></code></span>
+                                    </div>
+                                    <div class="config-card-actions">
+                                        <a href="?p=manual_payment_config&mpc_id=<?php echo $row['mpc_id']; ?>" class="config-btn config-btn-sm config-btn-secondary">수정</a>
+                                        <a href="?p=manual_payment_config&mode=delete&mpc_id=<?php echo $row['mpc_id']; ?>" class="config-btn config-btn-sm config-btn-danger" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+                                    </div>
+                                </div>
+                                <div class="config-card-body compact">
+                                    <div class="config-card-row">
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">API KEY</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_api_key']; ?></code></span>
+                                        </div>
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">MKEY</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_mkey']; ?></code></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php } ?>
+                            <?php if($num == 0) { ?>
+                            <div class="config-empty">
+                                등록된 PG 설정이 없습니다.
+                            </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+
+<script>
+function setPgName(select) {
+    var selectedOption = select.options[select.selectedIndex];
+    var pgName = selectedOption.getAttribute('data-name') || '';
+    document.getElementById('mpc_pg_name').value = pgName;
+}
+</script>
+
+<?php
+include_once('./_tail.php');
+?>

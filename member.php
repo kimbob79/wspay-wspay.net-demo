@@ -78,6 +78,16 @@
 		$sql_search .= " and dv_tid like '{$dv_tid}' ";
 	}
 
+	// Keyin 설정 필터
+	$keyin_filter = isset($_GET['keyin_filter']) ? $_GET['keyin_filter'] : '';
+	if($keyin_filter == 'Y') {
+		// Keyin 설정이 있는 가맹점만
+		$sql_search .= " and a.mb_id IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y') ";
+	} else if($keyin_filter == 'N') {
+		// Keyin 설정이 없는 가맹점만
+		$sql_search .= " and a.mb_id NOT IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y') ";
+	}
+
 	$sql = " select count(*) as cnt {$sql_common} {$sql_search} order by mb_no desc ";
 	$row = sql_fetch($sql);
 
@@ -163,11 +173,13 @@ select { width:100px; }
 }
 .search-input-group input[type="text"] {
 	width: 100px;
-	padding: 6px 8px;
+	height: 32px;
+	padding: 0 8px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	font-size: 13px;
 	background: #f8f9fa;
+	box-sizing: border-box;
 }
 .search-input-group input[type="text"]:focus {
 	outline: none;
@@ -175,7 +187,8 @@ select { width:100px; }
 	background: #fff;
 }
 .btn-search {
-	padding: 6px 12px;
+	height: 32px;
+	padding: 0 12px;
 	background: #4caf50;
 	color: #fff;
 	border: none;
@@ -183,12 +196,14 @@ select { width:100px; }
 	font-size: 12px;
 	cursor: pointer;
 	transition: background 0.15s;
+	box-sizing: border-box;
 }
 .btn-search:hover {
 	background: #66bb6a;
 }
 .btn-excel {
-	padding: 6px 10px;
+	height: 32px;
+	padding: 0 10px;
 	background: #2e7d32;
 	color: #fff;
 	border: none;
@@ -196,9 +211,26 @@ select { width:100px; }
 	font-size: 12px;
 	cursor: pointer;
 	transition: background 0.15s;
+	box-sizing: border-box;
 }
 .btn-excel:hover {
 	background: #388e3c;
+}
+/* Keyin 필터 셀렉트 */
+.keyin-filter-select {
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 13px;
+	background: #f8f9fa;
+	min-width: 100px;
+	box-sizing: border-box;
+}
+.keyin-filter-select:focus {
+	outline: none;
+	border-color: #4caf50;
+	background: #fff;
 }
 @media (max-width: 768px) {
 	.member-search-row {
@@ -225,6 +257,13 @@ select { width:100px; }
 			<input type="text" name="mb_nick" value="<?php echo $mb_nick ?>" id="mb_nick" placeholder="상호명">
 			<?php if($level == '3') { ?>
 			<input type="text" name="dv_tid" value="<?php echo $dv_tid ?>" id="dv_tid" placeholder="TID">
+			<?php if($is_admin) { ?>
+			<select name="keyin_filter" class="keyin-filter-select">
+				<option value="">Keyin 전체</option>
+				<option value="Y" <?php if($keyin_filter == 'Y') echo 'selected'; ?>>Keyin 있음</option>
+				<option value="N" <?php if($keyin_filter == 'N') echo 'selected'; ?>>Keyin 없음</option>
+			</select>
+			<?php } ?>
 			<?php } ?>
 			<button type="submit" class="btn-search">검색</button>
 			<?php if($is_admin) { ?>
@@ -255,6 +294,7 @@ select { width:100px; }
 					<?php if($level == '3') { ?>
 					<th>TID등록</th>
 					<th style="text-align:center;">관리</th>
+					<th>Keyin설정</th>
 					<?php } ?>
 					<?php } ?>
 					<th>그룹</th>
@@ -361,6 +401,16 @@ select { width:100px; }
 								*/
 							?>
 						</div>
+					</td>
+					<td>
+						<?php
+						// Keyin 설정 개수 조회
+						$keyin_count_row = sql_fetch("SELECT COUNT(*) as cnt FROM g5_member_keyin_config WHERE mb_id = '{$row['mb_id']}' AND mkc_use = 'Y'");
+						$keyin_count = $keyin_count_row['cnt'];
+						?>
+						<a href="./?p=member_keyin_config&mb_id=<?php echo $row['mb_id']; ?>&level=<?php echo $level; ?>&mb_nick=<?php echo $mb_nick; ?>&dv_tid=<?php echo $dv_tid; ?>&page=<?php echo $page; ?>" class="btn_b <?php echo $keyin_count > 0 ? 'btn_b01' : 'btn_b04'; ?>">
+							Keyin<?php if($keyin_count > 0) echo " ({$keyin_count})"; ?>
+						</a>
 					</td>
 					<?php } ?>
 					<td><?php echo $title_s; ?></td>
@@ -488,6 +538,7 @@ select { width:100px; }
 	$qstr .= "&level=".$level;
 	$qstr .= "&mb_nick=".$mb_nick;
 	$qstr .= "&dv_tid=".$dv_tid;
+	$qstr .= "&keyin_filter=".$keyin_filter;
 	echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 

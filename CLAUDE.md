@@ -120,8 +120,64 @@ g5_device의 수수료 구조 필드:
 - `bo_table` 파라미터와 함께 `_engin/bbs/board.php`로 라우팅
 - 게시판 테이블: `notice` (공지사항), `qa` (질문답변)
 
-### 수기결제 (NPAY)
+### 수기결제 (Keyin)
+- **manual_payment.php** - 페이시스 수기결제 (비인증/구인증)
+- **manual_payment_config.php** - 수기 대표가맹점 설정 (관리자 전용)
+- **member_keyin_config.php** - 가맹점별 Keyin 설정
 - **npay/** - 수기결제 입력 시스템 서브디렉토리
+
+#### 가맹점 OID (Merchant OID)
+대표가맹점 설정 사용 시, 동일한 PG 설정을 공유하는 가맹점들을 구분하기 위해 고유한 OID가 자동 생성됨.
+
+- **형식**: 4자리 (첫자리 A-Z, 나머지 3자리 영숫자)
+- **예시**: `A7K3`, `B2XP`, `C9M4`
+- **저장 위치**: `g5_member_keyin_config.mkc_oid` (UNIQUE KEY)
+- **생성 시점**: 대표가맹점 설정 사용 시에만 자동 생성 (개별설정 시 NULL)
+
+#### 주문번호 형식 (Order Number Format)
+UUID 스타일의 4-4-4-4 형식:
+```
+[OID]-[YYMM]-[HHMM]-[SSRR]
+```
+
+| 세그먼트 | 설명 | 예시 |
+|---------|------|------|
+| OID | 가맹점 OID (4자리) | `A7K3` |
+| YYMM | 년월 (2자리+2자리) | `2512` (2025년 12월) |
+| HHMM | 시분 (2자리+2자리) | `1430` (14시 30분) |
+| SSRR | 초+랜덤 (2자리+2자리) | `52K7` |
+
+**주문번호 예시**: `A7K3-2512-1430-52K7`
+
+**PHP 생성 코드 예시**:
+```php
+function generate_order_number($merchant_oid) {
+    $yymm = date('ym');           // 2512
+    $hhmm = date('Hi');           // 1430
+    $ss = date('s');              // 52
+    $rand = strtoupper(substr(md5(microtime()), 0, 2)); // K7
+    return "{$merchant_oid}-{$yymm}-{$hhmm}-{$ss}{$rand}";
+}
+// 결과: A7K3-2512-1430-52K7
+```
+
+#### 페이시스 수기결제 API 설정값
+페이시스 수기결제 연동 시 다음 3개 값을 서버에 설정해야 함 (TID/가맹점별 고정값):
+
+| 파라미터 | 설명 | 최대길이 | 비고 |
+|---------|------|---------|------|
+| **dal-api-key** | API KEY | 32자 | HTTP Header로 전송 |
+| **mid** | 상점 ID | 10자 | 페이시스에서 발급 |
+| **mkey** | 암호화 키 | 100자 | hashKey 생성용 |
+
+- **API Endpoint**: `https://dalgate/api/v1/manual/pay` (POST)
+- **hashKey 생성**: `sha256(mid + goodAmt)` - mid와 승인금액을 연결하여 SHA-256 해시
+
+#### 비인증 vs 구인증 차이점
+- **비인증**: 카드정보만으로 결제 (dal-api-key, mid, mkey + 카드정보)
+- **구인증**: 본인인증 정보 추가 필요
+  - `certPw`: 카드 비밀번호 앞 2자리
+  - `certNo`: 주민번호 앞 6자리 또는 사업자등록번호 10자리
 
 ### 메모 시스템
 - **memo.php** - 결제내역 메모 관리 (pay_id 파라미터 필요)

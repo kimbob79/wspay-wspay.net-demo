@@ -476,6 +476,9 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/store?level=10" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "10") { echo "on"; } } ?>"><span>관리자 관리</span></a>
 				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=manual_payment_config" target="_self" class="gnb_1da <?php if($p == "manual_payment_config") { echo "on"; } ?>"><span>수기 대표가맹점 설정</span></a>
+				</li>
 				<?php } ?>
 				<?php if($member['mb_level'] >= 8) { ?>
 				<li class="gnb_1dli">
