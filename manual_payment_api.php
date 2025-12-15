@@ -157,6 +157,31 @@ function processPayment() {
         }
     }
 
+    // 할부 제한 체크
+    $max_installment = intval($keyin['mkc_max_installment']);
+    $req_installment = intval($installment);
+    if($max_installment > 0 && $req_installment > $max_installment) {
+        echo json_encode(['success' => false, 'message' => '허용된 최대 할부개월을 초과했습니다. (최대: ' . $max_installment . '개월)']);
+        exit;
+    }
+
+    // 중복결제 체크 (동일 카드번호+금액으로 5분 이내 승인된 결제가 있는지)
+    if($keyin['mkc_duplicate_yn'] !== 'Y') {
+        $card_no_masked_check = maskCardNumber($card_no);
+        $dup_sql = "SELECT pk_id FROM g5_payment_keyin
+                    WHERE mkc_id = '{$mkc_id}'
+                    AND pk_card_no_masked = '" . sql_escape_string($card_no_masked_check) . "'
+                    AND pk_amount = '{$amount}'
+                    AND pk_status = 'approved'
+                    AND pk_created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                    LIMIT 1";
+        $dup_row = sql_fetch($dup_sql);
+        if($dup_row) {
+            echo json_encode(['success' => false, 'message' => '동일한 카드와 금액으로 최근 5분 이내 결제된 내역이 있습니다. 중복결제가 차단되었습니다.']);
+            exit;
+        }
+    }
+
     // 가맹점 계층 정보 조회
     $member_sql = "SELECT mb_id, mb_nick, mb_1, mb_2, mb_3, mb_4, mb_5, mb_6
                    FROM g5_member WHERE mb_id = '{$keyin['mb_id']}'";
@@ -165,10 +190,10 @@ function processPayment() {
     if(!$merchant) {
         echo json_encode(['success' => false, 'message' => '가맹점 정보를 찾을 수 없습니다.']);
         exit;
-    }
+    } 
 
-    // 주문번호 생성
-    $order_no = generateOrderNumber($merchant_oid);
+    // 주문번호 생성 (페이시스는 30자 필수)
+    $order_no = generateOrderNumber($merchant_oid, $pg_code);
 
     // 카드번호 마스킹 (앞 6자리 + **** + 뒤 4자리)
     $card_no_masked = maskCardNumber($card_no);
@@ -178,7 +203,7 @@ function processPayment() {
         'ordNo' => $order_no,
         'mkey' => $mkey,
         'mid' => $mid,
-        'goodAmt' => (string)$amount,
+        'goodsAmt' => (string)$amount,
         'cardNo' => $card_no,
         'expireYymm' => $expire_yymm,
         'quotaMon' => $installment,
@@ -534,15 +559,28 @@ function callPaysisCancelAPI($api_key, $data) {
 }
 
 /**
- * 주문번호 생성 (OID-YYMM-HHMM-SSRR)
+ * 주문번호 생성
+ * - 페이시스: 정확히 30자 (OID-YYYYMMDD-HHMMSS-RRRRRRR)
+ * - 기타: 19자 (OID-YYMM-HHMM-SSRR)
  */
-function generateOrderNumber($merchant_oid) {
+function generateOrderNumber($merchant_oid, $pg_code = 'paysis') {
     $oid = $merchant_oid ?: 'XXXX';
-    $yymm = date('ym');
-    $hhmm = date('Hi');
-    $ss = date('s');
-    $rand = strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 2));
-    return "{$oid}-{$yymm}-{$hhmm}-{$ss}{$rand}";
+
+    if($pg_code === 'paysis') {
+        // 페이시스: 정확히 30자 (하이픈 없음)
+        // 형식: XXXXYYYYMMDDHHMMSSRRRRRRRRRR (4+8+6+12 = 30자)
+        $date = date('Ymd');      // 8자리
+        $time = date('His');      // 6자리
+        $rand = strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 12)); // 12자리
+        return "{$oid}{$date}{$time}{$rand}";
+    } else {
+        // 기타 PG: 기존 19자 형식
+        $yymm = date('ym');
+        $hhmm = date('Hi');
+        $ss = date('s');
+        $rand = strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 2));
+        return "{$oid}-{$yymm}-{$hhmm}-{$ss}{$rand}";
+    }
 }
 
 /**

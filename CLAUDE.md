@@ -179,6 +179,33 @@ function generate_order_number($merchant_oid) {
   - `certPw`: 카드 비밀번호 앞 2자리
   - `certNo`: 주민번호 앞 6자리 또는 사업자등록번호 10자리
 
+#### 페이시스 주문번호 규칙
+- **필수 길이**: 정확히 30자 (하이픈 없음)
+- **형식**: `XXXXYYYYMMDDHHMMSSRRRRRRRRRRRR`
+- **예시**: `A7K3202512151733478F2C9E1B3D4A`
+
+| 세그먼트 | 설명 | 길이 |
+|---------|------|------|
+| OID | 가맹점 OID | 4자 |
+| YYYYMMDD | 년월일 | 8자 |
+| HHMMSS | 시분초 | 6자 |
+| RRRRRRRRRRRR | 랜덤 영숫자 | 12자 |
+| **합계** | | **30자** |
+
+#### 페이시스 API 필수 파라미터
+| 파라미터 | 설명 | 비고 |
+|---------|------|------|
+| ordNo | 주문번호 | **정확히 30자** |
+| mkey | 암호화 키 | 필수 |
+| mid | 상점 ID | 필수 |
+| goodsAmt | 결제금액 | 숫자 문자열 |
+| cardNo | 카드번호 | 숫자만 |
+| expireYymm | 유효기간 | YYMM 형식 |
+| quotaMon | 할부개월 | 00=일시불 |
+| buyerNm | 구매자명 | |
+| goodsNm | 상품명 | |
+| hashKey | 해시키 | sha256(mid+goodsAmt) |
+
 ### 메모 시스템
 - **memo.php** - 결제내역 메모 관리 (pay_id 파라미터 필요)
   - 결제 정보 표시 (가맹점명, 결제코드, 금액, 승인번호 등)

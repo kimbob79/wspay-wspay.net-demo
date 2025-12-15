@@ -23,11 +23,11 @@ include_once('./_head.php');
 }
 
 .manual-payment-header {
-	background: linear-gradient(135deg, #e65100 0%, #f57c00 100%);
+	background: linear-gradient(135deg, #546e7a 0%, #78909c 100%);
 	border-radius: 8px;
 	padding: 12px 16px;
 	margin-bottom: 10px;
-	box-shadow: 0 2px 8px rgba(230, 81, 0, 0.2);
+	box-shadow: 0 2px 8px rgba(84, 110, 122, 0.2);
 }
 
 .manual-payment-title {
@@ -53,7 +53,7 @@ include_once('./_head.php');
 }
 
 .pg-select-area:hover {
-	border-color: #FFB300;
+	border-color: #90a4ae;
 }
 
 .pg-select-area h3 {
@@ -62,7 +62,7 @@ include_once('./_head.php');
 	color: #1a1a1a;
 	margin-bottom: 12px;
 	padding-bottom: 12px;
-	border-bottom: 3px solid #FFB300;
+	border-bottom: 3px solid #90a4ae;
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -70,7 +70,7 @@ include_once('./_head.php');
 
 .pg-select-area h3 i {
 	font-size: 18px;
-	color: #FFB300;
+	color: #607d8b;
 }
 
 .pg-module-list {
@@ -95,14 +95,14 @@ include_once('./_head.php');
 
 
 .pg-module-item:hover {
-	border-color: #FFB300;
+	border-color: #90a4ae;
 	transform: translateY(-2px) scale(1.01);
-	background: linear-gradient(135deg, #fff 0%, #FFF8E1 100%);
+	background: linear-gradient(135deg, #fff 0%, #eceff1 100%);
 }
 
 .pg-module-item.selected {
-	border-color: #FFB300;
-	background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+	border-color: #78909c;
+	background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
 	transform: scale(1.02);
 }
 
@@ -135,7 +135,7 @@ include_once('./_head.php');
 
 .pg-module-info:before {
 	content: '•';
-	color: #FFB300;
+	color: #607d8b;
 	font-weight: bold;
 	font-size: 14px;
 }
@@ -215,7 +215,7 @@ table.table_pg td {
 }
 
 .stripe-payment-form:hover {
-	border-color: #FFB300;
+	border-color: #90a4ae;
 }
 
 .stripe-form-group {
@@ -269,7 +269,7 @@ select.stripe-form-input option {
 
 .stripe-form-input:focus {
 	outline: none;
-	border-color: #FFB300;
+	border-color: #90a4ae;
 	background-color: #fff;
 }
 
@@ -326,7 +326,7 @@ select.stripe-form-input option {
 }
 
 .stripe-section-title i {
-	color: #FFB300;
+	color: #607d8b;
 	font-size: 16px;
 }
 
@@ -340,7 +340,7 @@ select.stripe-form-input option {
 	font-size: 16px;
 	font-weight: 700;
 	color: #fff;
-	background: linear-gradient(135deg, #FFB300 0%, #FFA000 100%);
+	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
 	border: none;
 	border-radius: 12px;
 	cursor: pointer;
@@ -363,7 +363,7 @@ select.stripe-form-input option {
 
 .stripe-pay-button:hover {
 	transform: translateY(-2px);
-	background: linear-gradient(135deg, #FFC107 0%, #FFB300 100%);
+	background: linear-gradient(135deg, #78909c 0%, #90a4ae 100%);
 }
 
 .stripe-pay-button:hover:before {
@@ -442,7 +442,7 @@ select.stripe-form-input option {
 
 .stripe-checkbox-wrapper:hover {
 	background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-	border-color: #FFB300;
+	border-color: #90a4ae;
 	transform: translateX(2px);
 }
 
@@ -452,18 +452,18 @@ select.stripe-form-input option {
 	border: 1px solid #d0d0d0;
 	border-radius: 5px;
 	cursor: pointer;
-	accent-color: #FFB300;
+	accent-color: #607d8b;
 	flex-shrink: 0;
 	transition: all 0.2s ease;
 }
 
 .stripe-checkbox:hover {
-	border-color: #FFB300;
+	border-color: #90a4ae;
 }
 
 .stripe-checkbox:checked {
-	border-color: #FFB300;
-	background: #FFB300;
+	border-color: #607d8b;
+	background: #607d8b;
 }
 
 .stripe-checkbox-label {
@@ -476,7 +476,7 @@ select.stripe-form-input option {
 }
 
 .stripe-link {
-	color: #FFB300;
+	color: #607d8b;
 	text-decoration: none;
 	font-size: 12px;
 	transition: all 0.2s ease;
@@ -485,7 +485,7 @@ select.stripe-form-input option {
 }
 
 .stripe-link:hover {
-	color: #FFA000;
+	color: #546e7a;
 	text-decoration: underline;
 	transform: translateX(2px);
 }
@@ -538,7 +538,7 @@ select.stripe-form-input option {
 	align-items: center;
 	padding: 20px 24px;
 	border-bottom: 1px solid #e8e8e8;
-	background: linear-gradient(135deg, #FFB300 0%, #FFA000 100%);
+	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
 	border-radius: 16px 16px 0 0;
 }
 
@@ -590,7 +590,7 @@ select.stripe-form-input option {
 	color: #1a1a1a;
 	margin: 24px 0 12px 0;
 	padding-bottom: 8px;
-	border-bottom: 2px solid #FFB300;
+	border-bottom: 2px solid #90a4ae;
 }
 
 .terms-modal-body h2:first-child {
@@ -623,15 +623,15 @@ select.stripe-form-input option {
 	padding: 16px;
 	background: #f8f9fa;
 	border-radius: 8px;
-	border-left: 4px solid #FFB300;
+	border-left: 4px solid #90a4ae;
 }
 
 .terms-modal-body .term-highlight {
-	background: #FFF8E1;
+	background: #eceff1;
 	padding: 12px 16px;
 	border-radius: 8px;
 	margin: 12px 0;
-	border: 1px solid #FFE082;
+	border: 1px solid #b0bec5;
 }
 
 .terms-modal-body table {
@@ -665,7 +665,7 @@ select.stripe-form-input option {
 
 .terms-modal-confirm {
 	padding: 12px 40px;
-	background: linear-gradient(135deg, #FFB300 0%, #FFA000 100%);
+	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
 	color: #fff;
 	border: none;
 	border-radius: 8px;
@@ -757,11 +757,10 @@ select.stripe-form-input option {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 0, 0, 0.65);
+	background: rgba(0, 0, 0, 0.5);
 	z-index: 10000;
 	justify-content: center;
 	align-items: center;
-	backdrop-filter: blur(3px);
 }
 
 .payment-confirm-overlay.show {
@@ -770,158 +769,127 @@ select.stripe-form-input option {
 
 .payment-confirm-modal {
 	background: #fff;
-	border-radius: 20px;
+	border-radius: 8px;
 	width: 90%;
-	max-width: 380px;
-	box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+	max-width: 360px;
+	border: 1px solid #ddd;
 	overflow: hidden;
-	animation: modalSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes modalSlideIn {
-	from {
-		opacity: 0;
-		transform: translateY(-30px) scale(0.9);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
 }
 
 .payment-confirm-header {
-	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-	color: #fff;
-	padding: 28px 24px;
+	background: #f8f9fa;
+	color: #333;
+	padding: 16px 20px;
 	text-align: center;
-	position: relative;
-}
-
-.payment-confirm-header::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: radial-gradient(circle at 30% 20%, rgba(255, 179, 0, 0.15) 0%, transparent 50%);
+	border-bottom: 1px solid #e0e0e0;
 }
 
 .payment-confirm-header i {
-	font-size: 36px;
-	margin-bottom: 10px;
+	font-size: 24px;
+	margin-bottom: 8px;
 	display: block;
-	color: #FFB300;
-	text-shadow: 0 0 20px rgba(255, 179, 0, 0.5);
-	position: relative;
+	color: #607d8b;
 }
 
 .payment-confirm-header h3 {
 	margin: 0;
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: 600;
-	position: relative;
 }
 
 .payment-confirm-header h3 span {
-	color: #FFB300;
+	color: #607d8b;
 }
 
 .payment-confirm-body {
-	padding: 20px 24px;
-	background: #fafafa;
+	padding: 16px 20px;
+	background: #fff;
 }
 
 .payment-confirm-item {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 14px 16px;
-	background: #fff;
-	border-radius: 10px;
-	margin-bottom: 10px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f0;
 }
 
 .payment-confirm-item:last-child {
-	margin-bottom: 0;
+	border-bottom: none;
 }
 
 .payment-confirm-item .label {
-	color: #888;
+	color: #666;
 	font-size: 13px;
 }
 
 .payment-confirm-item .value {
 	color: #333;
-	font-size: 14px;
-	font-weight: 600;
+	font-size: 13px;
+	font-weight: 500;
 	text-align: right;
 }
 
 .payment-confirm-item.total {
-	margin-top: 6px;
-	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-	border: none;
+	margin-top: 8px;
+	padding-top: 12px;
+	border-top: 1px solid #e0e0e0;
+	border-bottom: none;
 }
 
 .payment-confirm-item.total .label {
-	color: rgba(255, 255, 255, 0.8);
+	color: #333;
 	font-size: 14px;
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .payment-confirm-item.total .value {
-	color: #FFB300;
-	font-size: 22px;
+	color: #607d8b;
+	font-size: 18px;
 	font-weight: 700;
-	text-shadow: 0 0 10px rgba(255, 179, 0, 0.3);
 }
 
 .payment-confirm-footer {
 	display: flex;
-	gap: 12px;
-	padding: 20px 24px 24px;
-	background: #fafafa;
+	gap: 8px;
+	padding: 16px 20px;
+	background: #f8f9fa;
+	border-top: 1px solid #e0e0e0;
 }
 
 .payment-confirm-btn {
 	flex: 1;
-	padding: 15px 20px;
-	border: none;
-	border-radius: 12px;
-	font-size: 15px;
-	font-weight: 600;
+	padding: 12px 16px;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
 	cursor: pointer;
-	transition: all 0.25s;
+	transition: all 0.15s;
 }
 
 .payment-confirm-btn.cancel {
-	background: #e8e8e8;
+	background: #fff;
 	color: #666;
+	border: 1px solid #ddd;
 }
 
 .payment-confirm-btn.cancel:hover {
-	background: #ddd;
+	background: #f5f5f5;
 }
 
 .payment-confirm-btn.confirm {
-	background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
-	color: #1a1a2e;
-	box-shadow: 0 4px 15px rgba(255, 179, 0, 0.35);
+	background: #607d8b;
+	color: #fff;
+	border: 1px solid #607d8b;
 }
 
 .payment-confirm-btn.confirm:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(255, 179, 0, 0.5);
-}
-
-.payment-confirm-btn.confirm:active {
-	transform: translateY(0);
+	background: #546e7a;
+	border-color: #546e7a;
 }
 
 .payment-confirm-btn.confirm i {
-	margin-right: 6px;
+	margin-right: 4px;
 }
 
 .stripe-button-group {
@@ -984,7 +952,7 @@ select.stripe-form-input option {
 }
 
 .all-check input[type=checkbox]:checked+label {
-	border: 1px solid #FFB300;
+	border: 1px solid #607d8b;
 }
 
 .all-check input[type=checkbox]:checked+label span i {
@@ -1082,21 +1050,171 @@ input:read-only {
 	right:0;
 	top:0;
 	bottom:0;
-	background: #fff;
-	z-index: 9;
+	background: rgba(255,255,255,0.95);
+	z-index: 9999;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
-.wrap-loading div {
-	position: fixed;
-	top:50%;
-	left:50%;
-	margin-left: -100px;
-	margin-top: -205px;
+.wrap-loading .spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid #e0e0e0;
+	border-top: 4px solid #1a237e;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+.wrap-loading .loading-text {
+	margin-top: 20px;
+	font-size: 14px;
+	color: #666;
+	font-weight: 500;
 }
 
 .display-none {
-	display:none;
+	display:none !important;
 }
+
+/* 영수증 모달 */
+.receipt-overlay {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 10000;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	padding: 15px;
+}
+.receipt-overlay.show {
+	display: flex;
+}
+.receipt {
+	width: 320px;
+	max-height: 90vh;
+	overflow-y: auto;
+	background: #fff;
+	border: 1px solid #ddd;
+	padding: 20px;
+	border-radius: 8px;
+	font-size: 12px;
+}
+.receipt-header {
+	text-align: center;
+	padding-bottom: 12px;
+	border-bottom: 1px dashed #ccc;
+	margin-bottom: 12px;
+}
+.receipt-header h1 {
+	font-size: 15px;
+	font-weight: 700;
+	color: #1a237e;
+	margin-bottom: 2px;
+}
+.receipt-header .en {
+	font-size: 9px;
+	color: #999;
+	letter-spacing: 1px;
+}
+.receipt .status {
+	display: inline-block;
+	margin-top: 8px;
+	padding: 3px 10px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+}
+.receipt .status.approved { background: #e8f5e9; color: #2e7d32; }
+.receipt .status.failed { background: #ffebee; color: #c62828; }
+
+.receipt .total-box {
+	text-align: center;
+	padding: 12px 0;
+	border-bottom: 1px dashed #ccc;
+	margin-bottom: 12px;
+}
+.receipt .total-label { font-size: 10px; color: #888; margin-bottom: 4px; }
+.receipt .total-amount {
+	font-size: 26px;
+	font-weight: 800;
+	color: #1a237e;
+}
+.receipt .total-amount span { font-size: 14px; }
+
+.receipt .section {
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px dotted #e0e0e0;
+}
+.receipt .section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.receipt .section-title {
+	font-size: 11px;
+	font-weight: 700;
+	color: #1a237e;
+	margin-bottom: 6px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.receipt .section-title i { font-size: 10px; opacity: 0.7; }
+.receipt .section-title .en { font-size: 9px; color: #999; font-weight: 400; margin-left: 4px; }
+
+.receipt .row {
+	display: flex;
+	justify-content: space-between;
+	padding: 3px 0;
+	font-size: 11px;
+}
+.receipt .row .label { color: #666; }
+.receipt .row .value { color: #333; font-weight: 500; text-align: right; max-width: 180px; word-break: break-all; }
+.receipt .row .value.highlight { color: #1a237e; font-weight: 700; }
+
+.receipt .footer {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px dashed #ccc;
+	text-align: center;
+}
+.receipt .legal {
+	font-size: 9px;
+	color: #999;
+	line-height: 1.5;
+	margin-bottom: 8px;
+}
+
+.receipt .btn-area {
+	display: flex;
+	gap: 8px;
+	margin-top: 15px;
+}
+.receipt .btn {
+	flex: 1;
+	padding: 10px;
+	border: none;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+}
+.receipt .btn-primary { background: #1a237e; color: #fff; }
+.receipt .btn-primary:hover { background: #283593; }
+.receipt .btn-secondary { background: #eee; color: #666; }
+.receipt .btn-secondary:hover { background: #ddd; }
 
 .merchant-select {
 	margin-bottom: 12px;
@@ -1139,7 +1257,7 @@ input:read-only {
 
 .merchant-select select:focus {
 	outline: none;
-	border-color: #FFB300;
+	border-color: #90a4ae;
 }
 
 .merchant-select select option {
@@ -1157,7 +1275,77 @@ input:read-only {
 </style>
 
 <div class="wrap-loading display-none">
-	<div><img src="./npay/img/loading_payment.gif" width="200" height="411"></div>
+	<div class="spinner"></div>
+	<div class="loading-text">결제 처리중...</div>
+</div>
+
+<!-- 결제완료 영수증 모달 -->
+<div class="receipt-overlay" id="receiptOverlay">
+	<div class="receipt">
+		<div class="receipt-header">
+			<h1>수기결제 매출전표</h1>
+			<div class="en">KEYIN PAYMENT SALES SLIP</div>
+			<div class="status approved" id="receiptStatus">승인</div>
+		</div>
+
+		<div class="total-box">
+			<div class="total-label">결제금액</div>
+			<div class="total-amount">
+				<span id="receiptAmount">0</span><span>원</span>
+			</div>
+		</div>
+
+		<div class="section">
+			<div class="section-title"><i class="fa fa-shopping-cart"></i>결제정보<span class="en">Payment</span></div>
+			<div class="row">
+				<span class="label">승인번호</span>
+				<span class="value highlight" id="receiptAppNo">-</span>
+			</div>
+			<div class="row">
+				<span class="label">주문번호</span>
+				<span class="value" id="receiptOrderNo">-</span>
+			</div>
+			<div class="row">
+				<span class="label">상품명</span>
+				<span class="value" id="receiptGoodsName">-</span>
+			</div>
+			<div class="row">
+				<span class="label">카드</span>
+				<span class="value" id="receiptCard">-</span>
+			</div>
+			<div class="row">
+				<span class="label">할부</span>
+				<span class="value" id="receiptInstallment">일시불</span>
+			</div>
+			<div class="row">
+				<span class="label">결제일시</span>
+				<span class="value" id="receiptDateTime">-</span>
+			</div>
+		</div>
+
+		<div class="section">
+			<div class="section-title"><i class="fa fa-user"></i>구매자정보<span class="en">Buyer</span></div>
+			<div class="row">
+				<span class="label">구매자명</span>
+				<span class="value" id="receiptBuyerName">-</span>
+			</div>
+			<div class="row">
+				<span class="label">연락처</span>
+				<span class="value" id="receiptBuyerPhone">-</span>
+			</div>
+		</div>
+
+		<div class="footer">
+			<div class="legal">
+				본 거래는 수기결제(비대면 키인결제)로 처리되었습니다.
+			</div>
+		</div>
+
+		<div class="btn-area">
+			<button type="button" class="btn btn-secondary" onclick="closeReceiptAndReset()"><i class="fa fa-plus"></i>새결제</button>
+			<button type="button" class="btn btn-primary" onclick="goToPaymentList()"><i class="fa fa-list"></i>내역확인</button>
+		</div>
+	</div>
 </div>
 
 <section class="container" id="bbs">
@@ -1193,7 +1381,7 @@ input:read-only {
 							<option value="">가맹점을 선택하세요</option>
 							<?php while($km = sql_fetch_array($keyin_members)) { ?>
 							<option value="<?php echo $km['mb_id']; ?>" <?php if($selected_mb_id == $km['mb_id']) echo 'selected'; ?>>
-								<?php echo htmlspecialchars($km['mb_nick']); ?> (<?php echo htmlspecialchars($km['mb_name']); ?>)
+								<?php echo htmlspecialchars($km['mb_nick']); ?>
 							</option>
 							<?php } ?>
 						</select>
@@ -1285,7 +1473,7 @@ input:read-only {
 					<?php if(empty($keyin_configs) && empty($unavailable_configs)) { ?>
 					<p style="margin-bottom: 10px; color: #999; font-size: 13px; text-align: center; padding: 30px 0;">
 						<?php if($is_admin && !$target_mb_id) { ?>
-						<i class="fa fa-info-circle" style="font-size: 24px; color: #FFB300; display: block; margin-bottom: 10px;"></i>
+						<i class="fa fa-info-circle" style="font-size: 24px; color: #607d8b; display: block; margin-bottom: 10px;"></i>
 						먼저 가맹점을 선택해주세요.
 						<?php } else { ?>
 						<i class="fa fa-exclamation-triangle" style="font-size: 24px; color: #f44336; display: block; margin-bottom: 10px;"></i>
@@ -2140,6 +2328,11 @@ function executePayment() {
 	var pay_YY = $("#pay_YY").val();
 	var mkc_id = $('#pg_id').val();
 
+	// 카드번호 마스킹 (앞6자리 + **** + 뒤4자리)
+	var cardNumOnly = pay_cardnum.replace(/[^0-9]/g, '');
+	var maskedCard = cardNumOnly.length >= 10 ?
+		cardNumOnly.substr(0, 6) + '****' + cardNumOnly.substr(-4) : '****';
+
 	// 결제 API 호출
 	$('.wrap-loading').removeClass('display-none');
 
@@ -2169,24 +2362,37 @@ function executePayment() {
 		data: paymentData,
 		success: function(response) {
 			$('.wrap-loading').addClass('display-none');
-			$('html, body').animate({scrollTop:0}, '300');
 
 			if(response.success) {
-				var successMsg = '결제가 완료되었습니다!\n\n';
-				successMsg += '주문번호: ' + response.data.order_no + '\n';
-				successMsg += '승인번호: ' + response.data.app_no + '\n';
-				successMsg += '금액: ' + Number(response.data.amount).toLocaleString() + '원';
-				if(response.data.card_issuer) {
-					successMsg += '\n카드사: ' + response.data.card_issuer;
-				}
-				alert(successMsg);
+				// 영수증 데이터 설정
+				$('#receiptAmount').text(Number(response.data.amount).toLocaleString());
+				$('#receiptAppNo').text(response.data.app_no || '-');
+				$('#receiptOrderNo').text(response.data.order_no || '-');
+				$('#receiptGoodsName').text(pay_product);
+				$('#receiptBuyerName').text(pay_pname);
+				$('#receiptBuyerPhone').text(pay_phone || '-');
+				$('#receiptInstallment').text(pay_installment == '00' || pay_installment == '0' ? '일시불' : pay_installment + '개월');
 
-				// 내역 페이지로 이동할지 확인
-				if(confirm('수기결제 내역 페이지로 이동하시겠습니까?')) {
-					location.href = './?p=manual_payment';
-				} else {
-					resetForm();
+				// 카드 정보
+				var cardInfo = '';
+				if(response.data.card_issuer) {
+					cardInfo = response.data.card_issuer.replace('카드', '') + ' ';
 				}
+				cardInfo += maskedCard || '';
+				$('#receiptCard').text(cardInfo || '-');
+
+				// 결제일시
+				var now = new Date();
+				var dateStr = now.getFullYear() + '-' +
+					String(now.getMonth() + 1).padStart(2, '0') + '-' +
+					String(now.getDate()).padStart(2, '0') + ' ' +
+					String(now.getHours()).padStart(2, '0') + ':' +
+					String(now.getMinutes()).padStart(2, '0') + ':' +
+					String(now.getSeconds()).padStart(2, '0');
+				$('#receiptDateTime').text(response.data.app_date || dateStr);
+
+				// 영수증 모달 표시
+				$('#receiptOverlay').addClass('show');
 			} else {
 				alert('결제 실패\n\n' + response.message);
 				$("#btn1, #btn2").show();
@@ -2215,6 +2421,19 @@ function resetForm() {
 	$('#pay_certify').val('');
 	$("#agreeCheckAll, #agreeTerm, #agreePriv").prop("checked", false);
 	$("#btn1, #btn2").show();
+}
+
+// 영수증 닫고 폼 리셋
+function closeReceiptAndReset() {
+	$('#receiptOverlay').removeClass('show');
+	resetForm();
+	// 상단으로 스크롤
+	$('html, body').animate({scrollTop:0}, '300');
+}
+
+// 내역 페이지로 이동
+function goToPaymentList() {
+	location.href = './?p=manual_payment';
 }
 
 $(function() {

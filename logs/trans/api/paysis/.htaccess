@@ -1,0 +1,3 @@
+# 외부 접근 차단
+Order deny,allow
+Deny from all

@@ -79,50 +79,50 @@ if(!$to_date) { $to_date = date("Ymd"); }
 $fr_dates = date("Y-m-d", strtotime($fr_date));
 $to_dates = date("Y-m-d", strtotime($to_date));
 
-// 접근 제어 SQL
+// 접근 제어 SQL (p. 별칭 사용)
 if($is_admin) {
 	if(adm_sql_common) {
-		$adm_sql = " pk_mb_1 IN (".adm_sql_common.")";
+		$adm_sql = " p.pk_mb_1 IN (".adm_sql_common.")";
 	} else {
 		$adm_sql = " (1)";
 	}
 } else if($member['mb_level'] == 8) {
-	$adm_sql = " pk_mb_1 = '{$member['mb_id']}'";
+	$adm_sql = " p.pk_mb_1 = '{$member['mb_id']}'";
 } else if($member['mb_level'] == 7) {
-	$adm_sql = " pk_mb_2 = '{$member['mb_id']}'";
+	$adm_sql = " p.pk_mb_2 = '{$member['mb_id']}'";
 } else if($member['mb_level'] == 6) {
-	$adm_sql = " pk_mb_3 = '{$member['mb_id']}'";
+	$adm_sql = " p.pk_mb_3 = '{$member['mb_id']}'";
 } else if($member['mb_level'] == 5) {
-	$adm_sql = " pk_mb_4 = '{$member['mb_id']}'";
+	$adm_sql = " p.pk_mb_4 = '{$member['mb_id']}'";
 } else if($member['mb_level'] == 4) {
-	$adm_sql = " pk_mb_5 = '{$member['mb_id']}'";
+	$adm_sql = " p.pk_mb_5 = '{$member['mb_id']}'";
 } else if($member['mb_level'] == 3) {
-	$adm_sql = " mb_id = '{$member['mb_id']}'";
+	$adm_sql = " p.mb_id = '{$member['mb_id']}'";
 }
 
 // 검색 조건
 if ($fr_date == "all" && $to_date == "all") {
 	$sql_search = " WHERE ".$adm_sql;
 } else {
-	$sql_search = " WHERE ".$adm_sql." AND (pk_created_at BETWEEN '{$fr_dates} 00:00:00' AND '{$to_dates} 23:59:59')";
+	$sql_search = " WHERE ".$adm_sql." AND (p.pk_created_at BETWEEN '{$fr_dates} 00:00:00' AND '{$to_dates} 23:59:59')";
 }
 
 // 상태 필터
 $status_filter = isset($_GET['status_filter']) ? $_GET['status_filter'] : '';
 if($status_filter && in_array($status_filter, ['approved', 'failed', 'cancelled', 'pending'])) {
-	$sql_search .= " AND pk_status = '{$status_filter}'";
+	$sql_search .= " AND p.pk_status = '{$status_filter}'";
 }
 
 // PG사 필터
 $pg_filter = isset($_GET['pg_filter']) ? sql_escape_string($_GET['pg_filter']) : '';
 if($pg_filter) {
-	$sql_search .= " AND pk_pg_code = '{$pg_filter}'";
+	$sql_search .= " AND p.pk_pg_code = '{$pg_filter}'";
 }
 
 // 인증타입 필터
 $auth_filter = isset($_GET['auth_filter']) ? sql_escape_string($_GET['auth_filter']) : '';
 if($auth_filter && in_array($auth_filter, ['nonauth', 'auth'])) {
-	$sql_search .= " AND pk_auth_type = '{$auth_filter}'";
+	$sql_search .= " AND p.pk_auth_type = '{$auth_filter}'";
 }
 
 // 검색어
@@ -131,13 +131,22 @@ if ($stx) {
 	switch ($sfl) {
 		case "pk_app_no" :
 		case "pk_order_no" :
-			$sql_search .= " ({$sfl} = '{$stx}') ";
+			$sql_search .= " (p.{$sfl} = '{$stx}') ";
+			break;
+		case "pk_card_no" :
+			// 카드번호 앞4자리 또는 뒤4자리 검색
+			$card_search = preg_replace('/[^0-9]/', '', $stx);
+			if(strlen($card_search) == 4) {
+				$sql_search .= " (p.pk_card_no_masked LIKE '{$card_search}%' OR p.pk_card_no_masked LIKE '%{$card_search}') ";
+			} else {
+				$sql_search .= " (p.pk_card_no_masked LIKE '%{$card_search}%') ";
+			}
 			break;
 		case "pk_mb_6_name" :
 		case "pk_goods_name" :
 		case "pk_buyer_name" :
 		default :
-			$sql_search .= " ({$sfl} LIKE '%{$stx}%') ";
+			$sql_search .= " (p.{$sfl} LIKE '%{$stx}%') ";
 			break;
 	}
 	$sql_search .= " ) ";
@@ -145,22 +154,22 @@ if ($stx) {
 
 // 정렬
 if ($sst)
-	$sql_order = " ORDER BY {$sst} {$sod} ";
+	$sql_order = " ORDER BY p.{$sst} {$sod} ";
 else
-	$sql_order = " ORDER BY pk_created_at DESC ";
+	$sql_order = " ORDER BY p.pk_created_at DESC ";
 
-// 통계 조회
+// 통계 조회 (p 별칭 사용)
 $sql = "SELECT
 	COUNT(*) as cnt,
-	SUM(pk_amount) as total_amount,
-	SUM(IF(pk_status = 'approved', pk_amount, 0)) as approved_amount,
-	COUNT(IF(pk_status = 'approved', 1, NULL)) as approved_count,
-	SUM(IF(pk_status = 'failed', pk_amount, 0)) as failed_amount,
-	COUNT(IF(pk_status = 'failed', 1, NULL)) as failed_count,
-	SUM(IF(pk_status IN ('cancelled', 'partial_cancelled'), pk_cancel_amount, 0)) as cancelled_amount,
-	COUNT(IF(pk_status IN ('cancelled', 'partial_cancelled'), 1, NULL)) as cancelled_count,
-	COUNT(IF(pk_status = 'pending', 1, NULL)) as pending_count
-	FROM {$table_name} {$sql_search}";
+	SUM(p.pk_amount) as total_amount,
+	SUM(IF(p.pk_status = 'approved', p.pk_amount, 0)) as approved_amount,
+	COUNT(IF(p.pk_status = 'approved', 1, NULL)) as approved_count,
+	SUM(IF(p.pk_status = 'failed', p.pk_amount, 0)) as failed_amount,
+	COUNT(IF(p.pk_status = 'failed', 1, NULL)) as failed_count,
+	SUM(IF(p.pk_status IN ('cancelled', 'partial_cancelled'), p.pk_cancel_amount, 0)) as cancelled_amount,
+	COUNT(IF(p.pk_status IN ('cancelled', 'partial_cancelled'), 1, NULL)) as cancelled_count,
+	COUNT(IF(p.pk_status = 'pending', 1, NULL)) as pending_count
+	FROM {$table_name} p {$sql_search}";
 $stat = sql_fetch($sql);
 
 $total_count = $stat['cnt'];
@@ -171,8 +180,11 @@ $total_page = ceil($total_count / $rows);
 if ($page < 1) $page = 1;
 $from_record = ($page - 1) * $rows;
 
-// 목록 조회
-$sql = "SELECT * FROM {$table_name} {$sql_search} {$sql_order} LIMIT {$from_record}, {$rows}";
+// 목록 조회 (keyin 설정의 취소 권한 포함)
+$sql = "SELECT p.*, k.mkc_cancel_yn
+        FROM {$table_name} p
+        LEFT JOIN g5_member_keyin_config k ON p.mkc_id = k.mkc_id
+        {$sql_search} {$sql_order} LIMIT {$from_record}, {$rows}";
 $result = sql_query($sql);
 
 include_once('./_head.php');
@@ -180,11 +192,11 @@ include_once('./_head.php');
 
 <style>
 .manual-list-header {
-	background: linear-gradient(135deg, #e65100 0%, #f57c00 100%);
+	background: linear-gradient(135deg, #546e7a 0%, #78909c 100%);
 	border-radius: 8px;
 	padding: 12px 16px;
 	margin-bottom: 10px;
-	box-shadow: 0 2px 8px rgba(230, 81, 0, 0.2);
+	box-shadow: 0 2px 8px rgba(84, 110, 122, 0.2);
 }
 .manual-list-header-top {
 	display: flex;
@@ -192,6 +204,12 @@ include_once('./_head.php');
 	justify-content: space-between;
 	flex-wrap: wrap;
 	gap: 10px;
+	margin-bottom: 10px;
+}
+.manual-list-header-bottom {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
 }
 .manual-list-title {
 	color: #fff;
@@ -274,7 +292,7 @@ include_once('./_head.php');
 .manual-list-search-group input[type="text"]:focus,
 .manual-list-search-group select:focus {
 	outline: none;
-	border-color: #e65100;
+	border-color: #78909c;
 	background: #fff;
 }
 .manual-list-search-group span {
@@ -296,8 +314,8 @@ include_once('./_head.php');
 	transition: all 0.15s;
 }
 .date-btns button:hover {
-	background: #e65100;
-	border-color: #e65100;
+	background: #607d8b;
+	border-color: #607d8b;
 	color: #fff;
 }
 .search-divider {
@@ -321,7 +339,7 @@ include_once('./_head.php');
 }
 .radio-group input[type="radio"] {
 	margin: 0;
-	accent-color: #e65100;
+	accent-color: #607d8b;
 }
 .search-input-group {
 	display: flex;
@@ -337,11 +355,11 @@ include_once('./_head.php');
 }
 .search-input-group input[type="text"]:focus {
 	outline: none;
-	border-color: #e65100;
+	border-color: #78909c;
 }
 .btn-search {
 	padding: 6px 12px;
-	background: #e65100;
+	background: #607d8b;
 	color: #fff;
 	border: none;
 	border-radius: 4px;
@@ -350,7 +368,7 @@ include_once('./_head.php');
 	transition: background 0.15s;
 }
 .btn-search:hover {
-	background: #f57c00;
+	background: #78909c;
 }
 .btn-excel {
 	padding: 6px 10px;
@@ -387,8 +405,61 @@ include_once('./_head.php');
 	text-decoration: line-through;
 }
 .status-badge.pending {
-	background: #fff3e0;
-	color: #e65100;
+	background: #eceff1;
+	color: #546e7a;
+}
+/* 상태 툴팁 */
+.status-wrapper {
+	position: relative;
+	display: inline-block;
+}
+.status-tooltip {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #333;
+	color: #fff;
+	padding: 8px 14px;
+	border-radius: 6px;
+	font-size: 11px;
+	white-space: nowrap;
+	z-index: 1000;
+	opacity: 0;
+	visibility: hidden;
+	transition: all 0.2s ease;
+	margin-bottom: 6px;
+	text-align: center;
+	line-height: 1.4;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.status-tooltip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 6px solid transparent;
+	border-top-color: #333;
+}
+.status-wrapper:hover .status-tooltip {
+	opacity: 1;
+	visibility: visible;
+}
+/* 영수증 버튼 */
+.btn-receipt {
+	padding: 4px 8px;
+	background: #1565c0;
+	color: #fff;
+	border: none;
+	border-radius: 3px;
+	font-size: 11px;
+	cursor: pointer;
+	transition: background 0.15s;
+	margin-right: 4px;
+}
+.btn-receipt:hover {
+	background: #1976d2;
 }
 /* 인증타입 배지 */
 .auth-badge {
@@ -399,8 +470,8 @@ include_once('./_head.php');
 	font-weight: 600;
 }
 .auth-badge.nonauth {
-	background: #fff3e0;
-	color: #e65100;
+	background: #eceff1;
+	color: #546e7a;
 }
 .auth-badge.auth {
 	background: #e3f2fd;
@@ -431,6 +502,42 @@ include_once('./_head.php');
 }
 .btn-manual-module i {
 	font-size: 16px;
+}
+/* 인라인 신규결제 버튼 (헤더 내) */
+.btn-manual-module-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 20px;
+	background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-decoration: none;
+	box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+	animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+	0%, 100% {
+		box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+	}
+	50% {
+		box-shadow: 0 4px 25px rgba(21, 101, 192, 0.7), 0 0 30px rgba(30, 136, 229, 0.3);
+	}
+}
+.btn-manual-module-inline:hover {
+	background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+	color: #fff;
+	box-shadow: 0 6px 20px rgba(21, 101, 192, 0.5);
+	transform: translateY(-2px) scale(1.02);
+	animation: none;
+}
+.btn-manual-module-inline i {
+	font-size: 15px;
 }
 .module-btn-wrapper {
 	display: flex;
@@ -471,6 +578,11 @@ tr.row-failed {
 }
 @media (max-width: 768px) {
 	.manual-list-header-top {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.manual-list-header-bottom {
 		flex-direction: column;
 		align-items: flex-start;
 	}
@@ -492,24 +604,297 @@ tr.row-failed {
 		justify-content: center;
 		padding: 12px 20px;
 	}
+	.btn-manual-module-inline {
+		padding: 6px 12px;
+		font-size: 12px;
+	}
+}
+/* 취소 확인 모달 */
+.cancel-modal-overlay {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 10000;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	padding: 15px;
+}
+.cancel-modal-overlay.show {
+	display: flex;
+}
+.cancel-modal {
+	width: 320px;
+	background: #fff;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.cancel-modal-header {
+	background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+	padding: 16px 20px;
+	text-align: center;
+}
+.cancel-modal-header h3 {
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+.cancel-modal-header h3 i {
+	font-size: 18px;
+}
+.cancel-modal-body {
+	padding: 20px;
+}
+.cancel-modal-info {
+	background: #fafafa;
+	border-radius: 8px;
+	padding: 12px 14px;
+	margin-bottom: 16px;
+}
+.cancel-modal-info .info-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 0;
+	font-size: 13px;
+}
+.cancel-modal-info .info-row .label {
+	color: #666;
+}
+.cancel-modal-info .info-row .value {
+	color: #333;
+	font-weight: 600;
+}
+.cancel-modal-info .info-row .value.amount {
+	color: #c62828;
+	font-size: 15px;
+}
+.cancel-modal-message {
+	text-align: center;
+	padding: 10px 0;
+	font-size: 14px;
+	color: #333;
+	line-height: 1.6;
+}
+.cancel-modal-message strong {
+	color: #c62828;
+}
+.cancel-modal-footer {
+	display: flex;
+	gap: 8px;
+	padding: 0 20px 20px;
+}
+.cancel-modal-footer .btn {
+	flex: 1;
+	padding: 12px;
+	border: none;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	transition: all 0.2s;
+}
+.cancel-modal-footer .btn-cancel-confirm {
+	background: #c62828;
+	color: #fff;
+}
+.cancel-modal-footer .btn-cancel-confirm:hover {
+	background: #b71c1c;
+}
+.cancel-modal-footer .btn-cancel-close {
+	background: #e0e0e0;
+	color: #666;
+}
+.cancel-modal-footer .btn-cancel-close:hover {
+	background: #d0d0d0;
+}
+/* 로딩 스피너 */
+.loading-overlay {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(255,255,255,0.95);
+	z-index: 10001;
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.loading-overlay.show {
+	display: flex;
+}
+.loading-overlay .spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid #e0e0e0;
+	border-top: 4px solid #c62828;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+.loading-overlay .loading-text {
+	margin-top: 20px;
+	font-size: 14px;
+	color: #666;
+	font-weight: 500;
+}
+/* 취소 결과 모달 */
+.cancel-result-modal {
+	width: 320px;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.cancel-result-header {
+	padding: 20px;
+	text-align: center;
+	border-radius: 12px 12px 0 0;
+}
+.cancel-result-header.success {
+	background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+}
+.cancel-result-header.fail {
+	background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+}
+.cancel-result-header i {
+	font-size: 40px;
+	color: #fff;
+	margin-bottom: 10px;
+}
+.cancel-result-header h3 {
+	color: #fff;
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0;
+}
+.cancel-result-body {
+	padding: 20px;
+	text-align: center;
+}
+.cancel-result-body .message {
+	font-size: 14px;
+	color: #333;
+	line-height: 1.6;
+	margin-bottom: 15px;
+}
+.cancel-result-body .detail {
+	background: #fafafa;
+	border-radius: 8px;
+	padding: 12px;
+	font-size: 13px;
+	color: #666;
+}
+.cancel-result-footer {
+	padding: 0 20px 24px;
+}
+.cancel-result-footer .btn {
+	width: 100%;
+	padding: 14px;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	background: #1a237e;
+	color: #fff;
+	transition: background 0.2s;
+}
+.cancel-result-footer .btn:hover {
+	background: #283593;
 }
 </style>
 
-<?php if($is_admin) { ?>
-<!-- ===== 관리자용 화면 (기존) ===== -->
-<div class="module-btn-wrapper top">
-	<a href="/?p=manual_payment_module" class="btn-manual-module">
-		<i class="fa fa-credit-card"></i>
-		신규결제
-	</a>
+<!-- 로딩 스피너 -->
+<div class="loading-overlay" id="loadingOverlay">
+	<div class="spinner"></div>
+	<div class="loading-text">취소 처리중...</div>
 </div>
 
+<!-- 취소 결과 모달 -->
+<div class="cancel-modal-overlay" id="cancelResultOverlay">
+	<div class="cancel-result-modal">
+		<div class="cancel-result-header" id="cancelResultHeader">
+			<i class="fa fa-check-circle" id="cancelResultIcon"></i>
+			<h3 id="cancelResultTitle">취소 완료</h3>
+		</div>
+		<div class="cancel-result-body">
+			<div class="message" id="cancelResultMessage">거래가 정상적으로 취소되었습니다.</div>
+			<div class="detail" id="cancelResultDetail"></div>
+		</div>
+		<div class="cancel-result-footer">
+			<button type="button" class="btn" onclick="closeCancelResult()">확인</button>
+		</div>
+	</div>
+</div>
+
+<!-- 취소 확인 모달 -->
+<div class="cancel-modal-overlay" id="cancelModalOverlay">
+	<div class="cancel-modal">
+		<div class="cancel-modal-header">
+			<h3><i class="fa fa-exclamation-triangle"></i> 결제 취소</h3>
+		</div>
+		<div class="cancel-modal-body">
+			<div class="cancel-modal-info">
+				<div class="info-row">
+					<span class="label">승인번호</span>
+					<span class="value" id="cancelAppNo">-</span>
+				</div>
+				<div class="info-row">
+					<span class="label">상품명</span>
+					<span class="value" id="cancelGoodsName">-</span>
+				</div>
+				<div class="info-row">
+					<span class="label">결제금액</span>
+					<span class="value amount" id="cancelAmount">-</span>
+				</div>
+			</div>
+			<div class="cancel-modal-message">
+				이 거래를 <strong>취소</strong>하시겠습니까?<br>
+				<small style="color:#999;">취소 후에는 복구할 수 없습니다.</small>
+			</div>
+		</div>
+		<div class="cancel-modal-footer">
+			<button type="button" class="btn btn-cancel-close" onclick="closeCancelModal()">
+				<i class="fa fa-times"></i> 닫기
+			</button>
+			<button type="button" class="btn btn-cancel-confirm" onclick="confirmCancel()">
+				<i class="fa fa-check"></i> 취소하기
+			</button>
+		</div>
+	</div>
+</div>
+
+<?php if($is_admin) { ?>
+<!-- ===== 관리자용 화면 (기존) ===== -->
 <div class="manual-list-header">
 	<div class="manual-list-header-top">
 		<div class="manual-list-title">
 			<i class="fa fa-list-alt"></i>
 			수기결제 내역
 		</div>
+		<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
+			<i class="fa fa-credit-card"></i>
+			신규결제
+		</a>
+	</div>
+	<div class="manual-list-header-bottom">
 		<div class="manual-list-stats">
 			<div class="manual-list-stat approved">
 				승인 <span><?php echo number_format($stat['approved_count']); ?>건</span> / <span><?php echo number_format($stat['approved_amount']); ?>원</span>
@@ -579,6 +964,7 @@ tr.row-failed {
 			<label><input type="radio" name="sfl" value="pk_order_no" <?php echo get_checked($sfl, "pk_order_no"); ?>>주문번호</label>
 			<label><input type="radio" name="sfl" value="pk_goods_name" <?php echo get_checked($sfl, "pk_goods_name"); ?>>상품명</label>
 			<label><input type="radio" name="sfl" value="pk_buyer_name" <?php echo get_checked($sfl, "pk_buyer_name"); ?>>구매자</label>
+			<label><input type="radio" name="sfl" value="pk_card_no" <?php echo get_checked($sfl, "pk_card_no"); ?>>카드번호</label>
 		</div>
 		<div class="search-divider"></div>
 		<div class="search-input-group">
@@ -597,13 +983,16 @@ tr.row-failed {
 				<tr>
 					<th style="width:50px;">번호</th>
 					<th>가맹점명</th>
+					<th>주문번호</th>
 					<th>상품명</th>
 					<th>금액</th>
 					<th>할부</th>
 					<th>카드사</th>
+					<th>구매자연락처</th>
 					<th>상태</th>
 					<th>승인번호</th>
 					<th>요청일시</th>
+					<th>취소일시</th>
 					<th>PG</th>
 					<th>인증</th>
 					<th>응답메시지</th>
@@ -615,7 +1004,7 @@ tr.row-failed {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="13" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="16" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
@@ -672,16 +1061,49 @@ tr.row-failed {
 				<tr class="<?php echo $row_class; ?>">
 					<td class="center"><?php echo $num; ?></td>
 					<td class="td_name"><?php echo htmlspecialchars($row['pk_mb_6_name']); ?></td>
+					<td style="font-size:11px;"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
 					<td><?php echo htmlspecialchars($row['pk_goods_name']); ?></td>
 					<td class="right"><?php echo number_format($row['pk_amount']); ?></td>
 					<td class="center"><?php echo $installment_text; ?></td>
 					<td class="center">
 						<?php if($row['pk_card_issuer']) { echo htmlspecialchars(str_replace('카드', '', $row['pk_card_issuer'])); } ?>
-						<?php if($row['pk_card_no_masked']) { ?><br><small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
+						<?php if($row['pk_card_no_masked']) { ?> <small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
 					</td>
-					<td class="center"><span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
+					<td class="center"><?php echo $row['pk_buyer_phone'] ? htmlspecialchars($row['pk_buyer_phone']) : '-'; ?></td>
+					<td class="center">
+						<?php
+						// 툴팁에 표시할 상세 메시지 생성
+						$tooltip_msg = '';
+						if($row['pk_res_code'] || $row['pk_res_msg']) {
+							if($row['pk_res_code']) $tooltip_msg .= '[' . $row['pk_res_code'] . '] ';
+							if($row['pk_res_msg']) $tooltip_msg .= htmlspecialchars($row['pk_res_msg']);
+						}
+						if($row['pk_status'] == 'cancelled' && $row['pk_cancel_reason']) {
+							$tooltip_msg .= ($tooltip_msg ? '<br>' : '') . '취소사유: ' . htmlspecialchars($row['pk_cancel_reason']);
+						}
+						?>
+						<div class="status-wrapper">
+							<span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+							<?php if($tooltip_msg) { ?>
+							<div class="status-tooltip"><?php echo $tooltip_msg; ?></div>
+							<?php } ?>
+						</div>
+					</td>
 					<td class="center"><?php echo $row['pk_app_no'] ? $row['pk_app_no'] : '-'; ?></td>
 					<td class="center"><?php echo $row['pk_created_at']; ?></td>
+					<td class="center"><?php
+						if($row['pk_status'] == 'cancelled' && $row['pk_cancel_date']) {
+							// 14자리 형식(YYYYMMDDHHmmss)을 Y-m-d H:i:s로 변환
+							$cancel_date = $row['pk_cancel_date'];
+							if(strlen($cancel_date) == 14 && is_numeric($cancel_date)) {
+								echo substr($cancel_date, 0, 4) . '-' . substr($cancel_date, 4, 2) . '-' . substr($cancel_date, 6, 2) . ' ' . substr($cancel_date, 8, 2) . ':' . substr($cancel_date, 10, 2) . ':' . substr($cancel_date, 12, 2);
+							} else {
+								echo $cancel_date;
+							}
+						} else {
+							echo '-';
+						}
+					?></td>
 					<td class="center"><?php echo $pg_name; ?></td>
 					<td class="center"><span class="auth-badge <?php echo $auth_class; ?>"><?php echo $auth_text; ?></span></td>
 					<td style="max-width:150px; font-size:11px; color:#666;">
@@ -694,7 +1116,12 @@ tr.row-failed {
 					</td>
 					<td class="center">
 						<?php if($row['pk_status'] == 'approved') { ?>
-						<button type="button" class="btn-cancel" onclick="openCancelPopup(<?php echo $row['pk_id']; ?>)">취소</button>
+						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
+						<?php if($row['mkc_cancel_yn'] == 'Y') { ?>
+						<button type="button" class="btn-cancel" onclick="openCancelModal(<?php echo $row['pk_id']; ?>, '<?php echo $row['pk_app_no']; ?>', '<?php echo addslashes($row['pk_goods_name']); ?>', <?php echo $row['pk_amount']; ?>)">취소</button>
+						<?php } ?>
+						<?php } else if($row['pk_status'] == 'cancelled') { ?>
+						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
 						<?php } else { ?>
 						-
 						<?php } ?>
@@ -721,35 +1148,131 @@ $qstr .= "&stx=".$stx;
 echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 
-<script>
-function openCancelPopup(pk_id) {
-	if(!confirm('이 거래를 취소하시겠습니까?')) return;
-
-	var width = 500;
-	var height = 600;
-	var left = (screen.width - width) / 2;
-	var top = (screen.height - height) / 2;
-
-	window.open('/?p=manual_payment_cancel&pk_id=' + pk_id, 'cancel_popup',
-		'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=yes');
-}
-</script>
-
-<?php } else { ?>
-<!-- ===== 가맹점용 화면 (관리자와 동일, 일부 컬럼 숨김) ===== -->
-<div class="module-btn-wrapper top">
-	<a href="/?p=manual_payment_module" class="btn-manual-module">
+<div class="module-btn-wrapper" style="margin-top: 20px;">
+	<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
 		<i class="fa fa-credit-card"></i>
 		신규결제
 	</a>
 </div>
 
+<script>
+var currentCancelPkId = null;
+var currentCancelAmount = 0;
+
+function openCancelModal(pk_id, app_no, goods_name, amount) {
+	currentCancelPkId = pk_id;
+	currentCancelAmount = amount;
+	$('#cancelAppNo').text(app_no || '-');
+	$('#cancelGoodsName').text(goods_name || '-');
+	$('#cancelAmount').text(Number(amount).toLocaleString() + '원');
+	$('#cancelModalOverlay').addClass('show');
+}
+
+function closeCancelModal() {
+	$('#cancelModalOverlay').removeClass('show');
+	currentCancelPkId = null;
+}
+
+function confirmCancel() {
+	if(!currentCancelPkId) return;
+
+	// 취소 전에 값 저장 (closeCancelModal에서 null로 초기화되므로)
+	var pkId = currentCancelPkId;
+	var cancelAmount = currentCancelAmount;
+
+	closeCancelModal();
+
+	// 로딩 스피너 표시
+	$('#loadingOverlay').addClass('show');
+
+	// AJAX로 취소 요청
+	$.ajax({
+		url: './manual_payment_api.php',
+		type: 'POST',
+		dataType: 'json',
+		data: {
+			action: 'cancel',
+			pk_id: pkId,
+			cancel_name: '관리자',
+			cancel_reason: '관리자 취소',
+			cancel_amount: cancelAmount
+		},
+		success: function(response) {
+			$('#loadingOverlay').removeClass('show');
+
+			if(response.success) {
+				// 성공 결과 모달
+				$('#cancelResultHeader').removeClass('fail').addClass('success');
+				$('#cancelResultIcon').removeClass('fa-times-circle').addClass('fa-check-circle');
+				$('#cancelResultTitle').text('취소 완료');
+				$('#cancelResultMessage').text('거래가 정상적으로 취소되었습니다.');
+				$('#cancelResultDetail').html(
+					'취소금액: <strong>' + Number(response.data.cancel_amount).toLocaleString() + '원</strong>'
+				);
+			} else {
+				// 실패 결과 모달
+				$('#cancelResultHeader').removeClass('success').addClass('fail');
+				$('#cancelResultIcon').removeClass('fa-check-circle').addClass('fa-times-circle');
+				$('#cancelResultTitle').text('취소 실패');
+				$('#cancelResultMessage').text(response.message || '취소 처리 중 오류가 발생했습니다.');
+				$('#cancelResultDetail').text(response.error_code ? '[' + response.error_code + ']' : '');
+			}
+			$('#cancelResultOverlay').addClass('show');
+		},
+		error: function(xhr, status, error) {
+			$('#loadingOverlay').removeClass('show');
+
+			// 에러 결과 모달
+			$('#cancelResultHeader').removeClass('success').addClass('fail');
+			$('#cancelResultIcon').removeClass('fa-check-circle').addClass('fa-times-circle');
+			$('#cancelResultTitle').text('취소 실패');
+			$('#cancelResultMessage').text('서버 오류가 발생했습니다.');
+			$('#cancelResultDetail').text(error);
+			$('#cancelResultOverlay').addClass('show');
+		}
+	});
+}
+
+function closeCancelResult() {
+	$('#cancelResultOverlay').removeClass('show');
+	// 페이지 새로고침
+	location.reload();
+}
+
+// ESC 키로 모달 닫기
+$(document).keydown(function(e) {
+	if(e.keyCode == 27) {
+		closeCancelModal();
+	}
+});
+
+// 오버레이 클릭 시 모달 닫기
+$('#cancelModalOverlay').click(function(e) {
+	if(e.target === this) {
+		closeCancelModal();
+	}
+});
+
+// 영수증 열기
+function openReceipt(pk_id) {
+	window.open('./receipt_keyin.php?pk_id=' + pk_id, 'receipt_keyin', 'width=360,height=700,scrollbars=yes');
+}
+</script>
+
+<?php } else { ?>
+<!-- ===== 가맹점용 화면 (관리자와 동일, 일부 컬럼 숨김) ===== -->
 <div class="manual-list-header">
 	<div class="manual-list-header-top">
 		<div class="manual-list-title">
 			<i class="fa fa-list-alt"></i>
 			수기결제 내역
 		</div>
+		<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
+			<i class="fa fa-credit-card"></i>
+			신규결제
+		</a>
+	</div>
+	<div class="manual-list-header-bottom">
 		<div class="manual-list-stats">
 			<div class="manual-list-stat approved">
 				승인 <span><?php echo number_format($stat['approved_count']); ?>건</span> / <span><?php echo number_format($stat['approved_amount']); ?>원</span>
@@ -798,6 +1321,7 @@ function openCancelPopup(pk_id) {
 			<label><input type="radio" name="sfl" value="pk_app_no" <?php echo get_checked($sfl, "pk_app_no"); ?> checked>승인번호</label>
 			<label><input type="radio" name="sfl" value="pk_goods_name" <?php echo get_checked($sfl, "pk_goods_name"); ?>>상품명</label>
 			<label><input type="radio" name="sfl" value="pk_buyer_name" <?php echo get_checked($sfl, "pk_buyer_name"); ?>>구매자</label>
+			<label><input type="radio" name="sfl" value="pk_card_no" <?php echo get_checked($sfl, "pk_card_no"); ?>>카드번호</label>
 		</div>
 		<div class="search-divider"></div>
 		<div class="search-input-group">
@@ -815,13 +1339,16 @@ function openCancelPopup(pk_id) {
 			<thead>
 				<tr>
 					<th style="width:50px;">번호</th>
+					<th>주문번호</th>
 					<th>상품명</th>
 					<th>금액</th>
 					<th>할부</th>
 					<th>카드사</th>
+					<th>구매자연락처</th>
 					<th>상태</th>
 					<th>승인번호</th>
 					<th>요청일시</th>
+					<th>취소일시</th>
 					<th>관리</th>
 				</tr>
 			</thead>
@@ -830,7 +1357,7 @@ function openCancelPopup(pk_id) {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="9" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="12" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
@@ -881,19 +1408,57 @@ function openCancelPopup(pk_id) {
 				?>
 				<tr class="<?php echo $row_class; ?>">
 					<td class="center"><?php echo $num; ?></td>
+					<td style="font-size:11px;"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
 					<td><?php echo htmlspecialchars($row['pk_goods_name']); ?></td>
 					<td class="right"><?php echo number_format($row['pk_amount']); ?></td>
 					<td class="center"><?php echo $installment_text; ?></td>
 					<td class="center">
 						<?php if($row['pk_card_issuer']) { echo htmlspecialchars(str_replace('카드', '', $row['pk_card_issuer'])); } ?>
-						<?php if($row['pk_card_no_masked']) { ?><br><small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
+						<?php if($row['pk_card_no_masked']) { ?> <small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
 					</td>
-					<td class="center"><span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
+					<td class="center"><?php echo $row['pk_buyer_phone'] ? htmlspecialchars($row['pk_buyer_phone']) : '-'; ?></td>
+					<td class="center">
+						<?php
+						// 툴팁에 표시할 상세 메시지 생성
+						$tooltip_msg = '';
+						if($row['pk_res_code'] || $row['pk_res_msg']) {
+							if($row['pk_res_code']) $tooltip_msg .= '[' . $row['pk_res_code'] . '] ';
+							if($row['pk_res_msg']) $tooltip_msg .= htmlspecialchars($row['pk_res_msg']);
+						}
+						if($row['pk_status'] == 'cancelled' && $row['pk_cancel_reason']) {
+							$tooltip_msg .= ($tooltip_msg ? '<br>' : '') . '취소사유: ' . htmlspecialchars($row['pk_cancel_reason']);
+						}
+						?>
+						<div class="status-wrapper">
+							<span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+							<?php if($tooltip_msg) { ?>
+							<div class="status-tooltip"><?php echo $tooltip_msg; ?></div>
+							<?php } ?>
+						</div>
+					</td>
 					<td class="center"><?php echo $row['pk_app_no'] ? $row['pk_app_no'] : '-'; ?></td>
 					<td class="center"><?php echo $row['pk_created_at']; ?></td>
+					<td class="center"><?php
+						if($row['pk_status'] == 'cancelled' && $row['pk_cancel_date']) {
+							// 14자리 형식(YYYYMMDDHHmmss)을 Y-m-d H:i:s로 변환
+							$cancel_date = $row['pk_cancel_date'];
+							if(strlen($cancel_date) == 14 && is_numeric($cancel_date)) {
+								echo substr($cancel_date, 0, 4) . '-' . substr($cancel_date, 4, 2) . '-' . substr($cancel_date, 6, 2) . ' ' . substr($cancel_date, 8, 2) . ':' . substr($cancel_date, 10, 2) . ':' . substr($cancel_date, 12, 2);
+							} else {
+								echo $cancel_date;
+							}
+						} else {
+							echo '-';
+						}
+					?></td>
 					<td class="center">
 						<?php if($row['pk_status'] == 'approved') { ?>
-						<button type="button" class="btn-cancel" onclick="openCancelPopup(<?php echo $row['pk_id']; ?>)">취소</button>
+						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
+						<?php if($row['mkc_cancel_yn'] == 'Y') { ?>
+						<button type="button" class="btn-cancel" onclick="openCancelModal(<?php echo $row['pk_id']; ?>, '<?php echo $row['pk_app_no']; ?>', '<?php echo addslashes($row['pk_goods_name']); ?>', <?php echo $row['pk_amount']; ?>)">취소</button>
+						<?php } ?>
+						<?php } else if($row['pk_status'] == 'cancelled') { ?>
+						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
 						<?php } else { ?>
 						-
 						<?php } ?>
@@ -918,17 +1483,114 @@ $qstr .= "&stx=".$stx;
 echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 
+<div class="module-btn-wrapper" style="margin-top: 20px;">
+	<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
+		<i class="fa fa-credit-card"></i>
+		신규결제
+	</a>
+</div>
+
 <script>
-function openCancelPopup(pk_id) {
-	if(!confirm('이 거래를 취소하시겠습니까?')) return;
+var currentCancelPkId = null;
+var currentCancelAmount = 0;
 
-	var width = 500;
-	var height = 600;
-	var left = (screen.width - width) / 2;
-	var top = (screen.height - height) / 2;
+function openCancelModal(pk_id, app_no, goods_name, amount) {
+	currentCancelPkId = pk_id;
+	currentCancelAmount = amount;
+	$('#cancelAppNo').text(app_no || '-');
+	$('#cancelGoodsName').text(goods_name || '-');
+	$('#cancelAmount').text(Number(amount).toLocaleString() + '원');
+	$('#cancelModalOverlay').addClass('show');
+}
 
-	window.open('/?p=manual_payment_cancel&pk_id=' + pk_id, 'cancel_popup',
-		'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=yes');
+function closeCancelModal() {
+	$('#cancelModalOverlay').removeClass('show');
+	currentCancelPkId = null;
+}
+
+function confirmCancel() {
+	if(!currentCancelPkId) return;
+
+	// 취소 전에 값 저장 (closeCancelModal에서 null로 초기화되므로)
+	var pkId = currentCancelPkId;
+	var cancelAmount = currentCancelAmount;
+
+	closeCancelModal();
+
+	// 로딩 스피너 표시
+	$('#loadingOverlay').addClass('show');
+
+	// AJAX로 취소 요청
+	$.ajax({
+		url: './manual_payment_api.php',
+		type: 'POST',
+		dataType: 'json',
+		data: {
+			action: 'cancel',
+			pk_id: pkId,
+			cancel_name: '가맹점',
+			cancel_reason: '가맹점 취소',
+			cancel_amount: cancelAmount
+		},
+		success: function(response) {
+			$('#loadingOverlay').removeClass('show');
+
+			if(response.success) {
+				// 성공 결과 모달
+				$('#cancelResultHeader').removeClass('fail').addClass('success');
+				$('#cancelResultIcon').removeClass('fa-times-circle').addClass('fa-check-circle');
+				$('#cancelResultTitle').text('취소 완료');
+				$('#cancelResultMessage').text('거래가 정상적으로 취소되었습니다.');
+				$('#cancelResultDetail').html(
+					'취소금액: <strong>' + Number(response.data.cancel_amount).toLocaleString() + '원</strong>'
+				);
+			} else {
+				// 실패 결과 모달
+				$('#cancelResultHeader').removeClass('success').addClass('fail');
+				$('#cancelResultIcon').removeClass('fa-check-circle').addClass('fa-times-circle');
+				$('#cancelResultTitle').text('취소 실패');
+				$('#cancelResultMessage').text(response.message || '취소 처리 중 오류가 발생했습니다.');
+				$('#cancelResultDetail').text(response.error_code ? '[' + response.error_code + ']' : '');
+			}
+			$('#cancelResultOverlay').addClass('show');
+		},
+		error: function(xhr, status, error) {
+			$('#loadingOverlay').removeClass('show');
+
+			// 에러 결과 모달
+			$('#cancelResultHeader').removeClass('success').addClass('fail');
+			$('#cancelResultIcon').removeClass('fa-check-circle').addClass('fa-times-circle');
+			$('#cancelResultTitle').text('취소 실패');
+			$('#cancelResultMessage').text('서버 오류가 발생했습니다.');
+			$('#cancelResultDetail').text(error);
+			$('#cancelResultOverlay').addClass('show');
+		}
+	});
+}
+
+function closeCancelResult() {
+	$('#cancelResultOverlay').removeClass('show');
+	// 페이지 새로고침
+	location.reload();
+}
+
+// ESC 키로 모달 닫기
+$(document).keydown(function(e) {
+	if(e.keyCode == 27) {
+		closeCancelModal();
+	}
+});
+
+// 오버레이 클릭 시 모달 닫기
+$('#cancelModalOverlay').click(function(e) {
+	if(e.target === this) {
+		closeCancelModal();
+	}
+});
+
+// 영수증 열기
+function openReceipt(pk_id) {
+	window.open('./receipt_keyin.php?pk_id=' + pk_id, 'receipt_keyin', 'width=360,height=700,scrollbars=yes');
 }
 </script>
 <?php } ?>

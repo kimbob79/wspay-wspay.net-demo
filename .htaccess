@@ -8,9 +8,11 @@ RewriteEngine On
 # }
 #
 # # 수기결제
-# location /pay {
-#     rewrite ^/pay/?$ /index.php?p=manual_payment last;
-# }
+# rewrite ^/pay/?$ /index.php?p=manual_payment last;
+# rewrite ^/pay/new/?$ /index.php?p=manual_payment_module last;
+# rewrite ^/pay/cancel/?$ /index.php?p=manual_payment_cancel last;
+# rewrite ^/pay/config/?$ /index.php?p=manual_payment_config last;
+# rewrite ^/pay/merchant/?$ /index.php?p=member_keyin_config last;
 #
 # # 메인 페이지
 # location /main {
@@ -78,6 +80,10 @@ RewriteRule ^main/?$ index.php?p=main [QSA,L]
 
 # 수기결제
 RewriteRule ^pay/?$ index.php?p=manual_payment [QSA,L]
+RewriteRule ^pay/new/?$ index.php?p=manual_payment_module [QSA,L]
+RewriteRule ^pay/cancel/?$ index.php?p=manual_payment_cancel [QSA,L]
+RewriteRule ^pay/config/?$ index.php?p=manual_payment_config [QSA,L]
+RewriteRule ^pay/merchant/?$ index.php?p=member_keyin_config [QSA,L]
 
 # 결제 관련
 RewriteRule ^txn/merchant/?$ index.php?p=payment_member [QSA,L]
