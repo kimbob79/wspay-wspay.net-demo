@@ -13,7 +13,9 @@
       "Bash(cmd /c:*)",
       "Bash(move _engin ___engin)",
       "Bash(cat:*)",
-      "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php\" \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php.bak\")"
+      "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php\" \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php.bak\")",
+      "Bash(find:*)",
+      "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\manual_payment.php\" \"C:\\workspace_grooember\\mpchosting_www\\manual_payment.php.bak\")"
     ],
     "deny": [],
     "ask": []
