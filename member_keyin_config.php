@@ -285,11 +285,11 @@ include_once('./_head.php');
 }
 
 .keyin-header {
-    background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
+    background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
     border-radius: 8px;
     padding: 12px 16px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(255, 111, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(57, 62, 70, 0.3);
 }
 
 .keyin-title {
@@ -333,7 +333,7 @@ include_once('./_head.php');
 }
 
 .keyin-section h3 i {
-    color: #ff6f00;
+    color: #FFD369;
 }
 
 /* 테이블 폼 스타일 */
@@ -380,7 +380,7 @@ include_once('./_head.php');
 
 .form-control:focus {
     outline: none;
-    border-color: #ff6f00;
+    border-color: #FFD369;
 }
 
 .form-control-inline {
@@ -415,18 +415,18 @@ textarea.form-control {
 }
 
 .config-type-option:hover {
-    border-color: #ff6f00;
-    background: #fff8e1;
+    border-color: #FFD369;
+    background: #FFF8E1;
 }
 
 .config-type-option.selected {
-    border-color: #ff6f00;
-    background: #fff8e1;
+    border-color: #FFD369;
+    background: #FFF8E1;
 }
 
 .config-type-option input[type="radio"] {
     margin-right: 8px;
-    accent-color: #ff6f00;
+    accent-color: #FFD369;
 }
 
 .config-type-option .option-title {
@@ -478,13 +478,13 @@ textarea.form-control {
 }
 
 .keyin-btn-primary {
-    background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
-    color: #fff !important;
+    background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
+    color: #FFD369 !important;
 }
 
 .keyin-btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 211, 105, 0.3);
 }
 
 .keyin-btn-secondary {
@@ -526,7 +526,7 @@ textarea.form-control {
 }
 
 .keyin-back a:hover {
-    color: #ff6f00;
+    color: #FFD369;
 }
 
 /* 카드 리스트 스타일 */
@@ -565,8 +565,8 @@ textarea.form-control {
     justify-content: center;
     width: 24px;
     height: 24px;
-    background: #ff6f00;
-    color: #fff;
+    background: #393E46;
+    color: #FFD369;
     border-radius: 50%;
     font-size: 12px;
     font-weight: 600;
@@ -586,7 +586,7 @@ textarea.form-control {
 }
 
 .keyin-card-meta code {
-    background: #fff3e0;
+    background: #FFF8E1;
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 11px;
@@ -651,8 +651,8 @@ textarea.form-control {
 }
 
 .badge-warning {
-    background: #fff3e0;
-    color: #e65100;
+    background: #FFF8E1;
+    color: #393E46;
 }
 
 .badge-primary {
@@ -719,12 +719,12 @@ textarea.form-control {
 }
 
 .info-tag.limit {
-    background: #fff3e0;
-    color: #e65100;
+    background: #FFF8E1;
+    color: #393E46;
 }
 
 .info-tag.limit b {
-    color: #e65100;
+    color: #FFD369;
 }
 
 .info-tag.memo {
@@ -767,8 +767,8 @@ textarea.form-control {
 }
 
 .setting-badge.badge-limit {
-    background: #fff3e0;
-    color: #e65100;
+    background: #FFF8E1;
+    color: #393E46;
 }
 
 .setting-badge.badge-time {

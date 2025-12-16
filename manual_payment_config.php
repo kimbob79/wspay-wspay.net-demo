@@ -111,11 +111,11 @@ include_once('./_head.php');
 }
 
 .config-header {
-    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
+    background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
     border-radius: 8px;
     padding: 12px 16px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(63, 81, 181, 0.2);
+    box-shadow: 0 2px 8px rgba(57, 62, 70, 0.3);
 }
 
 .config-title {
@@ -145,14 +145,14 @@ include_once('./_head.php');
     color: #1a1a1a;
     margin-bottom: 16px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #5c6bc0;
+    border-bottom: 2px solid #FFD369;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .config-section h3 i {
-    color: #5c6bc0;
+    color: #FFD369;
 }
 
 /* 테이블 폼 스타일 */
@@ -199,7 +199,7 @@ include_once('./_head.php');
 
 .form-control:focus {
     outline: none;
-    border-color: #5c6bc0;
+    border-color: #FFD369;
 }
 
 .form-control-inline {
@@ -238,13 +238,13 @@ textarea.form-control {
 }
 
 .config-btn-primary {
-    background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%);
-    color: #fff !important;
+    background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
+    color: #FFD369 !important;
 }
 
 .config-btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 211, 105, 0.3);
 }
 
 .config-btn-secondary {
@@ -307,8 +307,8 @@ textarea.form-control {
     justify-content: center;
     width: 24px;
     height: 24px;
-    background: #5c6bc0;
-    color: #fff;
+    background: #393E46;
+    color: #FFD369;
     border-radius: 50%;
     font-size: 12px;
     font-weight: 600;
@@ -328,7 +328,7 @@ textarea.form-control {
 }
 
 .config-card-meta code {
-    background: #e8eaf6;
+    background: #FFF8E1;
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 11px;
@@ -430,7 +430,7 @@ textarea.form-control {
     text-align: left;
     font-weight: 600;
     color: #333;
-    border-bottom: 2px solid #5c6bc0;
+    border-bottom: 2px solid #FFD369;
 }
 
 .config-table td {

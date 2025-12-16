@@ -192,11 +192,11 @@ include_once('./_head.php');
 
 <style>
 .manual-list-header {
-	background: linear-gradient(135deg, #546e7a 0%, #78909c 100%);
+	background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
 	border-radius: 8px;
 	padding: 12px 16px;
 	margin-bottom: 10px;
-	box-shadow: 0 2px 8px rgba(84, 110, 122, 0.2);
+	box-shadow: 0 2px 8px rgba(57, 62, 70, 0.3);
 }
 .manual-list-header-top {
 	display: flex;
@@ -248,8 +248,8 @@ include_once('./_head.php');
 	background: rgba(158,158,158,0.3);
 }
 .manual-list-stat.total {
-	background: rgba(255,193,7,0.3);
-	color: #fff;
+	background: rgba(255,211,105,0.3);
+	color: #FFD369;
 	font-weight: 600;
 }
 .manual-list-stat span {
@@ -292,7 +292,7 @@ include_once('./_head.php');
 .manual-list-search-group input[type="text"]:focus,
 .manual-list-search-group select:focus {
 	outline: none;
-	border-color: #78909c;
+	border-color: #FFD369;
 	background: #fff;
 }
 .manual-list-search-group span {
@@ -314,15 +314,25 @@ include_once('./_head.php');
 	transition: all 0.15s;
 }
 .date-btns button:hover {
-	background: #607d8b;
-	border-color: #607d8b;
-	color: #fff;
+	background: #393E46;
+	border-color: #393E46;
+	color: #FFD369;
 }
 .search-divider {
 	width: 1px;
 	height: 24px;
 	background: #e0e0e0;
 	margin: 0 6px;
+}
+.filter-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.order-no {
+	font-family: 'Consolas', 'Monaco', 'SF Mono', 'Menlo', monospace;
+	font-size: 11px;
+	letter-spacing: 0.3px;
 }
 .radio-group {
 	display: flex;
@@ -339,7 +349,7 @@ include_once('./_head.php');
 }
 .radio-group input[type="radio"] {
 	margin: 0;
-	accent-color: #607d8b;
+	accent-color: #FFD369;
 }
 .search-input-group {
 	display: flex;
@@ -355,12 +365,12 @@ include_once('./_head.php');
 }
 .search-input-group input[type="text"]:focus {
 	outline: none;
-	border-color: #78909c;
+	border-color: #FFD369;
 }
 .btn-search {
 	padding: 6px 12px;
-	background: #607d8b;
-	color: #fff;
+	background: #393E46;
+	color: #FFD369;
 	border: none;
 	border-radius: 4px;
 	font-size: 12px;
@@ -368,7 +378,7 @@ include_once('./_head.php');
 	transition: background 0.15s;
 }
 .btn-search:hover {
-	background: #78909c;
+	background: #4a5058;
 }
 .btn-excel {
 	padding: 6px 10px;
@@ -405,8 +415,8 @@ include_once('./_head.php');
 	text-decoration: line-through;
 }
 .status-badge.pending {
-	background: #eceff1;
-	color: #546e7a;
+	background: #f5f5f5;
+	color: #393E46;
 }
 /* 상태 툴팁 */
 .status-wrapper {
@@ -470,8 +480,8 @@ include_once('./_head.php');
 	font-weight: 600;
 }
 .auth-badge.nonauth {
-	background: #eceff1;
-	color: #546e7a;
+	background: #f5f5f5;
+	color: #393E46;
 }
 .auth-badge.auth {
 	background: #e3f2fd;
@@ -483,8 +493,8 @@ include_once('./_head.php');
 	align-items: center;
 	gap: 6px;
 	padding: 10px 20px;
-	background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
-	color: #fff;
+	background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
+	color: #FFD369;
 	border: none;
 	border-radius: 8px;
 	font-size: 14px;
@@ -492,61 +502,46 @@ include_once('./_head.php');
 	cursor: pointer;
 	transition: all 0.2s ease;
 	text-decoration: none;
-	box-shadow: 0 2px 8px rgba(21, 101, 192, 0.3);
+	box-shadow: 0 2px 8px rgba(57, 62, 70, 0.3);
 }
 .btn-manual-module:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 4px 12px rgba(21, 101, 192, 0.4);
-	background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
-	color: #fff;
+	box-shadow: 0 4px 12px rgba(255, 211, 105, 0.4);
+	background: linear-gradient(135deg, #4a5058 0%, #5a6068 100%);
+	color: #FFD369;
 }
 .btn-manual-module i {
 	font-size: 16px;
 }
-/* 인라인 신규결제 버튼 (헤더 내) */
-.btn-manual-module-inline {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 10px 20px;
-	background: linear-gradient(135deg, #1565c0 0%, #1e88e5 100%);
-	color: #fff;
-	border: none;
-	border-radius: 8px;
-	font-size: 13px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	text-decoration: none;
-	box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
-	animation: pulse-glow 2s ease-in-out infinite;
+/* 플로팅 신규결제 버튼 */
+.floating-new-payment {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 1000;
 }
-@keyframes pulse-glow {
-	0%, 100% {
-		box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
-	}
-	50% {
-		box-shadow: 0 4px 25px rgba(21, 101, 192, 0.7), 0 0 30px rgba(30, 136, 229, 0.3);
-	}
-}
-.btn-manual-module-inline:hover {
-	background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-	color: #fff;
-	box-shadow: 0 6px 20px rgba(21, 101, 192, 0.5);
-	transform: translateY(-2px) scale(1.02);
-	animation: none;
-}
-.btn-manual-module-inline i {
-	font-size: 15px;
-}
-.module-btn-wrapper {
+.floating-new-payment a {
 	display: flex;
-	justify-content: flex-start;
-	margin: 15px 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 85px;
+	height: 85px;
+	background: #FFD369;
+	color: #393E46;
+	border-radius: 50%;
+	font-size: 12px;
+	font-weight: 600;
+	text-decoration: none;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-.module-btn-wrapper.top {
-	margin-top: 0;
-	margin-bottom: 15px;
+.floating-new-payment a:hover {
+	background: #ffe491;
+	color: #393E46;
+}
+.floating-new-payment i {
+	font-size: 24px;
+	margin-bottom: 4px;
 }
 /* 취소 버튼 */
 .btn-cancel {
@@ -588,25 +583,81 @@ tr.row-failed {
 	}
 	.manual-list-stats {
 		width: 100%;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+	.manual-list-stat {
+		font-size: 10px;
+		padding: 3px 6px;
+	}
+	.manual-list-search {
+		padding: 8px;
 	}
 	.manual-list-search-row {
 		flex-direction: column;
-		align-items: flex-start;
+		align-items: stretch;
+		gap: 6px;
+	}
+	.manual-list-search-group {
+		justify-content: flex-start;
+	}
+	.manual-list-search-group.date-group {
+		width: 100%;
+	}
+	.manual-list-search-group input[type="text"] {
+		flex: 1;
+		width: auto;
+		min-width: 0;
+	}
+	.manual-list-search-group select {
+		min-width: 0;
+	}
+	.filter-row {
+		display: flex;
+		gap: 4px;
+		width: 100%;
+	}
+	.filter-row .manual-list-search-group {
+		flex: 1;
+	}
+	.filter-row select {
+		width: 100%;
+		font-size: 12px;
+		padding: 6px 4px;
+	}
+	.date-btns {
+		width: 100%;
+		flex-wrap: wrap;
+	}
+	.date-btns button {
+		flex: 1;
+		min-width: calc(33% - 4px);
+		padding: 6px 4px;
+		font-size: 11px;
 	}
 	.search-divider {
 		display: none;
 	}
 	.radio-group {
-		flex-wrap: wrap;
-	}
-	.btn-manual-module {
 		width: 100%;
-		justify-content: center;
-		padding: 12px 20px;
+		flex-wrap: wrap;
+		gap: 4px 10px;
 	}
-	.btn-manual-module-inline {
-		padding: 6px 12px;
-		font-size: 12px;
+	.radio-group label {
+		font-size: 11px;
+	}
+	.search-input-group {
+		width: 100%;
+	}
+	.search-input-group input[type="text"] {
+		flex: 1;
+		width: auto;
+	}
+	.btn-search {
+		padding: 6px 16px;
+	}
+	.btn-excel {
+		padding: 6px 10px;
 	}
 }
 /* 취소 확인 모달 */
@@ -806,18 +857,21 @@ tr.row-failed {
 }
 .cancel-result-footer .btn {
 	width: 100%;
-	padding: 14px;
+	padding: 0;
+	height: 44px;
 	border: none;
 	border-radius: 8px;
 	font-size: 14px;
 	font-weight: 600;
+	line-height: 44px;
 	cursor: pointer;
-	background: #1a237e;
-	color: #fff;
+	background: #393E46;
+	color: #FFD369;
 	transition: background 0.2s;
+	box-sizing: border-box;
 }
 .cancel-result-footer .btn:hover {
-	background: #283593;
+	background: #4a5058;
 }
 </style>
 
@@ -889,10 +943,6 @@ tr.row-failed {
 			<i class="fa fa-list-alt"></i>
 			수기결제 내역
 		</div>
-		<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
-			<i class="fa fa-credit-card"></i>
-			신규결제
-		</a>
 	</div>
 	<div class="manual-list-header-bottom">
 		<div class="manual-list-stats">
@@ -935,27 +985,29 @@ tr.row-failed {
 			<button type="submit" onclick="javascript:set_date('전체');">전체</button>
 		</div>
 		<div class="search-divider"></div>
-		<div class="manual-list-search-group">
-			<select name="status_filter">
-				<option value="">상태전체</option>
-				<option value="approved" <?php if($status_filter == 'approved') echo 'selected'; ?>>승인</option>
-				<option value="failed" <?php if($status_filter == 'failed') echo 'selected'; ?>>실패</option>
-				<option value="cancelled" <?php if($status_filter == 'cancelled') echo 'selected'; ?>>취소</option>
-				<option value="pending" <?php if($status_filter == 'pending') echo 'selected'; ?>>대기</option>
-			</select>
-		</div>
-		<div class="manual-list-search-group">
-			<select name="pg_filter">
-				<option value="">PG전체</option>
-				<option value="paysis" <?php if($pg_filter == 'paysis') echo 'selected'; ?>>페이시스</option>
-			</select>
-		</div>
-		<div class="manual-list-search-group">
-			<select name="auth_filter">
-				<option value="">인증전체</option>
-				<option value="nonauth" <?php if($auth_filter == 'nonauth') echo 'selected'; ?>>비인증</option>
-				<option value="auth" <?php if($auth_filter == 'auth') echo 'selected'; ?>>구인증</option>
-			</select>
+		<div class="filter-row">
+			<div class="manual-list-search-group">
+				<select name="status_filter">
+					<option value="">상태전체</option>
+					<option value="approved" <?php if($status_filter == 'approved') echo 'selected'; ?>>승인</option>
+					<option value="failed" <?php if($status_filter == 'failed') echo 'selected'; ?>>실패</option>
+					<option value="cancelled" <?php if($status_filter == 'cancelled') echo 'selected'; ?>>취소</option>
+					<option value="pending" <?php if($status_filter == 'pending') echo 'selected'; ?>>대기</option>
+				</select>
+			</div>
+			<div class="manual-list-search-group">
+				<select name="pg_filter">
+					<option value="">PG전체</option>
+					<option value="paysis" <?php if($pg_filter == 'paysis') echo 'selected'; ?>>페이시스</option>
+				</select>
+			</div>
+			<div class="manual-list-search-group">
+				<select name="auth_filter">
+					<option value="">인증전체</option>
+					<option value="nonauth" <?php if($auth_filter == 'nonauth') echo 'selected'; ?>>비인증</option>
+					<option value="auth" <?php if($auth_filter == 'auth') echo 'selected'; ?>>구인증</option>
+				</select>
+			</div>
 		</div>
 		<div class="search-divider"></div>
 		<div class="radio-group">
@@ -1061,7 +1113,7 @@ tr.row-failed {
 				<tr class="<?php echo $row_class; ?>">
 					<td class="center"><?php echo $num; ?></td>
 					<td class="td_name"><?php echo htmlspecialchars($row['pk_mb_6_name']); ?></td>
-					<td style="font-size:11px;"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
+					<td class="order-no"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
 					<td><?php echo htmlspecialchars($row['pk_goods_name']); ?></td>
 					<td class="right"><?php echo number_format($row['pk_amount']); ?></td>
 					<td class="center"><?php echo $installment_text; ?></td>
@@ -1148,12 +1200,6 @@ $qstr .= "&stx=".$stx;
 echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 
-<div class="module-btn-wrapper" style="margin-top: 20px;">
-	<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
-		<i class="fa fa-credit-card"></i>
-		신규결제
-	</a>
-</div>
 
 <script>
 var currentCancelPkId = null;
@@ -1267,10 +1313,6 @@ function openReceipt(pk_id) {
 			<i class="fa fa-list-alt"></i>
 			수기결제 내역
 		</div>
-		<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
-			<i class="fa fa-credit-card"></i>
-			신규결제
-		</a>
 	</div>
 	<div class="manual-list-header-bottom">
 		<div class="manual-list-stats">
@@ -1408,7 +1450,7 @@ function openReceipt(pk_id) {
 				?>
 				<tr class="<?php echo $row_class; ?>">
 					<td class="center"><?php echo $num; ?></td>
-					<td style="font-size:11px;"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
+					<td class="order-no"><?php echo htmlspecialchars($row['pk_order_no']); ?></td>
 					<td><?php echo htmlspecialchars($row['pk_goods_name']); ?></td>
 					<td class="right"><?php echo number_format($row['pk_amount']); ?></td>
 					<td class="center"><?php echo $installment_text; ?></td>
@@ -1483,12 +1525,6 @@ $qstr .= "&stx=".$stx;
 echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 
-<div class="module-btn-wrapper" style="margin-top: 20px;">
-	<a href="/?p=manual_payment_module" class="btn-manual-module-inline">
-		<i class="fa fa-credit-card"></i>
-		신규결제
-	</a>
-</div>
 
 <script>
 var currentCancelPkId = null;
@@ -1594,6 +1630,14 @@ function openReceipt(pk_id) {
 }
 </script>
 <?php } ?>
+
+<!-- 플로팅 신규결제 버튼 -->
+<div class="floating-new-payment">
+	<a href="/?p=manual_payment_module">
+		<i class="fa fa-credit-card"></i>
+		신규결제
+	</a>
+</div>
 
 <?php
 include_once('./_tail.php');

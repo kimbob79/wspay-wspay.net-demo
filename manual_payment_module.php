@@ -23,11 +23,11 @@ include_once('./_head.php');
 }
 
 .manual-payment-header {
-	background: linear-gradient(135deg, #546e7a 0%, #78909c 100%);
+	background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
 	border-radius: 8px;
 	padding: 12px 16px;
 	margin-bottom: 10px;
-	box-shadow: 0 2px 8px rgba(84, 110, 122, 0.2);
+	box-shadow: 0 2px 8px rgba(57, 62, 70, 0.3);
 }
 
 .manual-payment-title {
@@ -53,7 +53,7 @@ include_once('./_head.php');
 }
 
 .pg-select-area:hover {
-	border-color: #90a4ae;
+	border-color: #FFD369;
 }
 
 .pg-select-area h3 {
@@ -62,7 +62,7 @@ include_once('./_head.php');
 	color: #1a1a1a;
 	margin-bottom: 12px;
 	padding-bottom: 12px;
-	border-bottom: 3px solid #90a4ae;
+	border-bottom: 3px solid #FFD369;
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -70,7 +70,7 @@ include_once('./_head.php');
 
 .pg-select-area h3 i {
 	font-size: 18px;
-	color: #607d8b;
+	color: #FFD369;
 }
 
 .pg-module-list {
@@ -95,14 +95,14 @@ include_once('./_head.php');
 
 
 .pg-module-item:hover {
-	border-color: #90a4ae;
+	border-color: #FFD369;
 	transform: translateY(-2px) scale(1.01);
-	background: linear-gradient(135deg, #fff 0%, #eceff1 100%);
+	background: linear-gradient(135deg, #fff 0%, #FFF8E1 100%);
 }
 
 .pg-module-item.selected {
-	border-color: #78909c;
-	background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+	border-color: #FFD369;
+	background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
 	transform: scale(1.02);
 }
 
@@ -135,7 +135,7 @@ include_once('./_head.php');
 
 .pg-module-info:before {
 	content: '•';
-	color: #607d8b;
+	color: #FFD369;
 	font-weight: bold;
 	font-size: 14px;
 }
@@ -215,7 +215,7 @@ table.table_pg td {
 }
 
 .stripe-payment-form:hover {
-	border-color: #90a4ae;
+	border-color: #FFD369;
 }
 
 .stripe-form-group {
@@ -269,7 +269,7 @@ select.stripe-form-input option {
 
 .stripe-form-input:focus {
 	outline: none;
-	border-color: #90a4ae;
+	border-color: #FFD369;
 	background-color: #fff;
 }
 
@@ -326,7 +326,7 @@ select.stripe-form-input option {
 }
 
 .stripe-section-title i {
-	color: #607d8b;
+	color: #FFD369;
 	font-size: 16px;
 }
 
@@ -339,8 +339,8 @@ select.stripe-form-input option {
 	padding: 16px 24px;
 	font-size: 16px;
 	font-weight: 700;
-	color: #fff;
-	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
+	color: #393E46;
+	background: linear-gradient(135deg, #FFD369 0%, #ffdb7d 100%);
 	border: none;
 	border-radius: 12px;
 	cursor: pointer;
@@ -363,7 +363,7 @@ select.stripe-form-input option {
 
 .stripe-pay-button:hover {
 	transform: translateY(-2px);
-	background: linear-gradient(135deg, #78909c 0%, #90a4ae 100%);
+	background: linear-gradient(135deg, #ffdb7d 0%, #ffe491 100%);
 }
 
 .stripe-pay-button:hover:before {
@@ -441,8 +441,8 @@ select.stripe-form-input option {
 }
 
 .stripe-checkbox-wrapper:hover {
-	background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-	border-color: #90a4ae;
+	background: linear-gradient(135deg, #fff 0%, #FFF8E1 100%);
+	border-color: #FFD369;
 	transform: translateX(2px);
 }
 
@@ -452,18 +452,18 @@ select.stripe-form-input option {
 	border: 1px solid #d0d0d0;
 	border-radius: 5px;
 	cursor: pointer;
-	accent-color: #607d8b;
+	accent-color: #FFD369;
 	flex-shrink: 0;
 	transition: all 0.2s ease;
 }
 
 .stripe-checkbox:hover {
-	border-color: #90a4ae;
+	border-color: #FFD369;
 }
 
 .stripe-checkbox:checked {
-	border-color: #607d8b;
-	background: #607d8b;
+	border-color: #FFD369;
+	background: #FFD369;
 }
 
 .stripe-checkbox-label {
@@ -476,7 +476,7 @@ select.stripe-form-input option {
 }
 
 .stripe-link {
-	color: #607d8b;
+	color: #FFD369;
 	text-decoration: none;
 	font-size: 12px;
 	transition: all 0.2s ease;
@@ -485,7 +485,7 @@ select.stripe-form-input option {
 }
 
 .stripe-link:hover {
-	color: #546e7a;
+	color: #393E46;
 	text-decoration: underline;
 	transform: translateX(2px);
 }
@@ -538,7 +538,7 @@ select.stripe-form-input option {
 	align-items: center;
 	padding: 20px 24px;
 	border-bottom: 1px solid #e8e8e8;
-	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
+	background: linear-gradient(135deg, #393E46 0%, #4a5058 100%);
 	border-radius: 16px 16px 0 0;
 }
 
@@ -590,7 +590,7 @@ select.stripe-form-input option {
 	color: #1a1a1a;
 	margin: 24px 0 12px 0;
 	padding-bottom: 8px;
-	border-bottom: 2px solid #90a4ae;
+	border-bottom: 2px solid #FFD369;
 }
 
 .terms-modal-body h2:first-child {
@@ -623,7 +623,7 @@ select.stripe-form-input option {
 	padding: 16px;
 	background: #f8f9fa;
 	border-radius: 8px;
-	border-left: 4px solid #90a4ae;
+	border-left: 4px solid #FFD369;
 }
 
 .terms-modal-body .term-highlight {
@@ -665,8 +665,8 @@ select.stripe-form-input option {
 
 .terms-modal-confirm {
 	padding: 12px 40px;
-	background: linear-gradient(135deg, #607d8b 0%, #78909c 100%);
-	color: #fff;
+	background: linear-gradient(135deg, #FFD369 0%, #ffdb7d 100%);
+	color: #393E46;
 	border: none;
 	border-radius: 8px;
 	font-size: 14px;
@@ -788,7 +788,7 @@ select.stripe-form-input option {
 	font-size: 24px;
 	margin-bottom: 8px;
 	display: block;
-	color: #607d8b;
+	color: #FFD369;
 }
 
 .payment-confirm-header h3 {
@@ -798,7 +798,7 @@ select.stripe-form-input option {
 }
 
 .payment-confirm-header h3 span {
-	color: #607d8b;
+	color: #FFD369;
 }
 
 .payment-confirm-body {
@@ -844,7 +844,7 @@ select.stripe-form-input option {
 }
 
 .payment-confirm-item.total .value {
-	color: #607d8b;
+	color: #FFD369;
 	font-size: 18px;
 	font-weight: 700;
 }
@@ -878,14 +878,14 @@ select.stripe-form-input option {
 }
 
 .payment-confirm-btn.confirm {
-	background: #607d8b;
-	color: #fff;
-	border: 1px solid #607d8b;
+	background: #393E46;
+	color: #FFD369;
+	border: 1px solid #393E46;
 }
 
 .payment-confirm-btn.confirm:hover {
-	background: #546e7a;
-	border-color: #546e7a;
+	background: #4a5058;
+	border-color: #4a5058;
 }
 
 .payment-confirm-btn.confirm i {
@@ -952,7 +952,7 @@ select.stripe-form-input option {
 }
 
 .all-check input[type=checkbox]:checked+label {
-	border: 1px solid #607d8b;
+	border: 1px solid #FFD369;
 }
 
 .all-check input[type=checkbox]:checked+label span i {
@@ -1081,6 +1081,85 @@ input:read-only {
 
 .display-none {
 	display:none !important;
+}
+
+/* 실패 모달 */
+.error-modal-overlay {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 10001;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	padding: 15px;
+}
+.error-modal-overlay.show {
+	display: flex;
+}
+.error-modal {
+	width: 320px;
+	background: #fff;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.error-modal-header {
+	background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
+	padding: 20px;
+	text-align: center;
+}
+.error-modal-header i {
+	font-size: 40px;
+	color: #fff;
+	margin-bottom: 10px;
+}
+.error-modal-header h3 {
+	color: #fff;
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0;
+}
+.error-modal-body {
+	padding: 20px;
+	text-align: center;
+}
+.error-modal-message {
+	font-size: 14px;
+	color: #333;
+	line-height: 1.6;
+	word-break: keep-all;
+}
+.error-modal-footer {
+	padding: 15px 20px 20px;
+	display: flex;
+	gap: 10px;
+}
+.error-modal-footer button {
+	flex: 1;
+	padding: 12px 16px;
+	border: none;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+.error-modal-footer .btn-retry {
+	background: #393E46;
+	color: #FFD369;
+}
+.error-modal-footer .btn-retry:hover {
+	background: #4a5058;
+}
+.error-modal-footer .btn-close {
+	background: #f5f5f5;
+	color: #666;
+}
+.error-modal-footer .btn-close:hover {
+	background: #eee;
 }
 
 /* 영수증 모달 */
@@ -1279,6 +1358,23 @@ input:read-only {
 	<div class="loading-text">결제 처리중...</div>
 </div>
 
+<!-- 실패 모달 -->
+<div class="error-modal-overlay" id="errorModalOverlay">
+	<div class="error-modal">
+		<div class="error-modal-header">
+			<i class="fa fa-times-circle"></i>
+			<h3>결제 실패</h3>
+		</div>
+		<div class="error-modal-body">
+			<div class="error-modal-message" id="errorModalMessage">오류가 발생했습니다.</div>
+		</div>
+		<div class="error-modal-footer">
+			<button type="button" class="btn-retry" onclick="closeErrorModal()"><i class="fa fa-refresh"></i> 다시 시도</button>
+			<button type="button" class="btn-close" onclick="closeErrorModalAndGoList()"><i class="fa fa-list"></i> 내역확인</button>
+		</div>
+	</div>
+</div>
+
 <!-- 결제완료 영수증 모달 -->
 <div class="receipt-overlay" id="receiptOverlay">
 	<div class="receipt">
@@ -1473,7 +1569,7 @@ input:read-only {
 					<?php if(empty($keyin_configs) && empty($unavailable_configs)) { ?>
 					<p style="margin-bottom: 10px; color: #999; font-size: 13px; text-align: center; padding: 30px 0;">
 						<?php if($is_admin && !$target_mb_id) { ?>
-						<i class="fa fa-info-circle" style="font-size: 24px; color: #607d8b; display: block; margin-bottom: 10px;"></i>
+						<i class="fa fa-info-circle" style="font-size: 24px; color: #FFD369; display: block; margin-bottom: 10px;"></i>
 						먼저 가맹점을 선택해주세요.
 						<?php } else { ?>
 						<i class="fa fa-exclamation-triangle" style="font-size: 24px; color: #f44336; display: block; margin-bottom: 10px;"></i>
@@ -2394,13 +2490,13 @@ function executePayment() {
 				// 영수증 모달 표시
 				$('#receiptOverlay').addClass('show');
 			} else {
-				alert('결제 실패\n\n' + response.message);
+				showErrorModal(response.message);
 				$("#btn1, #btn2").show();
 			}
 		},
 		error: function(xhr, status, error) {
 			$('.wrap-loading').addClass('display-none');
-			alert('서버 오류가 발생했습니다.\n' + error);
+			showErrorModal('서버 오류가 발생했습니다.\n' + error);
 			$("#btn1, #btn2").show();
 		}
 	});
@@ -2421,6 +2517,23 @@ function resetForm() {
 	$('#pay_certify').val('');
 	$("#agreeCheckAll, #agreeTerm, #agreePriv").prop("checked", false);
 	$("#btn1, #btn2").show();
+}
+
+// 실패 모달 표시
+function showErrorModal(message) {
+	$('#errorModalMessage').html(message.replace(/\n/g, '<br>'));
+	$('#errorModalOverlay').addClass('show');
+}
+
+// 실패 모달 닫기 (다시 시도)
+function closeErrorModal() {
+	$('#errorModalOverlay').removeClass('show');
+}
+
+// 실패 모달 닫고 내역으로 이동
+function closeErrorModalAndGoList() {
+	$('#errorModalOverlay').removeClass('show');
+	location.href = './?p=manual_payment';
 }
 
 // 영수증 닫고 폼 리셋

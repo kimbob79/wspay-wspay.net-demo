@@ -269,7 +269,7 @@ body {
 		<div class="section-title"><i class="fas fa-credit-card"></i>결제정보<span class="en">Payment</span></div>
 		<div class="row">
 			<span class="label">주문번호</span>
-			<span class="value" style="font-size:10px;"><?php echo $row['pk_order_no'] ? $row['pk_order_no'] : '-'; ?></span>
+			<span class="value" style="font-size:10px; font-family: 'Consolas', 'Monaco', 'SF Mono', 'Menlo', monospace;"><?php echo $row['pk_order_no'] ? $row['pk_order_no'] : '-'; ?></span>
 		</div>
 		<div class="row">
 			<span class="label">승인번호</span>
