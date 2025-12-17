@@ -157,7 +157,7 @@ if($payMethod) {
 		$mkc_oid = substr($ordNo, 0, 4);
 
 		// mkc_oid로 디바이스 및 수수료 정보 조회
-		$row2 = sql_fetch("SELECT d.*, a.mb_id as merchant_mb_id
+		$row2 = sql_fetch("SELECT d.*, d.mb_6 as merchant_mb_id
 			FROM g5_device d
 			WHERE d.mb_6 = (
 				SELECT a.mb_id
