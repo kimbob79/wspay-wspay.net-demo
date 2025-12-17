@@ -336,6 +336,10 @@ function update_stn(pg_id) {
 	PopupCenter('./update_stn.php?pg_id='+pg_id, 'update_welcom', 500, 300, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
 
+function update_routeup(pg_id) {
+	PopupCenter('./update_routeup.php?pg_id='+pg_id, 'update_routeup', 500, 300, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
+}
+
 function update_daou(pg_id) {
 	PopupCenter('./update_daou.php?pg_id='+pg_id, 'update_daou', 500, 300, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }

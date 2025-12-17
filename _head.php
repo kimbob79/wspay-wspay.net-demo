@@ -401,6 +401,9 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/?p=payment_stn" target="_self" class="gnb_1da <?php if($p == "payment_stn") { echo "on"; } ?>"><span>섹타나인</span></a>
 				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=payment_routeup" target="_self" class="gnb_1da <?php if($p == "payment_routeup") { echo "on"; } ?>"><span>루트업</span></a>
+				</li>
 				<?php /*
 				<li class="gnb_1dli">
 					<a href="/?p=payment_daou" target="_self" class="gnb_1da <?php if($p == "payment_daou") { echo "on"; } ?>"><span>다우</span></a>

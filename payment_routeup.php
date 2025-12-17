@@ -1,12 +1,12 @@
 <?php
 
 	$title1 = "NOTI";
-	$title2 = "섹타나인";
+	$title2 = "루트업";
 
 	$fr_dates = date("Y-m-d", strtotime($fr_date));
 	$to_dates = date("Y-m-d", strtotime($to_date));
 
-	$sql_common = " from g5_payment_stn ";
+	$sql_common = " from g5_payment_routeup ";
 
 	if($is_admin) {
 		$adm_sql = " (1)";
@@ -31,11 +31,11 @@
 	}
 
 	if($pay_num) {
-		$sql_search .= " and authCd = '{$pay_num}' ";
+		$sql_search .= " and appr_num = '{$pay_num}' ";
 	}
 
 	if($dv_tid) {
-		$sql_search .= " and (dv_tid = '{$dv_tid}') ";
+		$sql_search .= " and (tid = '{$dv_tid}') ";
 	}
 
 	if($company_name) {
@@ -43,10 +43,6 @@
 	}
 
 	if($gname) { $sql_search .= " and level_company_name like '%{$gname}%' "; }
-	/*
-	if ($is_admin != 'super')
-		$sql_search .= " and (gr_admin = '{$member['mb_id']}') ";
-	*/
 
 	if ($stx) {
 		$sql_search .= " and ( ";
@@ -61,13 +57,13 @@
 		}
 		$sql_search .= " ) ";
 	}
-	
+
 	if ($sst)
 		$sql_order = " order by {$sst} {$sod} ";
 	else
 		$sql_order = " order by datetime desc ";
 
-	$sql = " select count(*) as cnt, sum(if(cmd = '0', amount, 0)) as total_Y_pay, sum(if(cmd = '1', amount, 0)) as total_M_pay {$sql_common} {$sql_search} {$sql_order} ";
+	$sql = " select count(*) as cnt, sum(if(is_cancel = '0', amount, 0)) as total_Y_pay, sum(if(is_cancel = '1', amount, 0)) as total_M_pay {$sql_common} {$sql_search} {$sql_order} ";
 	$row = sql_fetch($sql);
 
 	$total_count = $row['cnt']; // 전체개수
@@ -84,13 +80,13 @@
 	$sql = " select * {$sql_common} {$sql_search} {$sql_order} limit {$from_record}, {$rows} ";
 	$result = sql_query($sql);
 
-	
+
 
 ?>
 
 <style>
 .noti-header {
-	background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%);
+	background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
 	border-radius: 8px;
 	padding: 12px 16px;
 	margin-bottom: 10px;
@@ -147,7 +143,7 @@
 <div class="noti-header">
 	<div class="noti-header-title">
 		<i class="fa fa-credit-card"></i>
-		<span>섹타나인 NOTI</span>
+		<span>루트업 NOTI</span>
 	</div>
 	<div class="noti-header-stats">
 		<div class="stat-item">
@@ -198,11 +194,11 @@
 					<strong>검색</strong>
 					<div>
 						<div data-skin="radio">
-							<label><input type="radio" name="sfl" value="applNo" <?php echo get_checked($sfl, "applNo"); ?> checked> 승번</label>
-							<label><input type="radio" name="sfl" value="mbrNo" <?php echo get_checked($sfl, "mbrNo"); ?>> 상점ID</label>
-							<label><input type="radio" name="sfl" value="vanCatId" <?php echo get_checked($sfl, "vanCatId"); ?>> TID</label>
-							<label><input type="radio" name="sfl" value="amt" <?php echo get_checked($sfl, "amt"); ?>> 금액</label>
-							<label><input type="radio" name="sfl" value="appCardCd" <?php echo get_checked($sfl, "appCardCd"); ?>> 카드</label>
+							<label><input type="radio" name="sfl" value="appr_num" <?php echo get_checked($sfl, "appr_num"); ?> checked> 승번</label>
+							<label><input type="radio" name="sfl" value="mid" <?php echo get_checked($sfl, "mid"); ?>> 가맹점ID</label>
+							<label><input type="radio" name="sfl" value="tid" <?php echo get_checked($sfl, "tid"); ?>> TID</label>
+							<label><input type="radio" name="sfl" value="amount" <?php echo get_checked($sfl, "amount"); ?>> 금액</label>
+							<label><input type="radio" name="sfl" value="issuer" <?php echo get_checked($sfl, "issuer"); ?>> 카드</label>
 						</div>
 					</div>
 				</li>
@@ -227,64 +223,50 @@
 				<tr>
 					<th>동기화</th>
 					<th>등록</th>
-					<th>요청방식</th>
-					<th>지불수단</th>
-					<th>결제타입</th>
-					<th>요청구분</th>
-					<th>가맹점주문번호</th>
-					<th>상점 아이디</th>
-					<th>PG 거래번호</th>
-					<th>거래일자</th>
-					<th>거래시각</th>
-					<th>가맹점주문번호</th>
-					<th>원거래번호</th>
-					<th>원거래일자</th>
-					<th>VAN_CAT_ID</th>
-					<th>카드사 가맹점 번호</th>
+					<th>가맹점ID</th>
+					<th>단말기ID</th>
+					<th>거래번호</th>
+					<th>거래금액</th>
+					<th>주문번호</th>
 					<th>승인번호</th>
-					<th>발급사코드 </th>
-					<th>매입사코드 </th>
-					<th>신용카드번호 </th>
-					<th>할부</th>
 					<th>상품명</th>
-					<th>결제금액</th>
 					<th>구매자명</th>
-					<th>전화번호</th>
-					<th>이메일</th>
-					<th>직원아이디</th>
-					<th>거래처코드</th>
+					<th>구매자번호</th>
+					<th>발급사명</th>
+					<th>매입사명</th>
+					<th>카드번호</th>
+					<th>할부기간</th>
+					<th>거래시간</th>
+					<th>취소시간</th>
+					<th>취소여부</th>
+					<th>취소회차</th>
+					<th>원거래번호</th>
+					<th>모듈타입</th>
 					<th>등록일</th>
 				</tr>
 				<tr>
 					<th>sync</th>
 					<th></th>
-					<th>cmd</th>
-					<th>paymethod</th>
-					<th>payType</th>
-					<th>requestFlag</th>
-					<th>mbrRefNo</th>
-					<th>mbrNo</th>
-					<th>refNo</th>
-					<th>tranDate</th>
-					<th>tranTime</th>
-					<th>mbrRefNo</th>
-					<th>orgRefNo</th>
-					<th>orgTranDate</th>
-					<th>vanCatId</th>
-					<th>cardMerchNo</th>
-					<th>applNo</th>
-					<th>issueCompanyNo</th>
-					<th>acqCompanyNo</th>
-					<th>cardNo</th>
-					<th>installNo</th>
-					<th>goodsName</th>
+					<th>mid</th>
+					<th>tid</th>
+					<th>trx_id</th>
 					<th>amount</th>
-					<th>customerName</th>
-					<th>customerTelNo</th>
-					<th>customerEmail</th>
-					<th>sid</th>
-					<th>retailerCode</th>
-					<th></th>
+					<th>ord_num</th>
+					<th>appr_num</th>
+					<th>item_name</th>
+					<th>buyer_name</th>
+					<th>buyer_phone</th>
+					<th>issuer</th>
+					<th>acquirer</th>
+					<th>card_num</th>
+					<th>installment</th>
+					<th>trx_dttm</th>
+					<th>cxl_dttm</th>
+					<th>is_cancel</th>
+					<th>cxl_seq</th>
+					<th>ori_trx_id</th>
+					<th>module_type</th>
+					<th>datetime</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -294,6 +276,17 @@
 					$sync_style = '';
 					if($row['sync_status'] == 'failed') {
 						$sync_style = 'background-color: #ffebee;';
+					}
+
+					// 모듈타입 표시
+					$module_type_text = '';
+					switch($row['module_type']) {
+						case '0': $module_type_text = '장비'; break;
+						case '1': $module_type_text = '수기'; break;
+						case '2': $module_type_text = '인증'; break;
+						case '3': $module_type_text = '간편'; break;
+						case '4': $module_type_text = '빌링'; break;
+						default: $module_type_text = $row['module_type']; break;
 					}
 				?>
 				<tr style="<?php echo $sync_style; ?>">
@@ -308,36 +301,28 @@
 					</td>
 					<td>
 						<div class="buttons">
-							<button  class="btn_b btn_b02" onclick="update_stn('<?php echo $row['pg_id']; ?>')" type="button">등록</button>
+							<button class="btn_b btn_b02" onclick="update_routeup('<?php echo $row['pg_id']; ?>')" type="button">등록</button>
 						</div>
 					</td>
-					<td><?php echo $row['cmd']; ?></td>
-					<td><?php echo $row['paymethod']; ?></td>
-					<td><?php echo $row['payType']; ?></td>
-					<td><?php echo $row['requestFlag']; ?></td>
-					<td><?php echo $row['mbrRefNo']; ?></td>
-					<td><?php echo $row['mbrNo']; ?></td>
-					<td><?php echo $row['refNo']; ?></td>
-					<td><?php echo $row['tranDate']; ?></td>
-					<td><?php echo $row['tranTime']; ?></td>
-					<td><?php echo $row['mbrRefNo']; ?></td>
-					<td><?php echo $row['orgRefNo']; ?></td>
-					<td><?php echo $row['orgTranDate']; ?></td>
-					<td><?php echo $row['vanCatId']; ?></td>
-					<td><?php echo $row['cardMerchNo']; ?></td>
-					<td><?php echo $row['applNo']; ?></td>
-					<td><?php echo $row['issueCompanyNo']; ?></td>
-					<td><?php echo $row['acqCompanyNo']; ?></td>
-					<td><?php echo $row['cardNo']; ?></td>
-					<td><?php echo $row['installNo']; ?></td>
-					<td><?php echo $row['goodsName']; ?></td>
-					<td><?php echo $row['amount']; ?></td>
-					<td><?php echo $row['customerName']; ?></td>
-					<td><?php echo $row['customerTelNo']; ?></td>
-					<td><?php echo $row['customerEmail']; ?></td>
-					<td><?php echo $row['sid']; ?></td>
-					<td><?php echo $row['retailerCode']; ?></td>
-
+					<td><?php echo $row['mid']; ?></td>
+					<td><?php echo $row['tid']; ?></td>
+					<td><?php echo $row['trx_id']; ?></td>
+					<td class="td_name" style="text-align:right"><?php echo number_format($row['amount']); ?></td>
+					<td><?php echo $row['ord_num']; ?></td>
+					<td><?php echo $row['appr_num']; ?></td>
+					<td><?php echo $row['item_name']; ?></td>
+					<td><?php echo $row['buyer_name']; ?></td>
+					<td><?php echo $row['buyer_phone']; ?></td>
+					<td><?php echo $row['issuer']; ?></td>
+					<td><?php echo $row['acquirer']; ?></td>
+					<td><?php echo $row['card_num']; ?></td>
+					<td><?php echo $row['installment']; ?></td>
+					<td><?php echo $row['trx_dttm']; ?></td>
+					<td><?php echo $row['cxl_dttm']; ?></td>
+					<td><?php echo $row['is_cancel'] == '1' ? '취소' : '승인'; ?></td>
+					<td><?php echo $row['cxl_seq']; ?></td>
+					<td><?php echo $row['ori_trx_id']; ?></td>
+					<td><?php echo $module_type_text; ?></td>
 					<td><?php echo $row['datetime']; ?></td>
 				</tr>
 				<?php } ?>
