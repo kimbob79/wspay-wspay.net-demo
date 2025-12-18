@@ -500,6 +500,8 @@
 						$pg_name = "섹타나인";
 					} else if($row['pg_name'] == "daou") {
 						$pg_name = "다우";
+					} else if($row['pg_name'] == "routeup" || $row['pg_name'] == "routeup_keyin") {
+						$pg_name = "루트업";
 					} else {
 						$pg_name = "??";
 					}

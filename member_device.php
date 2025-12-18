@@ -92,13 +92,18 @@
 			<td>
 				<select name="dv_pg" required class="required frm_input">
 					<option value="">PG사</option>
+					<?php /*
 					<option value="0" <?php if($row['dv_pg'] == "0") { echo "selected"; } ?>>코페이</option>
 					<option value="1" <?php if($row['dv_pg'] == "1") { echo "selected"; } ?>>다날</option>
 					<option value="2" <?php if($row['dv_pg'] == "2") { echo "selected"; } ?>>광원</option>
 					<option value="3" <?php if($row['dv_pg'] == "3") { echo "selected"; } ?>>웰컴</option>
+					*/ ?>
 					<option value="4" <?php if($row['dv_pg'] == "4") { echo "selected"; } ?>>페이시스</option>
 					<option value="5" <?php if($row['dv_pg'] == "5") { echo "selected"; } ?>>섹타나인</option>
+					<?php /*
 					<option value="6" <?php if($row['dv_pg'] == "6") { echo "selected"; } ?>>다우</option>
+					*/ ?>
+					<option value="7" <?php if($row['dv_pg'] == "7") { echo "selected"; } ?>>루트업</option>
 				</select>
 			</td>
 		</tr>
@@ -107,8 +112,8 @@
 			<td>
 				<select name="dv_type" required class="required frm_input">
 					<option value="">결제종류 선택</option>
-					<option value="1" <?php if($row['dv_type'] == "1") { echo "selected"; } ?>>단말기 결제</option>
-					<option value="2" <?php if($row['dv_type'] == "2") { echo "selected"; } ?>>수기 결제</option>
+					<option value="1" <?php if($row['dv_type'] == "1") { echo "selected"; } ?>>오프라인</option>
+					<option value="2" <?php if($row['dv_type'] == "2") { echo "selected"; } ?>>온라인</option>
 				</select>
 			</td>
 		</tr>

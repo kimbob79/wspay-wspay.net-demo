@@ -1,6 +1,7 @@
 <?php
 	error_reporting( E_ALL );
 	ini_set( "display_errors", 1 );
+	date_default_timezone_set('Asia/Seoul');
 
 	// ========================================
 	// 요청 로깅 - /logs/trans/api/routeup
@@ -35,6 +36,17 @@
 	// ========================================
 
 	include('./_common.php');
+
+// ========================================
+// JSON body 요청 처리
+// ========================================
+$raw_input = file_get_contents('php://input');
+$json_data = json_decode($raw_input, true);
+
+// JSON 데이터가 있으면 $_REQUEST에 병합
+if(is_array($json_data)) {
+	$_REQUEST = array_merge($_REQUEST, $json_data);
+}
 
 // 요청 파라미터 수집
 $mid = isset($_REQUEST['mid']) ? trim($_REQUEST['mid']) : '';					// 가맹점 ID
