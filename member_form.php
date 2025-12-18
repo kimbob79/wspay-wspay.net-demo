@@ -310,6 +310,13 @@
 				<td><input type="text" name="mb_homepage" value="<?php echo $mb['mb_homepage'] ?>" id="mb_homepage" required class="frm_input" style="max-width:100px"> %</td>
 			</tr>
 
+			<?php if($mb_level == '4') { ?>
+			<tr>
+				<th style="color:#4caf50;"><label for="mb_van_fee">밴피</label></th>
+				<td><input type="text" name="mb_van_fee" value="<?php echo $mb['mb_van_fee'] ?>" id="mb_van_fee" class="frm_input" style="max-width:100px" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '');"> 원</td>
+			</tr>
+			<?php } ?>
+
 			<tr>
 				<th><label for="mb_dupinfo">정산주기</label></th>
 				<td>

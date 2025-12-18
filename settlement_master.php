@@ -526,7 +526,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php if($member['mb_level'] >= 4) { ?>
 					<th>사명</th>
 					<th>수수료</th>
-					<th>수익금</th>
+					<th>수익금<br><span style="font-size:10px;color:#4caf50">(밴피)</span></th>
 					<?php } ?>
 
 					<th>수수료</th>
@@ -720,9 +720,21 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php } ?>
 
 					<?php if($member['mb_level'] >= 4) { ?>
+					<?php
+					// 영업점 밴피 계산
+					$mb5_van_fee = 0;
+					$mb5_van_fee_amount = 0;
+					if($row['mb_5']) {
+						$mb5_info = get_member($row['mb_5']);
+						if($mb5_info['mb_van_fee'] > 0) {
+							$mb5_van_fee = $mb5_info['mb_van_fee'];
+							$mb5_van_fee_amount = ($row['scnt'] - $row['ccnt']) * $mb5_van_fee;
+						}
+					}
+					?>
 					<td class="td_name"><?php if($row['mb_5_name']) { echo utf8_strcut($row['mb_5_name'],6); } ?></td>
 					<td><?php if($row['mb_5_name']) { echo "<span class='fee1'>".$row['mb_5_fee']."</span><span class='fee2'>".$mb_5_fee."</span>"; } ?></td>
-					<td style="text-align:right;font-weight:bold"><?php if($row['mb_5_name']) { echo number_format($mb_5_pay); } ?></td>
+					<td style="text-align:right;font-weight:bold"><?php if($row['mb_5_name']) { echo number_format($mb_5_pay); if($mb5_van_fee > 0) { echo "<br><span style='color:#4caf50;font-size:11px'>(".number_format($mb5_van_fee_amount).")</span>"; } } ?></td>
 					<?php } ?>
 
 
@@ -1224,7 +1236,8 @@ td span .fee_name {font-family: 'NanumGothic';}
 				*/ ?>
 				<th style="width:10%">정산액</th>
 				<th style="width:10%">부가세제외</th>
-				<th style="width:20%">계좌정보</th>
+				<th style="width:8%">밴피합계</th>
+				<th style="width:17%">계좌정보</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -1242,6 +1255,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 				$mb_pay5_total = 0;
 				$mb_pay6_total = 0;
 				$s_pay_total = 0;
+				$van_fee_total = 0;
 
 				for ($i=0; $row=sql_fetch_array($result); $i++) {
 
@@ -1271,6 +1285,13 @@ td span .fee_name {font-family: 'NanumGothic';}
 					$bank5 = $mb5['mb_8']." " .$mb5['mb_9']." " .$mb5['mb_10'];
 				}
 
+				// 밴피 계산: (승인건수 - 취소건수) * 밴피
+				$van_fee_amount = 0;
+				if($mb5['mb_van_fee'] > 0) {
+					$van_fee_amount = ($row['scnt'] - $row['ccnt']) * $mb5['mb_van_fee'];
+					$van_fee_total = $van_fee_total + $van_fee_amount;
+				}
+
 			?>
 			<tr>
 				<td style="border-right: 1px solid #eee; color:#4d4dff; font-weight:700; text-align:left"><?php echo $row['mb5_name']; ?></td>
@@ -1283,6 +1304,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 				*/ ?>
 				<td style="text-align:right; font-weight:bold"><?php if($row['mb_5_name']) { echo number_format($row['mb_5_pay']); } ?></td>
 				<td style="text-align:right; font-weight:bold"><?php if($row['mb_5_name']) { echo number_format($mb_5_pay); } ?></td>
+				<td style="text-align:right; font-weight:bold; color:#4caf50"><?php echo ($mb5['mb_van_fee'] > 0) ? number_format($van_fee_amount) : '-'; ?></td>
 				<td style="text-align:left; font-weight:bold"><?php echo $bank5; ?></td>
 			</tr>
 			<?php } ?>
@@ -1290,7 +1312,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 			<tfoot>
 			<?php
 				if ($i == 0) {
-					echo '<tr><td colspan="8" style="height:100px; background:#eee; color:#888; line-height:100px;">영업점 내역이 없습니다.</td></tr>';
+					echo '<tr><td colspan="9" style="height:100px; background:#eee; color:#888; line-height:100px;">영업점 내역이 없습니다.</td></tr>';
 				}
 			?>
 			</tfoot>

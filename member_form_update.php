@@ -60,7 +60,8 @@
 
 
 	$mb_password    = isset($_POST['mb_password']) ? trim($_POST['mb_password']) : ''; // 비밀번호
-	$mb_homepage    = isset($_POST['mb_homepage']) ? trim($_POST['mb_homepage']) : ''; // 비밀번호
+	$mb_homepage    = isset($_POST['mb_homepage']) ? trim($_POST['mb_homepage']) : ''; // 수수료
+	$mb_van_fee     = isset($_POST['mb_van_fee']) ? trim($_POST['mb_van_fee']) : ''; // 밴피
 
 	$mb_nick        = isset($_POST['mb_nick']) ? trim($_POST['mb_nick']) : ''; // 상호
 
@@ -102,6 +103,7 @@
 	$mb_name        = clean_xss_tags($mb_name);
 	$mb_email       = get_email_address($mb_email);
 	$mb_homepage    = clean_xss_tags($mb_homepage);
+	$mb_van_fee     = preg_replace('/[^0-9]/', '', $mb_van_fee); // 숫자만
 	$mb_tel         = clean_xss_tags($mb_tel);
 	$mb_hp         = clean_xss_tags($mb_hp);
 	$mb_zip1        = preg_replace('/[^0-9]/', '', $mb_zip1);
@@ -343,6 +345,7 @@
 						mb_nick = '{$mb_nick}',
 						mb_email = '{$mb_email}',
 						mb_homepage = '{$mb_homepage}',
+						mb_van_fee = '{$mb_van_fee}',
 						mb_tel = '{$mb_tel}',
 						mb_hp = '{$mb_hp}',
 						mb_certify = '{$mb_certify}',

@@ -520,6 +520,10 @@ include_once('./_head.php');
 	bottom: 20px;
 	z-index: 1000;
 }
+/* TOP 버튼 숨기기 */
+#topBtn, .top-btn, .btn-top, #scrollToTop, .scroll-top {
+	display: none !important;
+}
 .floating-new-payment a {
 	display: flex;
 	flex-direction: column;
