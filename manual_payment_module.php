@@ -922,6 +922,11 @@ select.stripe-form-input option {
 
 	.stripe-form-col-small {
 		flex: 1;
+		margin-top: 12px;
+	}
+
+	.stripe-form-row .stripe-form-col + .stripe-form-col {
+		margin-top: 12px;
 	}
 
 	.stripe-section-title {
@@ -1439,6 +1444,7 @@ input:read-only {
 
 		<div class="btn-area">
 			<button type="button" class="btn btn-secondary" onclick="closeReceiptAndReset()"><i class="fa fa-plus"></i>새결제</button>
+			<button type="button" class="btn btn-secondary" onclick="closeReceiptForDuplicate()" style="background:#fff3e0; color:#e65100;"><i class="fa fa-copy"></i>중복결제</button>
 			<button type="button" class="btn btn-primary" onclick="goToPaymentList()"><i class="fa fa-list"></i>내역확인</button>
 		</div>
 	</div>
@@ -1459,12 +1465,12 @@ input:read-only {
 				<div class="manual-payment-container">
 				<!-- 관리자: 가맹점 선택 -->
 				<?php if($is_admin) {
-					// Keyin 설정이 등록된 가맹점 목록 조회
+					// Keyin 설정이 등록되고 수기결제가 허용된 가맹점 목록 조회
 					$selected_mb_id = isset($_GET['selected_mb_id']) ? $_GET['selected_mb_id'] : '';
 					$keyin_members_sql = "SELECT DISTINCT m.mb_id, m.mb_nick, m.mb_name
 						FROM {$g5['member_table']} m
 						INNER JOIN g5_member_keyin_config k ON m.mb_id = k.mb_id
-						WHERE m.mb_level = 3 AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
+						WHERE m.mb_level = 3 AND m.mb_mailling = '1' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
 						ORDER BY m.mb_nick";
 					$keyin_members = sql_query($keyin_members_sql);
 				?>
@@ -1472,7 +1478,7 @@ input:read-only {
 					<h3><i class="fa fa-users"></i> 가맹점 선택</h3>
 					<form method="get" id="merchantSelectForm">
 						<input type="hidden" name="p" value="manual_payment_module">
-						<label>수기결제를 진행할 가맹점을 선택하세요 <span style="color:#999; font-size:11px;">(Keyin 설정된 가맹점만 표시)</span></label>
+						<label>수기결제를 진행할 가맹점을 선택하세요 <span style="color:#999; font-size:11px;">(수기결제 허용 + Keyin 설정된 가맹점만 표시)</span></label>
 						<select name="selected_mb_id" class="form-control" onchange="this.form.submit()">
 							<option value="">가맹점을 선택하세요</option>
 							<?php while($km = sql_fetch_array($keyin_members)) { ?>
@@ -2227,11 +2233,11 @@ function selectPgModule(mkcId, certiType, maxInstallment, pgCode) {
 // PG사별 필수 필드 표시 업데이트
 function updateRequiredFields(pgCode) {
 	// 휴대전화 필드 라벨 찾기
-	var $phoneLabel = $('#pay_phone').closest('.stripe-form-group').find('.stripe-form-label');
+	var $phoneLabel = $('#pay_phone').closest('.stripe-form-col').find('.stripe-form-label');
 
 	if(pgCode === 'rootup') {
 		// 루트업: 휴대전화 필수
-		$phoneLabel.html('구매자 휴대전화 <span style="color:#f44336;">*필수</span>');
+		$phoneLabel.html('구매자 휴대전화 <span style="color:#f44336;">(필수)</span>');
 		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
 	} else {
 		// 페이시스 등: 휴대전화 선택
@@ -2592,6 +2598,17 @@ function closeReceiptAndReset() {
 	resetForm();
 	// 상단으로 스크롤
 	$('html, body').animate({scrollTop:0}, '300');
+}
+
+// 중복결제 - 영수증 닫고 입력값 유지
+function closeReceiptForDuplicate() {
+	$('#receiptOverlay').removeClass('show');
+	// 버튼만 다시 활성화 (입력값은 유지)
+	$("#btn1, #btn2").show();
+	// 결제 폼으로 스크롤
+	$('html, body').animate({
+		scrollTop: $('.payment-form-area').offset().top - 50
+	}, '300');
 }
 
 // 내역 페이지로 이동
