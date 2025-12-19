@@ -898,7 +898,7 @@ textarea.form-control {
                                     <tr>
                                         <th>PG사 선택 <span class="required">*</span></th>
                                         <td>
-                                            <select name="mkc_pg_code" class="form-control form-control-inline" id="mkc_pg_code" onchange="setPgName(this)">
+                                            <select name="mkc_pg_code" class="form-control form-control-inline" id="mkc_pg_code" onchange="setPgFields(this)">
                                                 <option value="">선택하세요</option>
                                                 <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
                                                 <option value="rootup" data-name="루트업" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
@@ -913,20 +913,21 @@ textarea.form-control {
                                             </select>
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <th>API KEY <span class="required">*</span></th>
+                                    <!-- 페이시스 필드 (기본) -->
+                                    <tr class="pg-fields paysis-fields">
+                                        <th id="label_api_key">API KEY <span class="required">*</span></th>
                                         <td>
-                                            <input type="text" name="mkc_api_key" class="form-control" placeholder="API KEY (32자)" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_api_key'] : ''; ?>">
+                                            <input type="text" name="mkc_api_key" id="mkc_api_key" class="form-control" placeholder="API KEY (32자)" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_api_key'] : ''; ?>">
                                         </td>
-                                        <th>상점 ID <span class="required">*</span></th>
+                                        <th id="label_mid">상점 ID <span class="required">*</span></th>
                                         <td>
-                                            <input type="text" name="mkc_mid" class="form-control" placeholder="MID (10자)" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mid'] : ''; ?>">
+                                            <input type="text" name="mkc_mid" id="mkc_mid" class="form-control" placeholder="MID (10자)" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mid'] : ''; ?>">
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <th>암호화 키 <span class="required">*</span></th>
+                                    <tr class="pg-fields paysis-fields">
+                                        <th id="label_mkey">암호화 키 <span class="required">*</span></th>
                                         <td colspan="3">
-                                            <input type="text" name="mkc_mkey" class="form-control" placeholder="암호화 키 (100자)" maxlength="200" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mkey'] : ''; ?>">
+                                            <input type="text" name="mkc_mkey" id="mkc_mkey" class="form-control" placeholder="암호화 키 (100자)" maxlength="200" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mkey'] : ''; ?>">
                                         </td>
                                     </tr>
                                 </table>
@@ -1156,11 +1157,53 @@ function selectConfigType(type) {
     }
 }
 
-function setPgName(select) {
+// PG사별 필드 설정
+var pgFieldConfig = {
+    'paysis': {
+        api_key: { label: 'API KEY', placeholder: 'API KEY (32자)' },
+        mid: { label: '상점 ID', placeholder: 'MID (10자)' },
+        mkey: { label: '암호화 키', placeholder: '암호화 키 (100자)' }
+    },
+    'rootup': {
+        api_key: { label: '결제 KEY', placeholder: '결제 KEY' },
+        mid: { label: 'MID', placeholder: 'MID' },
+        mkey: { label: 'TID', placeholder: 'TID' }
+    }
+};
+
+function setPgFields(select) {
+    var pgCode = select.value;
     var selectedOption = select.options[select.selectedIndex];
     var pgName = selectedOption.getAttribute('data-name') || '';
+
+    // PG사 이름 설정
     document.getElementById('mkc_pg_name').value = pgName;
+
+    // PG사별 필드 라벨 및 placeholder 변경
+    if(pgCode && pgFieldConfig[pgCode]) {
+        var config = pgFieldConfig[pgCode];
+
+        // API KEY / 결제 KEY
+        document.getElementById('label_api_key').innerHTML = config.api_key.label + ' <span class="required">*</span>';
+        document.getElementById('mkc_api_key').placeholder = config.api_key.placeholder;
+
+        // 상점 ID / MID
+        document.getElementById('label_mid').innerHTML = config.mid.label + ' <span class="required">*</span>';
+        document.getElementById('mkc_mid').placeholder = config.mid.placeholder;
+
+        // 암호화 키 / TID
+        document.getElementById('label_mkey').innerHTML = config.mkey.label + ' <span class="required">*</span>';
+        document.getElementById('mkc_mkey').placeholder = config.mkey.placeholder;
+    }
 }
+
+// 페이지 로드 시 현재 선택된 PG사에 맞게 필드 설정
+document.addEventListener('DOMContentLoaded', function() {
+    var pgSelect = document.getElementById('mkc_pg_code');
+    if(pgSelect && pgSelect.value) {
+        setPgFields(pgSelect);
+    }
+});
 </script>
 
 <?php
