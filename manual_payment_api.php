@@ -4,9 +4,13 @@
  * - action=pay: 결제 처리
  * - action=cancel: 취소 처리
  *
- * 현재 지원 PG: paysis (페이시스)
- * - 비인증: cardNo, expireYymm
- * - 구인증: cardNo, expireYymm, certPw, certNo
+ * 지원 PG:
+ * - paysis (페이시스): API KEY, MID, MKEY 사용
+ *   - 비인증: cardNo, expireYymm
+ *   - 구인증: cardNo, expireYymm, certPw, certNo
+ * - rootup (루트업): MID, TID, 결제KEY 사용
+ *   - 비인증: card_num, yymm
+ *   - 구인증: card_num, yymm, card_pw, auth_num
  */
 
 include_once('./_common.php');
@@ -69,7 +73,8 @@ function processPayment() {
     $cert_no = isset($_POST['cert_no']) ? preg_replace('/[^0-9]/', '', $_POST['cert_no']) : '';
 
     // Keyin 설정 조회
-    $keyin_sql = "SELECT k.*, m.mpc_pg_code, m.mpc_pg_name, m.mpc_type, m.mpc_api_key, m.mpc_mid, m.mpc_mkey
+    $keyin_sql = "SELECT k.*, m.mpc_pg_code, m.mpc_pg_name, m.mpc_type, m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
+                  m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key
                   FROM g5_member_keyin_config k
                   LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
                   WHERE k.mkc_id = '{$mkc_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'";
@@ -90,10 +95,22 @@ function processPayment() {
     $pg_code = $keyin['mpc_id'] ? $keyin['mpc_pg_code'] : $keyin['mkc_pg_code'];
     $pg_name = $keyin['mpc_id'] ? $keyin['mpc_pg_name'] : $keyin['mkc_pg_name'];
     $auth_type = $keyin['mpc_id'] ? $keyin['mpc_type'] : $keyin['mkc_type'];
-    $api_key = $keyin['mpc_id'] ? $keyin['mpc_api_key'] : $keyin['mkc_api_key'];
-    $mid = $keyin['mpc_id'] ? $keyin['mpc_mid'] : $keyin['mkc_mid'];
-    $mkey = $keyin['mpc_id'] ? $keyin['mpc_mkey'] : $keyin['mkc_mkey'];
     $merchant_oid = $keyin['mkc_oid'] ?: '';
+
+    // PG사별 API 설정값
+    if($pg_code === 'rootup') {
+        // 루트업: MID, TID, 결제KEY
+        $api_key = $keyin['mpc_id'] ? $keyin['mpc_rootup_key'] : $keyin['mkc_api_key'];  // 결제KEY
+        $mid = $keyin['mpc_id'] ? $keyin['mpc_rootup_mid'] : $keyin['mkc_mid'];
+        $tid = $keyin['mpc_id'] ? $keyin['mpc_rootup_tid'] : $keyin['mkc_mkey'];  // TID
+        $mkey = '';  // 루트업은 mkey 사용 안함
+    } else {
+        // 페이시스 등 기타: API KEY, MID, MKEY
+        $api_key = $keyin['mpc_id'] ? $keyin['mpc_api_key'] : $keyin['mkc_api_key'];
+        $mid = $keyin['mpc_id'] ? $keyin['mpc_mid'] : $keyin['mkc_mid'];
+        $mkey = $keyin['mpc_id'] ? $keyin['mpc_mkey'] : $keyin['mkc_mkey'];
+        $tid = '';  // 페이시스는 tid 사용 안함
+    }
 
     // 구인증인 경우 인증정보 필수 체크
     if($auth_type === 'auth') {
@@ -198,25 +215,48 @@ function processPayment() {
     // 카드번호 마스킹 (앞 6자리 + **** + 뒤 4자리)
     $card_no_masked = maskCardNumber($card_no);
 
-    // 요청 데이터 구성
-    $request_data = [
-        'ordNo' => $order_no,
-        'mkey' => $mkey,
-        'mid' => $mid,
-        'goodsAmt' => (string)$amount,
-        'cardNo' => $card_no,
-        'expireYymm' => $expire_yymm,
-        'quotaMon' => $installment,
-        'buyerNm' => $buyer_name,
-        'goodsNm' => $goods_name,
-        'ordHp' => $buyer_phone,
-        'hashKey' => hash('sha256', $mid . $amount)
-    ];
+    // PG사별 요청 데이터 구성
+    if($pg_code === 'rootup') {
+        // 루트업 API 요청 데이터
+        $request_data = [
+            'mid' => $mid,
+            'tid' => $tid,
+            'amount' => (string)$amount,
+            'ord_num' => $order_no,
+            'item_name' => $goods_name,
+            'buyer_name' => $buyer_name,
+            'buyer_phone' => $buyer_phone,
+            'card_num' => $card_no,
+            'yymm' => $expire_yymm,
+            'installment' => $installment
+        ];
 
-    // 구인증인 경우 인증정보 추가
-    if($auth_type === 'auth') {
-        $request_data['certPw'] = $cert_pw;
-        $request_data['certNo'] = $cert_no;
+        // 구인증인 경우 인증정보 추가
+        if($auth_type === 'auth') {
+            $request_data['card_pw'] = $cert_pw;   // 비밀번호 앞 2자리
+            $request_data['auth_num'] = $cert_no;  // 생년월일 또는 사업자번호
+        }
+    } else {
+        // 페이시스 API 요청 데이터
+        $request_data = [
+            'ordNo' => $order_no,
+            'mkey' => $mkey,
+            'mid' => $mid,
+            'goodsAmt' => (string)$amount,
+            'cardNo' => $card_no,
+            'expireYymm' => $expire_yymm,
+            'quotaMon' => $installment,
+            'buyerNm' => $buyer_name,
+            'goodsNm' => $goods_name,
+            'ordHp' => $buyer_phone,
+            'hashKey' => hash('sha256', $mid . $amount)
+        ];
+
+        // 구인증인 경우 인증정보 추가
+        if($auth_type === 'auth') {
+            $request_data['certPw'] = $cert_pw;
+            $request_data['certNo'] = $cert_no;
+        }
     }
 
     // DB에 pending 상태로 먼저 저장
@@ -254,6 +294,9 @@ function processPayment() {
     switch($pg_code) {
         case 'paysis':
             $response = callPaysisPaymentAPI($api_key, $request_data);
+            break;
+        case 'rootup':
+            $response = callRoutupPaymentAPI($api_key, $request_data);
             break;
         default:
             // 지원하지 않는 PG
@@ -329,7 +372,8 @@ function processCancel() {
 
     // 원거래 조회
     $payment_sql = "SELECT p.*, k.mkc_cancel_yn, k.mkc_api_key, k.mkc_mid, k.mkc_mkey,
-                           m.mpc_api_key, m.mpc_mid, m.mpc_mkey
+                           m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
+                           m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key
                     FROM g5_payment_keyin p
                     LEFT JOIN g5_member_keyin_config k ON p.mkc_id = k.mkc_id
                     LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
@@ -373,27 +417,52 @@ function processCancel() {
         exit;
     }
 
-    // API 설정값 결정
-    $api_key = $payment['mpc_api_key'] ?: $payment['mkc_api_key'];
-    $mid = $payment['mpc_mid'] ?: $payment['mkc_mid'];
+    // PG사별 API 설정값 결정
+    $pg_code = $payment['pk_pg_code'];
+    if($pg_code === 'rootup') {
+        // 루트업: 결제KEY, MID, TID
+        $api_key = $payment['mpc_rootup_key'] ?: $payment['mkc_api_key'];
+        $mid = $payment['mpc_rootup_mid'] ?: $payment['mkc_mid'];
+        $tid = $payment['mpc_rootup_tid'] ?: $payment['mkc_mkey'];
+    } else {
+        // 페이시스 등: API KEY, MID
+        $api_key = $payment['mpc_api_key'] ?: $payment['mkc_api_key'];
+        $mid = $payment['mpc_mid'] ?: $payment['mkc_mid'];
+        $tid = '';
+    }
 
-    // 취소 요청 데이터
-    $cancel_request = [
-        'ordNo' => $payment['pk_order_no'],
-        'mid' => $mid,
-        'canNm' => $cancel_name,
-        'canMsg' => $cancel_reason,
-        'canAmt' => (string)$cancel_amount
-    ];
+    // PG사별 취소 요청 데이터
+    if($pg_code === 'rootup') {
+        // 루트업 취소 요청 데이터
+        // trx_id는 결제 응답에서 받은 거래번호 (pk_tid에 저장됨)
+        $cancel_request = [
+            'mid' => $mid,
+            'tid' => $tid,
+            'amount' => (string)$cancel_amount,
+            'trx_id' => $payment['pk_tid']  // 결제시 응답받은 거래번호
+        ];
+    } else {
+        // 페이시스 취소 요청 데이터
+        $cancel_request = [
+            'ordNo' => $payment['pk_order_no'],
+            'mid' => $mid,
+            'canNm' => $cancel_name,
+            'canMsg' => $cancel_reason,
+            'canAmt' => (string)$cancel_amount
+        ];
+    }
 
     // PG사별 취소 API 호출
     $response = null;
-    switch($payment['pk_pg_code']) {
+    switch($pg_code) {
         case 'paysis':
             $response = callPaysisCancelAPI($api_key, $cancel_request);
             break;
+        case 'rootup':
+            $response = callRoutupCancelAPI($api_key, $cancel_request);
+            break;
         default:
-            echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $payment['pk_pg_code']]);
+            echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $pg_code]);
             exit;
     }
 
@@ -556,6 +625,170 @@ function callPaysisCancelAPI($api_key, $data) {
     writeApiLog($pg_code, $action, 'RESPONSE', $result);
 
     return $result;
+}
+
+/**
+ * 루트업 결제 API 호출
+ * URL: https://api.routeup.kr/api/v2/pay/hand
+ * Authorization: ${pay_key}
+ */
+function callRoutupPaymentAPI($pay_key, $data) {
+    $url = 'https://api.routeup.kr/api/v2/pay/hand';
+    $pg_code = 'rootup';
+    $action = 'pay';
+
+    // 카드번호는 로그에 남기지 않도록 별도 처리
+    $log_data = $data;
+    if(isset($log_data['card_num'])) {
+        $log_data['card_num'] = maskCardNumber($log_data['card_num']);
+    }
+    if(isset($log_data['card_pw'])) {
+        $log_data['card_pw'] = '**';
+    }
+    if(isset($log_data['auth_num'])) {
+        $log_data['auth_num'] = '******';
+    }
+
+    // 요청 로그
+    writeApiLog($pg_code, $action, 'REQUEST', $log_data);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: ' . $pay_key
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if($curl_error) {
+        $result = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'API 통신 오류: ' . $curl_error
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'curl_error' => $curl_error]);
+        return $result;
+    }
+
+    $result = json_decode($response, true);
+    if(!$result) {
+        $result = [
+            'resCode' => 'PARSE_ERROR',
+            'resMsg' => 'API 응답 파싱 오류 (HTTP: ' . $http_code . ')'
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'raw_response' => $response]);
+        return $result;
+    }
+
+    // 루트업 응답을 공통 포맷으로 변환
+    // 루트업 응답: result_cd, result_msg, app_num, app_date 등
+    $normalized = normalizeRoutupResponse($result);
+
+    // 응답 로그
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    return $normalized;
+}
+
+/**
+ * 루트업 취소 API 호출
+ * URL: https://api.routeup.kr/api/v2/pay/cancel
+ */
+function callRoutupCancelAPI($pay_key, $data) {
+    $url = 'https://api.routeup.kr/api/v2/pay/cancel';
+    $pg_code = 'rootup';
+    $action = 'cancel';
+
+    // 요청 로그
+    writeApiLog($pg_code, $action, 'REQUEST', $data);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: ' . $pay_key
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if($curl_error) {
+        $result = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'API 통신 오류: ' . $curl_error
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'curl_error' => $curl_error]);
+        return $result;
+    }
+
+    $result = json_decode($response, true);
+    if(!$result) {
+        $result = [
+            'resCode' => 'PARSE_ERROR',
+            'resMsg' => 'API 응답 파싱 오류 (HTTP: ' . $http_code . ')'
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'raw_response' => $response]);
+        return $result;
+    }
+
+    // 루트업 응답을 공통 포맷으로 변환
+    $normalized = normalizeRoutupResponse($result);
+
+    // 응답 로그
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    return $normalized;
+}
+
+/**
+ * 루트업 응답을 공통 포맷으로 변환
+ * 루트업 응답 필드 → 공통 필드 매핑
+ *
+ * 결제 응답 필드: result_cd, result_msg, trx_id, appr_num, trx_dttm, issuer, acquirer 등
+ * 취소 응답 필드: result_cd, result_msg, trx_id, ori_trx_id, cxl_dttm 등
+ */
+function normalizeRoutupResponse($response) {
+    $result_cd = $response['result_cd'] ?? '';
+    $is_success = ($result_cd === '0000');
+
+    // 발급사/매입사: 응답에서 직접 이름 제공됨 (issuer, acquirer)
+    // 코드도 제공됨 (issuer_code, acquirer_code)
+    $issuer_name = $response['issuer'] ?? '';
+    $acquirer_name = $response['acquirer'] ?? '';
+
+    return [
+        'resCode' => $is_success ? '0000' : ($result_cd ?: 'UNKNOWN'),
+        'resMsg' => $response['result_msg'] ?? '',
+        'appNo' => $response['appr_num'] ?? '',                  // 승인번호
+        'appDate' => $response['trx_dttm'] ?? '',                // 거래일시
+        'tid' => $response['trx_id'] ?? '',                      // 거래번호 (취소시 필요)
+        'vanIssCpCd' => $issuer_name,                            // 발급사명
+        'vanCpCd' => $acquirer_name,                             // 매입사명
+        'cancelDate' => $response['cxl_dttm'] ?? '',             // 취소일시
+        'cancelTime' => '',
+        '_original' => $response  // 원본 응답 보존
+    ];
 }
 
 /**

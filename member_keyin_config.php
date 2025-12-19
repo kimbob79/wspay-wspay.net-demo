@@ -878,9 +878,11 @@ textarea.form-control {
                                                 while($mc = sql_fetch_array($master_configs)) {
                                                     $type_label = $mc['mpc_type'] == 'nonauth' ? '비인증' : '구인증';
                                                     $selected = ($edit_data && $edit_data['mpc_id'] == $mc['mpc_id']) ? 'selected' : '';
+                                                    // PG사별 MID 표시
+                                                    $display_mid = ($mc['mpc_pg_code'] == 'rootup') ? $mc['mpc_rootup_mid'] : $mc['mpc_mid'];
                                                 ?>
                                                 <option value="<?php echo $mc['mpc_id']; ?>" <?php echo $selected; ?>>
-                                                    <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (MID: <?php echo $mc['mpc_mid']; ?>)
+                                                    <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (MID: <?php echo $display_mid; ?>)
                                                 </option>
                                                 <?php } ?>
                                             </select>
@@ -899,6 +901,7 @@ textarea.form-control {
                                             <select name="mkc_pg_code" class="form-control form-control-inline" id="mkc_pg_code" onchange="setPgName(this)">
                                                 <option value="">선택하세요</option>
                                                 <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
+                                                <option value="rootup" data-name="루트업" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
                                             </select>
                                         </td>
                                         <th>인증 타입 <span class="required">*</span></th>
@@ -1050,9 +1053,16 @@ textarea.form-control {
                                 // 대표설정 사용시 실제 값 조회
                                 if($is_master) {
                                     $master_data = sql_fetch("SELECT * FROM g5_manual_payment_config WHERE mpc_id = '{$row['mpc_id']}'");
-                                    $display_api_key = $master_data['mpc_api_key'];
-                                    $display_mid = $master_data['mpc_mid'];
-                                    $display_mkey = $master_data['mpc_mkey'];
+                                    // PG사별 필드 매핑
+                                    if($master_data['mpc_pg_code'] == 'rootup') {
+                                        $display_api_key = $master_data['mpc_rootup_key']; // 결제KEY
+                                        $display_mid = $master_data['mpc_rootup_mid'];
+                                        $display_mkey = $master_data['mpc_rootup_tid']; // TID
+                                    } else {
+                                        $display_api_key = $master_data['mpc_api_key'];
+                                        $display_mid = $master_data['mpc_mid'];
+                                        $display_mkey = $master_data['mpc_mkey'];
+                                    }
                                 } else {
                                     $display_api_key = $row['mkc_api_key'];
                                     $display_mid = $row['mkc_mid'];

@@ -529,19 +529,31 @@ include_once('./_head.php');
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	width: 85px;
-	height: 85px;
-	background: #FFD369;
-	color: #393E46;
+	width: 90px;
+	height: 90px;
+	background: linear-gradient(135deg, #FFD369 0%, #FFC107 100%);
+	color: #333;
 	border-radius: 50%;
-	font-size: 12px;
-	font-weight: 600;
+	font-size: 13px;
+	font-weight: 700;
 	text-decoration: none;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	box-shadow: 0 4px 15px rgba(255, 193, 7, 0.5), 0 0 20px rgba(255, 211, 105, 0.3);
+	border: 3px solid #fff;
+	animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+	0%, 100% {
+		box-shadow: 0 4px 15px rgba(255, 193, 7, 0.5), 0 0 20px rgba(255, 211, 105, 0.3);
+	}
+	50% {
+		box-shadow: 0 4px 20px rgba(255, 193, 7, 0.7), 0 0 30px rgba(255, 211, 105, 0.5);
+	}
 }
 .floating-new-payment a:hover {
-	background: #ffe491;
-	color: #393E46;
+	background: linear-gradient(135deg, #ffe082 0%, #FFD369 100%);
+	color: #333;
+	transform: scale(1.1);
+	box-shadow: 0 6px 25px rgba(255, 193, 7, 0.6), 0 0 35px rgba(255, 211, 105, 0.5);
 }
 .floating-new-payment i {
 	font-size: 24px;

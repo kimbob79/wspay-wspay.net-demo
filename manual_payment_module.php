@@ -1502,8 +1502,9 @@ input:read-only {
 				$keyin_configs = array();
 				$unavailable_configs = array(); // 이용 불가 PG 모듈 (사유 표시용)
 				if($target_mb_id) {
-					$keyin_sql = "SELECT k.*, m.mpc_pg_name as master_pg_name, m.mpc_type as master_type,
-								 m.mpc_api_key as master_api_key, m.mpc_mid as master_mid, m.mpc_mkey as master_mkey
+					$keyin_sql = "SELECT k.*, m.mpc_pg_code as master_pg_code, m.mpc_pg_name as master_pg_name, m.mpc_type as master_type,
+								 m.mpc_api_key as master_api_key, m.mpc_mid as master_mid, m.mpc_mkey as master_mkey,
+								 m.mpc_rootup_mid as master_rootup_mid, m.mpc_rootup_tid as master_rootup_tid, m.mpc_rootup_key as master_rootup_key
 								 FROM g5_member_keyin_config k
 								 LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
 								 WHERE k.mb_id = '{$target_mb_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
@@ -1514,12 +1515,21 @@ input:read-only {
 						if($row['mpc_id']) {
 							$row['display_name'] = $row['master_pg_name'];
 							$row['certi_type'] = $row['master_type']; // nonauth, auth
-							$row['api_key'] = $row['master_api_key'];
-							$row['mid'] = $row['master_mid'];
-							$row['mkey'] = $row['master_mkey'];
+							$row['pg_code'] = $row['master_pg_code'];
+							// PG사별 API 설정값
+							if($row['master_pg_code'] == 'rootup') {
+								$row['api_key'] = $row['master_rootup_key']; // 결제KEY
+								$row['mid'] = $row['master_rootup_mid'];
+								$row['mkey'] = $row['master_rootup_tid']; // TID
+							} else {
+								$row['api_key'] = $row['master_api_key'];
+								$row['mid'] = $row['master_mid'];
+								$row['mkey'] = $row['master_mkey'];
+							}
 						} else {
 							$row['display_name'] = $row['mkc_pg_name'];
 							$row['certi_type'] = $row['mkc_type']; // nonauth, auth
+							$row['pg_code'] = $row['mkc_pg_code'];
 							$row['api_key'] = $row['mkc_api_key'];
 							$row['mid'] = $row['mkc_mid'];
 							$row['mkey'] = $row['mkc_mkey'];
@@ -1621,13 +1631,13 @@ input:read-only {
 							}
 						?>
 						<div class="pg-module-item<?php echo $first ? ' selected' : ''; ?>"
-							 onclick="selectPgModule(<?php echo $config['mkc_id']; ?>, '<?php echo $config['certi_type']; ?>', <?php echo (int)$config['mkc_max_installment']; ?>)"
+							 onclick="selectPgModule(<?php echo $config['mkc_id']; ?>, '<?php echo $config['certi_type']; ?>', <?php echo (int)$config['mkc_max_installment']; ?>, '<?php echo $config['pg_code']; ?>')"
 							 data-mkc-id="<?php echo $config['mkc_id']; ?>"
 							 data-certi-type="<?php echo $config['certi_type']; ?>"
 							 data-api-key="<?php echo htmlspecialchars($config['api_key']); ?>"
 							 data-mid="<?php echo htmlspecialchars($config['mid']); ?>"
 							 data-mkey="<?php echo htmlspecialchars($config['mkey']); ?>"
-							 data-pg-code="<?php echo htmlspecialchars($config['mkc_pg_code']); ?>"
+							 data-pg-code="<?php echo htmlspecialchars($config['pg_code']); ?>"
 							 data-max-installment="<?php echo (int)$config['mkc_max_installment']; ?>">
 							<div class="pg-module-left">
 								<div class="pg-module-name"><?php echo htmlspecialchars($config['display_name']); ?></div>
@@ -2178,7 +2188,7 @@ input:read-only {
 </div>
 
 <script>
-function selectPgModule(mkcId, certiType, maxInstallment) {
+function selectPgModule(mkcId, certiType, maxInstallment, pgCode) {
 	// PG 모듈 선택 UI 변경
 	$('.pg-module-item').removeClass('selected');
 	var selectedItem = event.target.closest('.pg-module-item');
@@ -2186,7 +2196,7 @@ function selectPgModule(mkcId, certiType, maxInstallment) {
 
 	// 선택한 모듈의 data 속성에서 정보 가져오기
 	var $item = $(selectedItem);
-	var pgCode = $item.data('pg-code') || '';
+	pgCode = pgCode || $item.data('pg-code') || '';
 	maxInstallment = maxInstallment || $item.data('max-installment') || 12;
 
 	// hidden 필드에 설정 ID 및 PG 코드 저장
@@ -2195,6 +2205,9 @@ function selectPgModule(mkcId, certiType, maxInstallment) {
 
 	// 최대 할부개월에 따라 할부 선택 옵션 업데이트
 	updateInstallmentOptions(maxInstallment);
+
+	// PG사별 필수 필드 표시 업데이트
+	updateRequiredFields(pgCode);
 
 	// 인증 타입에 따라 본인인증 패널 표시/숨김
 	if(certiType == 'auth') {
@@ -2209,6 +2222,22 @@ function selectPgModule(mkcId, certiType, maxInstallment) {
 	$('html, body').animate({
 		scrollTop: $('.payment-form-area').offset().top - 100
 	}, 500);
+}
+
+// PG사별 필수 필드 표시 업데이트
+function updateRequiredFields(pgCode) {
+	// 휴대전화 필드 라벨 찾기
+	var $phoneLabel = $('#pay_phone').closest('.stripe-form-group').find('.stripe-form-label');
+
+	if(pgCode === 'rootup') {
+		// 루트업: 휴대전화 필수
+		$phoneLabel.html('구매자 휴대전화 <span style="color:#f44336;">*필수</span>');
+		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
+	} else {
+		// 페이시스 등: 휴대전화 선택
+		$phoneLabel.html('구매자 휴대전화 (선택)');
+		$('#pay_phone').attr('placeholder', '01012345678');
+	}
 }
 
 // 최대 할부개월에 따라 할부 선택 옵션 업데이트
@@ -2288,6 +2317,7 @@ function processPayment() {
 	var pay_installment = $("#pay_installment").val();
 	var pay_MM = $("#pay_MM").val();
 	var pay_YY = $("#pay_YY").val();
+	var pg_code = $("#pg_code").val();  // PG 코드
 
 	// 유효성 검사
 	if (!pay_product) {
@@ -2305,15 +2335,35 @@ function processPayment() {
 		$("#btn1, #btn2").show();
 		return;
 	}
-	// 휴대전화는 선택사항이므로 필수 체크 제거, 입력시에만 형식 검사
-	if(pay_phone) {
+
+	// PG사별 휴대전화 필수 여부 체크
+	// - 루트업(rootup): 휴대전화 필수
+	// - 페이시스(paysis): 휴대전화 선택
+	if(pg_code === 'rootup') {
+		// 루트업은 휴대전화 필수
+		if (!pay_phone) {
+			showFieldError('#pay_phone', '휴대전화번호를 입력하세요 (루트업 필수)');
+			$("#btn1, #btn2").show();
+			return;
+		}
 		var regex = /^(01[0-9]{1}-?[0-9]{4}-?[0-9]{4}|01[0-9]{8,9})$/;
 		if (!regex.test(pay_phone)) {
 			showFieldError('#pay_phone', '휴대전화번호를 정확히 입력하세요');
 			$("#btn1, #btn2").show();
 			return;
 		}
+	} else {
+		// 페이시스 등: 휴대전화는 선택사항, 입력시에만 형식 검사
+		if(pay_phone) {
+			var regex = /^(01[0-9]{1}-?[0-9]{4}-?[0-9]{4}|01[0-9]{8,9})$/;
+			if (!regex.test(pay_phone)) {
+				showFieldError('#pay_phone', '휴대전화번호를 정확히 입력하세요');
+				$("#btn1, #btn2").show();
+				return;
+			}
+		}
 	}
+
 	if (!pay_cardnum) {
 		showFieldError('#pay_cardnum', '카드번호를 입력하세요');
 		$("#btn1, #btn2").show();
@@ -2603,6 +2653,9 @@ function initFirstPgModule() {
 
 		// 최대 할부개월에 따라 할부 선택 옵션 업데이트
 		updateInstallmentOptions(maxInstallment);
+
+		// PG사별 필수 필드 표시 업데이트
+		updateRequiredFields(pgCode);
 
 		// 인증 타입에 따라 본인인증 패널 표시/숨김
 		if(certiType == 'auth') {

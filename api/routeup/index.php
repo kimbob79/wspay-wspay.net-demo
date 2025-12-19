@@ -247,11 +247,11 @@ if($trx_id) {
 						mb_6_fee = '{$mb_6_fee}',
 						mb_6_pay = '{$mb_6_pay}',
 
-						dv_type = '{$row2['dv_type']}',
+						dv_type = '2',
 						dv_certi = '{$row2['dv_certi']}',
 						dv_tid = '{$row2['dv_tid']}',
 						dv_tid_ori = '',
-						pg_name = 'routeup_keyin' ";
+						pg_name = 'routeup_k' ";
 
 		$pay = sql_fetch("SELECT * FROM g5_payment WHERE trxid = '{$trx_id_for_payment}' AND pay_num = '{$appr_num}'");
 

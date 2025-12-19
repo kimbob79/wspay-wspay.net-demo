@@ -42,17 +42,32 @@ if(sql_num_rows($check_status_column) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD KEY `idx_status` (`mpc_status`)");
 }
 
+// 루트업 전용 컬럼 추가 (마이그레이션)
+$check_rootup_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mpc_rootup_mid'");
+if(sql_num_rows($check_rootup_column) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_rootup_mid` varchar(20) DEFAULT NULL COMMENT '루트업 MID' AFTER `mpc_mkey`");
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_rootup_tid` varchar(20) DEFAULT NULL COMMENT '루트업 TID' AFTER `mpc_rootup_mid`");
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_rootup_key` varchar(100) DEFAULT NULL COMMENT '루트업 결제KEY' AFTER `mpc_rootup_tid`");
+}
+
 // 저장 처리
 if($_POST['mode'] == 'save') {
     $mpc_id = (int)$_POST['mpc_id'];
     $mpc_pg_code = sql_escape_string($_POST['mpc_pg_code']);
     $mpc_pg_name = sql_escape_string($_POST['mpc_pg_name']);
     $mpc_type = sql_escape_string($_POST['mpc_type']);
+    $mpc_use = sql_escape_string($_POST['mpc_use']);
+    $mpc_memo = sql_escape_string($_POST['mpc_memo']);
+
+    // 페이시스 전용 필드
     $mpc_api_key = sql_escape_string($_POST['mpc_api_key']);
     $mpc_mid = sql_escape_string($_POST['mpc_mid']);
     $mpc_mkey = sql_escape_string($_POST['mpc_mkey']);
-    $mpc_use = sql_escape_string($_POST['mpc_use']);
-    $mpc_memo = sql_escape_string($_POST['mpc_memo']);
+
+    // 루트업 전용 필드
+    $mpc_rootup_mid = sql_escape_string($_POST['mpc_rootup_mid']);
+    $mpc_rootup_tid = sql_escape_string($_POST['mpc_rootup_tid']);
+    $mpc_rootup_key = sql_escape_string($_POST['mpc_rootup_key']);
 
     if($mpc_id > 0) {
         // 수정
@@ -63,6 +78,9 @@ if($_POST['mode'] == 'save') {
             mpc_api_key = '{$mpc_api_key}',
             mpc_mid = '{$mpc_mid}',
             mpc_mkey = '{$mpc_mkey}',
+            mpc_rootup_mid = '{$mpc_rootup_mid}',
+            mpc_rootup_tid = '{$mpc_rootup_tid}',
+            mpc_rootup_key = '{$mpc_rootup_key}',
             mpc_use = '{$mpc_use}',
             mpc_memo = '{$mpc_memo}'
             WHERE mpc_id = {$mpc_id}";
@@ -71,9 +89,9 @@ if($_POST['mode'] == 'save') {
     } else {
         // 신규 등록
         $sql = "INSERT INTO {$table_name}
-            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_use, mpc_memo)
+            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_rootup_mid, mpc_rootup_tid, mpc_rootup_key, mpc_use, mpc_memo)
             VALUES
-            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_use}', '{$mpc_memo}')";
+            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_rootup_mid}', '{$mpc_rootup_tid}', '{$mpc_rootup_key}', '{$mpc_use}', '{$mpc_memo}')";
         sql_query($sql);
         $msg = "등록되었습니다.";
     }
@@ -551,9 +569,10 @@ textarea.form-control {
                                 <tr>
                                     <th>PG사 선택 <span class="required">*</span></th>
                                     <td>
-                                        <select name="mpc_pg_code" class="form-control form-control-inline" required onchange="setPgName(this)">
+                                        <select name="mpc_pg_code" id="mpc_pg_code" class="form-control form-control-inline" required onchange="setPgName(this); togglePgFields(this.value);">
                                             <option value="">선택하세요</option>
                                             <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
+                                            <option value="rootup" data-name="루트업" <?php if($edit_data['mpc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
                                         </select>
                                     </td>
                                     <th>인증 타입 <span class="required">*</span></th>
@@ -572,18 +591,34 @@ textarea.form-control {
                                         </select>
                                     </td>
                                 </tr>
-                                <tr>
+                                <!-- 페이시스 전용 필드 -->
+                                <tr class="pg-fields paysis-fields" style="<?php echo ($edit_data && $edit_data['mpc_pg_code'] != 'paysis') ? 'display:none;' : ''; ?>">
                                     <th>API KEY <span class="required">*</span></th>
                                     <td>
-                                        <input type="text" name="mpc_api_key" class="form-control" value="<?php echo $edit_data['mpc_api_key']; ?>" placeholder="API KEY (32자)" maxlength="100" required>
+                                        <input type="text" name="mpc_api_key" id="mpc_api_key" class="form-control" value="<?php echo $edit_data['mpc_api_key']; ?>" placeholder="API KEY (32자)" maxlength="100">
                                     </td>
                                     <th>상점 ID <span class="required">*</span></th>
                                     <td>
-                                        <input type="text" name="mpc_mid" class="form-control" value="<?php echo $edit_data['mpc_mid']; ?>" placeholder="MID (10자)" maxlength="20" required>
+                                        <input type="text" name="mpc_mid" id="mpc_mid" class="form-control" value="<?php echo $edit_data['mpc_mid']; ?>" placeholder="MID (10자)" maxlength="20">
                                     </td>
                                     <th>암호화 키 <span class="required">*</span></th>
                                     <td>
-                                        <input type="text" name="mpc_mkey" class="form-control" value="<?php echo $edit_data['mpc_mkey']; ?>" placeholder="MKEY (100자)" maxlength="200" required>
+                                        <input type="text" name="mpc_mkey" id="mpc_mkey" class="form-control" value="<?php echo $edit_data['mpc_mkey']; ?>" placeholder="MKEY (100자)" maxlength="200">
+                                    </td>
+                                </tr>
+                                <!-- 루트업 전용 필드 -->
+                                <tr class="pg-fields rootup-fields" style="<?php echo (!$edit_data || $edit_data['mpc_pg_code'] != 'rootup') ? 'display:none;' : ''; ?>">
+                                    <th>MID <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_rootup_mid" id="mpc_rootup_mid" class="form-control" value="<?php echo $edit_data['mpc_rootup_mid']; ?>" placeholder="MID" maxlength="20">
+                                    </td>
+                                    <th>TID <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_rootup_tid" id="mpc_rootup_tid" class="form-control" value="<?php echo $edit_data['mpc_rootup_tid']; ?>" placeholder="TID" maxlength="20">
+                                    </td>
+                                    <th>결제KEY <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_rootup_key" id="mpc_rootup_key" class="form-control" value="<?php echo $edit_data['mpc_rootup_key']; ?>" placeholder="결제KEY" maxlength="100">
                                     </td>
                                 </tr>
                                 <tr>
@@ -619,6 +654,13 @@ textarea.form-control {
                                 $num++;
                                 $type_badge = $row['mpc_type'] == 'nonauth' ? '<span class="badge badge-warning">비인증</span>' : '<span class="badge badge-primary">구인증</span>';
                                 $use_badge = $row['mpc_use'] == 'Y' ? '<span class="badge badge-success">사용</span>' : '<span class="badge badge-danger">미사용</span>';
+
+                                // PG사별 MID 표시
+                                if($row['mpc_pg_code'] == 'rootup') {
+                                    $display_mid = $row['mpc_rootup_mid'];
+                                } else {
+                                    $display_mid = $row['mpc_mid'];
+                                }
                             ?>
                             <div class="config-card">
                                 <div class="config-card-header">
@@ -627,7 +669,7 @@ textarea.form-control {
                                         <strong><?php echo $row['mpc_pg_name']; ?></strong>
                                         <?php echo $type_badge; ?>
                                         <?php echo $use_badge; ?>
-                                        <span class="config-card-meta">MID: <code><?php echo $row['mpc_mid']; ?></code></span>
+                                        <span class="config-card-meta">MID: <code><?php echo $display_mid; ?></code></span>
                                     </div>
                                     <div class="config-card-actions">
                                         <a href="?p=manual_payment_config&mpc_id=<?php echo $row['mpc_id']; ?>" class="config-btn config-btn-sm config-btn-secondary">수정</a>
@@ -635,6 +677,24 @@ textarea.form-control {
                                     </div>
                                 </div>
                                 <div class="config-card-body compact">
+                                    <?php if($row['mpc_pg_code'] == 'rootup') { ?>
+                                    <!-- 루트업 필드 표시 -->
+                                    <div class="config-card-row">
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">MID</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_rootup_mid']; ?></code></span>
+                                        </div>
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">TID</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_rootup_tid']; ?></code></span>
+                                        </div>
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">결제KEY</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_rootup_key']; ?></code></span>
+                                        </div>
+                                    </div>
+                                    <?php } else { ?>
+                                    <!-- 페이시스 필드 표시 -->
                                     <div class="config-card-row">
                                         <div class="config-card-item">
                                             <span class="config-card-label">API KEY</span>
@@ -645,6 +705,7 @@ textarea.form-control {
                                             <span class="config-card-value"><code><?php echo $row['mpc_mkey']; ?></code></span>
                                         </div>
                                     </div>
+                                    <?php } ?>
                                 </div>
                             </div>
                             <?php } ?>
@@ -668,6 +729,48 @@ function setPgName(select) {
     var pgName = selectedOption.getAttribute('data-name') || '';
     document.getElementById('mpc_pg_name').value = pgName;
 }
+
+function togglePgFields(pgCode) {
+    // 모든 PG 필드 숨기기
+    document.querySelectorAll('.pg-fields').forEach(function(el) {
+        el.style.display = 'none';
+    });
+
+    // 선택한 PG 필드만 표시
+    if(pgCode === 'paysis') {
+        document.querySelectorAll('.paysis-fields').forEach(function(el) {
+            el.style.display = '';
+        });
+        // 페이시스 필드 required 설정
+        document.getElementById('mpc_api_key').required = true;
+        document.getElementById('mpc_mid').required = true;
+        document.getElementById('mpc_mkey').required = true;
+        // 루트업 필드 required 해제
+        document.getElementById('mpc_rootup_mid').required = false;
+        document.getElementById('mpc_rootup_tid').required = false;
+        document.getElementById('mpc_rootup_key').required = false;
+    } else if(pgCode === 'rootup') {
+        document.querySelectorAll('.rootup-fields').forEach(function(el) {
+            el.style.display = '';
+        });
+        // 루트업 필드 required 설정
+        document.getElementById('mpc_rootup_mid').required = true;
+        document.getElementById('mpc_rootup_tid').required = true;
+        document.getElementById('mpc_rootup_key').required = true;
+        // 페이시스 필드 required 해제
+        document.getElementById('mpc_api_key').required = false;
+        document.getElementById('mpc_mid').required = false;
+        document.getElementById('mpc_mkey').required = false;
+    }
+}
+
+// 페이지 로드 시 현재 선택된 PG에 맞게 필드 표시
+document.addEventListener('DOMContentLoaded', function() {
+    var pgSelect = document.getElementById('mpc_pg_code');
+    if(pgSelect && pgSelect.value) {
+        togglePgFields(pgSelect.value);
+    }
+});
 </script>
 
 <?php

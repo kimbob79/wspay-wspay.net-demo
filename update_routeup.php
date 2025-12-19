@@ -69,7 +69,8 @@
 
 				$catId = $row2['dv_tid'];
 				$dv_tid_ori = '';
-				$pg_name = 'routeup_keyin';
+				$pg_name = 'routeup_k';
+				$dv_type_val = '2';  // 수기결제는 온라인
 			}
 			// 오프라인 단말기 결제 (module_type = 0 또는 기타)
 			else {
@@ -78,6 +79,7 @@
 
 				$row2 = sql_fetch("SELECT * FROM g5_device WHERE dv_tid = '{$catId}'");
 				$pg_name = 'routeup';
+				$dv_type_val = $row2['dv_type'];  // 디바이스 설정값 사용
 			}
 
 			$mb_1_fee = $row2['mb_1_fee'];
@@ -168,7 +170,7 @@
 							mb_6_fee = '{$mb_6_fee}',
 							mb_6_pay = '{$mb_6_pay}',
 
-							dv_type = '{$row2['dv_type']}',
+							dv_type = '{$dv_type_val}',
 							dv_certi = '{$row2['dv_certi']}',
 							dv_tid = '{$catId}',
 							dv_tid_ori = '{$dv_tid_ori}',

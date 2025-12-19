@@ -20,17 +20,17 @@
 		}
 
 	} else if($member['mb_level'] == 8) {
-		$adm_sql = " mb_1 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_1 = '{$member['mb_id']}'";
 	} else if($member['mb_level'] == 7) {
-		$adm_sql = " mb_2 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_2 = '{$member['mb_id']}'";
 	} else if($member['mb_level'] == 6) {
-		$adm_sql = " mb_3 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_3 = '{$member['mb_id']}'";
 	} else if($member['mb_level'] == 5) {
-		$adm_sql = " mb_4 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_4 = '{$member['mb_id']}'";
 	} else if($member['mb_level'] == 4) {
-		$adm_sql = " mb_5 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_5 = '{$member['mb_id']}'";
 	} else if($member['mb_level'] == 3) {
-		$adm_sql = " mb_6 = '{$member['mb_id']}'";
+		$adm_sql = " g5_payment.mb_6 = '{$member['mb_id']}'";
 	}
 
 	if ($fr_date == "all" && $to_date == "all") {
@@ -393,8 +393,20 @@
 </form>
 
 <form action="./xlsx/payment.php" id="frm_xlsx" method="post">
-<input type="hidden" name="xlsx_sql" value="<?php echo $xlsx_sql; ?>">
-<input type="hidden" name="p" value="<?php echo $p; ?>">
+<input type="hidden" name="fr_date" value="<?php echo $fr_date; ?>">
+<input type="hidden" name="to_date" value="<?php echo $to_date; ?>">
+<input type="hidden" name="sfl" value="<?php echo $sfl; ?>">
+<input type="hidden" name="stx" value="<?php echo $stx; ?>">
+<input type="hidden" name="pay_num" value="<?php echo $pay_num; ?>">
+<input type="hidden" name="dv_tid" value="<?php echo $dv_tid; ?>">
+<input type="hidden" name="mb_6_name" value="<?php echo $mb_6_name; ?>">
+<input type="hidden" name="gname" value="<?php echo $gname; ?>">
+<input type="hidden" name="l2" value="<?php echo $l2; ?>">
+<input type="hidden" name="l3" value="<?php echo $l3; ?>">
+<input type="hidden" name="l4" value="<?php echo $l4; ?>">
+<input type="hidden" name="l5" value="<?php echo $l5; ?>">
+<input type="hidden" name="l6" value="<?php echo $l6; ?>">
+<input type="hidden" name="l7" value="<?php echo $l7; ?>">
 </form>
 
 <div class="m_board_scroll">
@@ -404,7 +416,7 @@
 			<thead>
 				<tr>
 					<th style="width:50px;">번호</th>
-					<th>가맹점명</th>
+					<?php if($member['mb_level'] > 3) { ?><th>가맹점명</th><?php } ?>
 					<th>승인일시</th>
 					<th>승인금액</th>
 					<?php if($expansion == "y") { ?>
@@ -500,7 +512,7 @@
 						$pg_name = "섹타나인";
 					} else if($row['pg_name'] == "daou") {
 						$pg_name = "다우";
-					} else if($row['pg_name'] == "routeup" || $row['pg_name'] == "routeup_keyin") {
+					} else if($row['pg_name'] == "routeup" || $row['pg_name'] == "routeup_k" || $row['pg_name'] == "routeup_ke") {
 						$pg_name = "루트업";
 					} else {
 						$pg_name = "??";
@@ -513,7 +525,7 @@
 				?>
 				<tr class='<?php echo $bgcolor; ?>'>
 					<td class="center"><?php echo $num; ?></td>
-					<td class="td_name"><?php if($is_admin) { ?><span class="simptip-position-bottom simptip-movable half-arrow simptip-multiline simptip-black" data-tooltip="본　사 : <?php if($row['mb_1_name']) { echo $row['mb_1_name']. " / ".$row['mb_1_fee']; } ?>&#10;지　사 : <?php if($row['mb_2_name']) { echo $row['mb_2_name']. " / ".$row['mb_2_fee']; } ?>&#10;총　판 : <?php if($row['mb_3_name']) { echo $row['mb_3_name']. " / ".$row['mb_3_fee']; } ?>&#10;대리점 : <?php if($row['mb_4_name']) { echo $row['mb_4_name']. " / ".$row['mb_4_fee']; } ?>&#10;영업점 : <?php if($row['mb_5_name']) { echo $row['mb_5_name']. " / ".$row['mb_5_fee']; } ?>"><?php } ?><?php echo $row['mb_6_name']; ?><?php if($is_admin) { ?></span><?php } ?></td>
+					<?php if($member['mb_level'] > 3) { ?><td class="td_name"><?php if($is_admin) { ?><span class="simptip-position-bottom simptip-movable half-arrow simptip-multiline simptip-black" data-tooltip="본　사 : <?php if($row['mb_1_name']) { echo $row['mb_1_name']. " / ".$row['mb_1_fee']; } ?>&#10;지　사 : <?php if($row['mb_2_name']) { echo $row['mb_2_name']. " / ".$row['mb_2_fee']; } ?>&#10;총　판 : <?php if($row['mb_3_name']) { echo $row['mb_3_name']. " / ".$row['mb_3_fee']; } ?>&#10;대리점 : <?php if($row['mb_4_name']) { echo $row['mb_4_name']. " / ".$row['mb_4_fee']; } ?>&#10;영업점 : <?php if($row['mb_5_name']) { echo $row['mb_5_name']. " / ".$row['mb_5_fee']; } ?>"><?php } ?><?php echo $row['mb_6_name']; ?><?php if($is_admin) { ?></span><?php } ?></td><?php } ?>
 					<td class="center"><?php echo $row['pay_datetime']; ?></td>
 					<td class="right"><?php echo number_format($row['pay']); ?><?php /* if($row['pay_cdatetime'] > 0) { echo "<del>"; }  echo number_format($row['pay']); if($row['pay_cdatetime'] > 0) { echo "</del>"; } */?></td>
 					<?php if($expansion == "y") { ?>
