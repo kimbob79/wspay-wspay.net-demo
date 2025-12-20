@@ -2,6 +2,9 @@
 //	if(!$is_admin) { alert("관리자만 접속가능합니다."); }
 	$today = date("Ymd");
 
+	// 밴피 설정 여부 확인 (mb_van_fee > 0 이면 제한된 정보만 표시)
+	$is_van_fee_member = ($member['mb_van_fee'] > 0) ? true : false;
+
 	if($today == $fr_date and $today == $to_date) {
 		$day = 1;
 	}
@@ -491,9 +494,15 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<th colspan="3">대리점</th>
 					<?php } ?>
 					<?php if($member['mb_level'] >= 4) { ?>
+					<?php if($is_van_fee_member) { ?>
+					<th colspan="2">영업점</th>
+					<?php } else { ?>
 					<th colspan="3">영업점</th>
 					<?php } ?>
+					<?php } ?>
+					<?php if(!$is_van_fee_member) { ?>
 					<th colspan="2">가맹점</th>
+					<?php } ?>
 					<?php if($is_admin) { ?>
 					<th rowspan="2">계좌정보</th>
 					<?php } ?>
@@ -525,12 +534,18 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 					<?php if($member['mb_level'] >= 4) { ?>
 					<th>사명</th>
+					<?php if(!$is_van_fee_member) { ?>
 					<th>수수료</th>
 					<th>수익금<br><span style="font-size:10px;color:#4caf50">(밴피)</span></th>
+					<?php } else { ?>
+					<th>밴피</th>
+					<?php } ?>
 					<?php } ?>
 
+					<?php if(!$is_van_fee_member) { ?>
 					<th>수수료</th>
 					<th>수익금</th>
+					<?php } ?>
 				</tr>
 			</thead>
 			<tbody>
@@ -731,17 +746,25 @@ td span .fee_name {font-family: 'NanumGothic';}
 							$mb5_van_fee_amount = ($row['scnt'] - $row['ccnt']) * $mb5_van_fee;
 						}
 					}
+					// 밴피 회원 합계용 변수
+					if($is_van_fee_member) {
+						$van_fee_member_total = isset($van_fee_member_total) ? $van_fee_member_total : 0;
+						$van_fee_member_total += $mb5_van_fee_amount;
+					}
 					?>
 					<td class="td_name"><?php if($row['mb_5_name']) { echo utf8_strcut($row['mb_5_name'],6); } ?></td>
+					<?php if(!$is_van_fee_member) { ?>
 					<td><?php if($row['mb_5_name']) { echo "<span class='fee1'>".$row['mb_5_fee']."</span><span class='fee2'>".$mb_5_fee."</span>"; } ?></td>
 					<td style="text-align:right;font-weight:bold"><?php if($row['mb_5_name']) { echo number_format($mb_5_pay); if($mb5_van_fee > 0) { echo "<br><span style='color:#4caf50;font-size:11px'>(".number_format($mb5_van_fee_amount).")</span>"; } } ?></td>
+					<?php } else { ?>
+					<td style="text-align:right;font-weight:bold;color:#4caf50"><?php echo number_format($mb5_van_fee_amount); ?></td>
+					<?php } ?>
 					<?php } ?>
 
-
-
-
+					<?php if(!$is_van_fee_member) { ?>
 					<td><span class='fee1'><?php echo $row['mb_6_fee']; ?></span><span class='fee2'><?php echo $mb_6_fee; ?></span></td>
 					<td style="text-align:right;font-weight:bold"><?php echo number_format($mb_6_pay); ?></td>
+					<?php } ?>
 
 
 					<?php if($is_admin) { ?>
@@ -777,9 +800,15 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<th colspan="3">대리점</th>
 					<?php } ?>
 					<?php if($member['mb_level'] >= 4) { ?>
+					<?php if($is_van_fee_member) { ?>
+					<th colspan="2">영업점</th>
+					<?php } else { ?>
 					<th colspan="3">영업점</th>
 					<?php } ?>
+					<?php } ?>
+					<?php if(!$is_van_fee_member) { ?>
 					<th colspan="2">가맹점</th>
+					<?php } ?>
 					<?php if($is_admin) { ?>
 					<th rowspan="2">계좌정보</th>
 					<?php } ?>
@@ -805,9 +834,15 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<td style="text-align:right" colspan="3"><?php echo number_format($mb_pay4_total); ?></td>
 					<?php } ?>
 					<?php if($member['mb_level'] >= 4) { ?>
+					<?php if($is_van_fee_member) { ?>
+					<td style="text-align:right;color:#4caf50;font-weight:bold" colspan="2"><?php echo number_format($van_fee_member_total); ?></td>
+					<?php } else { ?>
 					<td style="text-align:right" colspan="3"><?php echo number_format($mb_pay5_total); ?></td>
 					<?php } ?>
+					<?php } ?>
+					<?php if(!$is_van_fee_member) { ?>
 					<td style="text-align:right" colspan="2"><?php echo number_format($mb_pay6_total); ?></td>
+					<?php } ?>
 				</tr>
 			</tfoot>
 		</table>

@@ -1,3 +1,7 @@
+<?php
+// 밴피 설정 여부 확인 (mb_van_fee > 0 이면 제한된 메뉴만 표시)
+$is_van_fee_member = ($member['mb_van_fee'] > 0) ? true : false;
+?>
 <!doctype html>
 <html lang="ko" id="html_wrap">
 <head>
@@ -335,7 +339,7 @@ jQuery(function($) {
 				</a>
 			</div>
 		</div>-->
-		<?php if($is_admin or $member['mb_mailling'] == '1') { ?>
+		<?php if(!$is_van_fee_member && ($is_admin or $member['mb_mailling'] == '1')) { ?>
 		<div class="gnb_side no_logo">
 			<h2>PAY</h2>
 			<ul id="gnb_1dul">
@@ -351,6 +355,7 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/txn" target="_self" class="gnb_1da <?php if($p == "payment") { echo "on"; } ?>"><span>실시간 결제내역</span></a>
 				</li>
+				<?php if(!$is_van_fee_member) { ?>
 				<?php /*if($member['mb_level'] >= 4) { ?>
 				<li class="gnb_1dli">
 					<a href="/txn/merchant" target="_self" class="gnb_1da <?php if($p == "payment_member") { echo "on"; } ?>"><span>가맹점별 결제내역</span></a>
@@ -371,6 +376,7 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/txn/memo" target="_self" class="gnb_1da <?php if($p == "payment_memo") { echo "on"; } ?>"><i class="fa fa-sticky-note-o"></i> <span>결제내역 메모</span></a>
 				</li>
+				<?php } ?>
 				<?php } ?>
 			</ul>
 		</div>
@@ -447,7 +453,7 @@ jQuery(function($) {
 			</ul>
 		</div>
 		<?php }*/ ?>
-		<?php if($member['mb_level'] >= 4) { ?>
+		<?php if(!$is_van_fee_member && $member['mb_level'] >= 4) { ?>
 		<div class="gnb_side no_logo">
 			<h2>TID/FEE</h2>
 			<ul id="gnb_1dul">
@@ -531,6 +537,7 @@ jQuery(function($) {
 			</ul>
 		</div>
 		*/ ?>
+		<?php if(!$is_van_fee_member) { ?>
 		<div class="gnb_side no_logo<? if($is_admin) {?> drop_box<?}?>">
 			<h2>BOARD <? if($is_admin){?><div class="arrow_box"><span class="arrow"></span></div><?}?></h2>
 			<ul id="gnb_1dul" class="drop_ul">
@@ -539,6 +546,7 @@ jQuery(function($) {
 				</li>
 			</ul>
 		</div>
+		<?php } ?>
 		<?php if($is_admin) { ?>
 		<div class="gnb_side no_logo">
 			<h2>ADMIN</h2>
