@@ -530,7 +530,13 @@ select { width:100px; }
 		</table>
 	</div>
 </div>
-<?php if($member['mb_level'] >= $level) { ?>
+<?php
+// 등록 버튼 권한 체크:
+// - 레벨 7 이상만 등록 가능 (member_form.php에서 레벨 7 미만 차단)
+// - 관리자(레벨10)는 모든 레벨 등록 가능
+// - 비관리자는 자신의 레벨보다 낮은 레벨만 등록 가능
+if($member['mb_level'] >= 7 && ($is_admin || $member['mb_level'] > $level)) {
+?>
 <div style="padding:10px 0;">
 	<a href="./?p=member_form&mb_level=<?php echo $level; ?>&page=<?php echo $page; ?>" class="btn_b btn_b01"><?php echo  $title2; ?> 등록</a>
 </div>
