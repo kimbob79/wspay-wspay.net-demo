@@ -50,6 +50,13 @@ if(sql_num_rows($check_rootup_column) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_rootup_key` varchar(100) DEFAULT NULL COMMENT '루트업 결제KEY' AFTER `mpc_rootup_tid`");
 }
 
+// 섹타나인 전용 컬럼 추가 (마이그레이션)
+$check_stn_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mpc_stn_mbrno'");
+if(sql_num_rows($check_stn_column) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_stn_mbrno` varchar(20) DEFAULT NULL COMMENT '섹타나인 회원번호' AFTER `mpc_rootup_key`");
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_stn_apikey` varchar(100) DEFAULT NULL COMMENT '섹타나인 API키' AFTER `mpc_stn_mbrno`");
+}
+
 // 저장 처리
 if($_POST['mode'] == 'save') {
     $mpc_id = (int)$_POST['mpc_id'];
@@ -69,6 +76,10 @@ if($_POST['mode'] == 'save') {
     $mpc_rootup_tid = sql_escape_string($_POST['mpc_rootup_tid']);
     $mpc_rootup_key = sql_escape_string($_POST['mpc_rootup_key']);
 
+    // 섹타나인 전용 필드
+    $mpc_stn_mbrno = sql_escape_string($_POST['mpc_stn_mbrno']);
+    $mpc_stn_apikey = sql_escape_string($_POST['mpc_stn_apikey']);
+
     if($mpc_id > 0) {
         // 수정
         $sql = "UPDATE {$table_name} SET
@@ -81,6 +92,8 @@ if($_POST['mode'] == 'save') {
             mpc_rootup_mid = '{$mpc_rootup_mid}',
             mpc_rootup_tid = '{$mpc_rootup_tid}',
             mpc_rootup_key = '{$mpc_rootup_key}',
+            mpc_stn_mbrno = '{$mpc_stn_mbrno}',
+            mpc_stn_apikey = '{$mpc_stn_apikey}',
             mpc_use = '{$mpc_use}',
             mpc_memo = '{$mpc_memo}'
             WHERE mpc_id = {$mpc_id}";
@@ -89,9 +102,9 @@ if($_POST['mode'] == 'save') {
     } else {
         // 신규 등록
         $sql = "INSERT INTO {$table_name}
-            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_rootup_mid, mpc_rootup_tid, mpc_rootup_key, mpc_use, mpc_memo)
+            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_rootup_mid, mpc_rootup_tid, mpc_rootup_key, mpc_stn_mbrno, mpc_stn_apikey, mpc_use, mpc_memo)
             VALUES
-            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_rootup_mid}', '{$mpc_rootup_tid}', '{$mpc_rootup_key}', '{$mpc_use}', '{$mpc_memo}')";
+            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_rootup_mid}', '{$mpc_rootup_tid}', '{$mpc_rootup_key}', '{$mpc_stn_mbrno}', '{$mpc_stn_apikey}', '{$mpc_use}', '{$mpc_memo}')";
         sql_query($sql);
         $msg = "등록되었습니다.";
     }
@@ -573,6 +586,7 @@ textarea.form-control {
                                             <option value="">선택하세요</option>
                                             <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
                                             <option value="rootup" data-name="루트업" <?php if($edit_data['mpc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
+                                            <option value="stn" data-name="섹타나인" <?php if($edit_data['mpc_pg_code'] == 'stn') echo 'selected'; ?>>섹타나인</option>
                                         </select>
                                     </td>
                                     <th>인증 타입 <span class="required">*</span></th>
@@ -621,6 +635,17 @@ textarea.form-control {
                                         <input type="text" name="mpc_rootup_key" id="mpc_rootup_key" class="form-control" value="<?php echo $edit_data['mpc_rootup_key']; ?>" placeholder="결제KEY" maxlength="100">
                                     </td>
                                 </tr>
+                                <!-- 섹타나인 전용 필드 -->
+                                <tr class="pg-fields stn-fields" style="<?php echo (!$edit_data || $edit_data['mpc_pg_code'] != 'stn') ? 'display:none;' : ''; ?>">
+                                    <th>회원번호 <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_stn_mbrno" id="mpc_stn_mbrno" class="form-control" value="<?php echo $edit_data['mpc_stn_mbrno']; ?>" placeholder="mbrNo" maxlength="20">
+                                    </td>
+                                    <th>API KEY <span class="required">*</span></th>
+                                    <td colspan="3">
+                                        <input type="text" name="mpc_stn_apikey" id="mpc_stn_apikey" class="form-control" value="<?php echo $edit_data['mpc_stn_apikey']; ?>" placeholder="apiKey" maxlength="100">
+                                    </td>
+                                </tr>
                                 <tr>
                                     <th>메모</th>
                                     <td colspan="5">
@@ -658,6 +683,8 @@ textarea.form-control {
                                 // PG사별 MID 표시
                                 if($row['mpc_pg_code'] == 'rootup') {
                                     $display_mid = $row['mpc_rootup_mid'];
+                                } else if($row['mpc_pg_code'] == 'stn') {
+                                    $display_mid = $row['mpc_stn_mbrno'];
                                 } else {
                                     $display_mid = $row['mpc_mid'];
                                 }
@@ -691,6 +718,18 @@ textarea.form-control {
                                         <div class="config-card-item">
                                             <span class="config-card-label">결제KEY</span>
                                             <span class="config-card-value"><code><?php echo $row['mpc_rootup_key']; ?></code></span>
+                                        </div>
+                                    </div>
+                                    <?php } else if($row['mpc_pg_code'] == 'stn') { ?>
+                                    <!-- 섹타나인 필드 표시 -->
+                                    <div class="config-card-row">
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">회원번호 (mbrNo)</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_stn_mbrno']; ?></code></span>
+                                        </div>
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">API KEY</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_stn_apikey']; ?></code></span>
                                         </div>
                                     </div>
                                     <?php } else { ?>
@@ -736,6 +775,16 @@ function togglePgFields(pgCode) {
         el.style.display = 'none';
     });
 
+    // 모든 필드 required 해제
+    document.getElementById('mpc_api_key').required = false;
+    document.getElementById('mpc_mid').required = false;
+    document.getElementById('mpc_mkey').required = false;
+    document.getElementById('mpc_rootup_mid').required = false;
+    document.getElementById('mpc_rootup_tid').required = false;
+    document.getElementById('mpc_rootup_key').required = false;
+    document.getElementById('mpc_stn_mbrno').required = false;
+    document.getElementById('mpc_stn_apikey').required = false;
+
     // 선택한 PG 필드만 표시
     if(pgCode === 'paysis') {
         document.querySelectorAll('.paysis-fields').forEach(function(el) {
@@ -745,10 +794,6 @@ function togglePgFields(pgCode) {
         document.getElementById('mpc_api_key').required = true;
         document.getElementById('mpc_mid').required = true;
         document.getElementById('mpc_mkey').required = true;
-        // 루트업 필드 required 해제
-        document.getElementById('mpc_rootup_mid').required = false;
-        document.getElementById('mpc_rootup_tid').required = false;
-        document.getElementById('mpc_rootup_key').required = false;
     } else if(pgCode === 'rootup') {
         document.querySelectorAll('.rootup-fields').forEach(function(el) {
             el.style.display = '';
@@ -757,10 +802,13 @@ function togglePgFields(pgCode) {
         document.getElementById('mpc_rootup_mid').required = true;
         document.getElementById('mpc_rootup_tid').required = true;
         document.getElementById('mpc_rootup_key').required = true;
-        // 페이시스 필드 required 해제
-        document.getElementById('mpc_api_key').required = false;
-        document.getElementById('mpc_mid').required = false;
-        document.getElementById('mpc_mkey').required = false;
+    } else if(pgCode === 'stn') {
+        document.querySelectorAll('.stn-fields').forEach(function(el) {
+            el.style.display = '';
+        });
+        // 섹타나인 필드 required 설정
+        document.getElementById('mpc_stn_mbrno').required = true;
+        document.getElementById('mpc_stn_apikey').required = true;
     }
 }
 
