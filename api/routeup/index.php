@@ -146,7 +146,7 @@ if($trx_id) {
 			LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
 			WHERE k.mkc_use = 'Y' AND k.mkc_status = 'active'
 			AND (
-				(k.mpc_id IS NULL AND k.mkc_mid = '{$mid}')
+				(k.mpc_id IS NULL AND k.mkc_mid = '{$mid}' AND k.mkc_mkey = '{$tid}')
 				OR (k.mpc_id IS NOT NULL AND m.mpc_rootup_mid = '{$mid}')
 			)";
 		$keyin_result = sql_query($keyin_sql);

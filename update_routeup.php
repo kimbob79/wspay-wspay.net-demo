@@ -53,19 +53,46 @@
 
 			// 수기결제 (module_type = 1)
 			if($module_type == '1') {
-				// 주문번호 앞 4자리에서 mkc_oid 추출
-				$mkc_oid = substr($ord_num, 0, 4);
+				// 1. MID + TID로 Keyin 설정 조회 (개별설정 또는 대표가맹점설정)
+				// 루트업: 개별설정은 mkc_mid + mkc_mkey, 대표설정은 mpc_rootup_mid
+				$keyin_sql = "SELECT k.*, m.mpc_rootup_mid
+					FROM g5_member_keyin_config k
+					LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
+					WHERE k.mkc_use = 'Y' AND k.mkc_status = 'active'
+					AND (
+						(k.mpc_id IS NULL AND k.mkc_mid = '{$mid}' AND k.mkc_mkey = '{$tid}')
+						OR (k.mpc_id IS NOT NULL AND m.mpc_rootup_mid = '{$mid}')
+					)";
+				$keyin_result = sql_query($keyin_sql);
+				$keyin_count = sql_num_rows($keyin_result);
 
-				// mkc_oid로 디바이스 및 수수료 정보 조회
-				$row2 = sql_fetch("SELECT d.*, d.mb_6 as merchant_mb_id
-					FROM g5_device d
-					WHERE d.mb_6 = (
-						SELECT a.mb_id
-						FROM g5_member a
-						JOIN g5_member_keyin_config b ON a.mb_id = b.mb_id
-						WHERE b.mkc_oid = '{$mkc_oid}'
-					)
-					LIMIT 1");
+				$keyin_config = null;
+				$target_mb_id = '';
+
+				if($keyin_count == 1) {
+					// 개별설정 가맹점이거나 대표설정을 단독 사용하는 경우
+					$keyin_config = sql_fetch_array($keyin_result);
+					$target_mb_id = $keyin_config['mb_id'];
+				} else if($keyin_count > 1) {
+					// 대표가맹점 설정을 여러 가맹점이 공유하는 경우 → mkc_oid로 구분
+					$mkc_oid = substr($ord_num, 0, 4);
+					while($row_k = sql_fetch_array($keyin_result)) {
+						if($row_k['mkc_oid'] == $mkc_oid) {
+							$keyin_config = $row_k;
+							$target_mb_id = $row_k['mb_id'];
+							break;
+						}
+					}
+				}
+
+				// 2. 해당 가맹점의 디바이스 정보 조회
+				$row2 = array();
+				if($target_mb_id) {
+					$row2 = sql_fetch("SELECT d.*, d.mb_6 as merchant_mb_id
+						FROM g5_device d
+						WHERE d.mb_6 = '{$target_mb_id}'
+						LIMIT 1");
+				}
 
 				$catId = $row2['dv_tid'];
 				$dv_tid_ori = '';

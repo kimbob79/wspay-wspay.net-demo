@@ -899,7 +899,13 @@ function normalizeRoutupResponse($response) {
  * - 기타: 19자 (OID-YYMM-HHMM-SSRR)
  */
 function generateOrderNumber($merchant_oid, $pg_code = 'paysis') {
-    $oid = $merchant_oid ?: 'XXXX';
+    // OID가 없으면 랜덤 4자리 생성 (기존 데이터 호환용)
+    if(!$merchant_oid) {
+        $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $merchant_oid = $letters[rand(0, 25)] . $alphanumeric[rand(0, 35)] . $alphanumeric[rand(0, 35)] . $alphanumeric[rand(0, 35)];
+    }
+    $oid = $merchant_oid;
 
     if($pg_code === 'paysis') {
         // 페이시스: 정확히 30자 (하이픈 없음)

@@ -101,6 +101,26 @@ if(sql_num_rows($check_status_column) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD KEY `idx_status` (`mkc_status`)");
 }
 
+// OID가 NULL인 기존 레코드에 OID 자동 부여 (마이그레이션)
+$null_oid_records = sql_query("SELECT mkc_id FROM `{$table_name}` WHERE mkc_oid IS NULL OR mkc_oid = ''");
+if(sql_num_rows($null_oid_records) > 0) {
+    $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    while($row = sql_fetch_array($null_oid_records)) {
+        // 고유 OID 생성
+        $new_oid = '';
+        for($attempt = 0; $attempt < 100; $attempt++) {
+            $new_oid = $letters[rand(0, 25)] . $alphanumeric[rand(0, 35)] . $alphanumeric[rand(0, 35)] . $alphanumeric[rand(0, 35)];
+            $check = sql_fetch("SELECT mkc_id FROM `{$table_name}` WHERE mkc_oid = '{$new_oid}'");
+            if(!$check['mkc_id']) break;
+        }
+        if($new_oid) {
+            sql_query("UPDATE `{$table_name}` SET mkc_oid = '{$new_oid}' WHERE mkc_id = '{$row['mkc_id']}'");
+        }
+    }
+}
+
 // 가맹점 OID 생성 함수 (4자리: 첫자리 A-Z, 나머지 3자리 영숫자)
 // 주문번호 형식: XXXX-YYMM-HHMM-SSRR (OID-년월-시분-초+랜덤2자리)
 function generate_merchant_oid($table_name) {
@@ -190,16 +210,17 @@ if($mode == 'save') {
 
     if($mkc_id) {
         // 수정
-        // 기존 레코드의 mkc_oid 확인 (대표가맹점 설정인데 OID가 없으면 생성)
+        // 기존 레코드의 mkc_oid 확인 (OID가 없으면 생성)
         $existing = sql_fetch("SELECT mkc_oid, mpc_id FROM {$table_name} WHERE mkc_id = '{$mkc_id}'");
 
+        // OID가 없으면 새로 생성 (대표설정/개별설정 모두)
+        $mkc_oid_sql = "";
+        if(!$existing['mkc_oid']) {
+            $new_oid = generate_merchant_oid($table_name);
+            $mkc_oid_sql = ", mkc_oid = '{$new_oid}'";
+        }
+
         if($config_type == 'master') {
-            // 대표가맹점 설정인데 OID가 없으면 새로 생성
-            $mkc_oid_sql = "";
-            if(!$existing['mkc_oid']) {
-                $new_oid = generate_merchant_oid($table_name);
-                $mkc_oid_sql = ", mkc_oid = '{$new_oid}'";
-            }
             $sql = "UPDATE {$table_name} SET
                 mpc_id = '{$mpc_id}',
                 mkc_pg_code = '{$mkc_pg_code}',
@@ -223,7 +244,7 @@ if($mode == 'save') {
                 {$mkc_oid_sql}
                 WHERE mkc_id = '{$mkc_id}' AND mb_id = '{$mb_id}'";
         } else {
-            // 개별설정으로 변경 시 OID를 NULL로 변경
+            // 개별설정
             $sql = "UPDATE {$table_name} SET
                 mpc_id = NULL,
                 mkc_pg_code = '{$mkc_pg_code}',
@@ -243,20 +264,20 @@ if($mode == 'save') {
                 mkc_max_installment = '{$mkc_max_installment}',
                 mkc_time_start = '{$mkc_time_start}',
                 mkc_time_end = '{$mkc_time_end}',
-                mkc_oid = NULL,
                 mkc_update = '{$now}'
+                {$mkc_oid_sql}
                 WHERE mkc_id = '{$mkc_id}' AND mb_id = '{$mb_id}'";
         }
     } else {
-        // 신규 등록
+        // 신규 등록 - 대표/개별 모두 OID 생성
+        $mkc_oid = generate_merchant_oid($table_name);
+
         if($config_type == 'master') {
-            // 대표가맹점 설정 사용시 고유 OID 생성
-            $mkc_oid = generate_merchant_oid($table_name);
             $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
                 VALUES ('{$mb_id}', '{$mpc_id}', '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', NULL, NULL, NULL, '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
         } else {
-            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_datetime)
-                VALUES ('{$mb_id}', NULL, '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', '{$mkc_api_key}', '{$mkc_mid}', '{$mkc_mkey}', '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$now}')";
+            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
+                VALUES ('{$mb_id}', NULL, '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', '{$mkc_api_key}', '{$mkc_mid}', '{$mkc_mkey}', '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
         }
     }
     sql_query($sql);
