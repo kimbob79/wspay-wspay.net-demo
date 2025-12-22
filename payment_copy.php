@@ -11,7 +11,7 @@
 	<meta name="format-detection" content="telephone=no">
 	<title>결제정보 복사</title>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="/_engin/js/jquery-1.12.4.min.js?ver=2106185"></script>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<style>
 		* {
 			margin: 0;
@@ -237,10 +237,7 @@ $("#copy_button").click(function() {
 	// Clipboard API 사용 (현대 브라우저)
 	if (navigator.clipboard && window.isSecureContext) {
 		navigator.clipboard.writeText(copyText).then(function() {
-			$("#copy_ok").addClass('show');
-			setTimeout(function() {
-				window.close();
-			}, 1000);
+			showSuccessAndClose();
 		}).catch(function() {
 			fallbackCopy(copyText);
 		});
@@ -263,15 +260,40 @@ function fallbackCopy(text) {
 
 	try {
 		document.execCommand('copy');
-		$("#copy_ok").addClass('show');
-		setTimeout(function() {
-			window.close();
-		}, 1000);
+		showSuccessAndClose();
 	} catch (err) {
 		alert('복사에 실패했습니다. 직접 선택하여 복사해주세요.');
+		closeWindow();
 	}
 
 	document.body.removeChild(tempTextarea);
+}
+
+function showSuccessAndClose() {
+	$("#copy_ok").addClass('show');
+	setTimeout(function() {
+		closeWindow();
+	}, 1000);
+}
+
+function closeWindow() {
+	// window.close()는 JavaScript로 열린 창에서만 작동
+	// 그 외의 경우 대체 방법 시도
+	if (window.opener) {
+		// 팝업으로 열린 경우
+		window.close();
+	} else {
+		// 직접 접속한 경우 - 빈 페이지로 교체 후 닫기 시도
+		window.open('about:blank', '_self');
+		window.close();
+
+		// 그래도 안 닫히면 이전 페이지로
+		setTimeout(function() {
+			if (!window.closed) {
+				history.back();
+			}
+		}, 100);
+	}
 }
 </script>
 
