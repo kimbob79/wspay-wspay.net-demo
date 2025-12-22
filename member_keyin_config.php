@@ -879,10 +879,19 @@ textarea.form-control {
                                                     $type_label = $mc['mpc_type'] == 'nonauth' ? '비인증' : '구인증';
                                                     $selected = ($edit_data && $edit_data['mpc_id'] == $mc['mpc_id']) ? 'selected' : '';
                                                     // PG사별 MID 표시
-                                                    $display_mid = ($mc['mpc_pg_code'] == 'rootup') ? $mc['mpc_rootup_mid'] : $mc['mpc_mid'];
+                                                    if($mc['mpc_pg_code'] == 'rootup') {
+                                                        $display_mid = $mc['mpc_rootup_mid'];
+                                                        $mid_label = 'MID';
+                                                    } else if($mc['mpc_pg_code'] == 'stn') {
+                                                        $display_mid = $mc['mpc_stn_mbrno'];
+                                                        $mid_label = 'MBRNO';
+                                                    } else {
+                                                        $display_mid = $mc['mpc_mid'];
+                                                        $mid_label = 'MID';
+                                                    }
                                                 ?>
                                                 <option value="<?php echo $mc['mpc_id']; ?>" <?php echo $selected; ?>>
-                                                    <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (MID: <?php echo $display_mid; ?>)
+                                                    <?php echo $mc['mpc_pg_name']; ?> - <?php echo $type_label; ?> (<?php echo $mid_label; ?>: <?php echo $display_mid; ?>)
                                                 </option>
                                                 <?php } ?>
                                             </select>
@@ -1059,6 +1068,10 @@ textarea.form-control {
                                         $display_api_key = $master_data['mpc_rootup_key']; // 결제KEY
                                         $display_mid = $master_data['mpc_rootup_mid'];
                                         $display_mkey = $master_data['mpc_rootup_tid']; // TID
+                                    } else if($master_data['mpc_pg_code'] == 'stn') {
+                                        $display_api_key = $master_data['mpc_stn_apikey'];
+                                        $display_mid = $master_data['mpc_stn_mbrno'];
+                                        $display_mkey = '-'; // 섹타나인은 mkey 없음
                                     } else {
                                         $display_api_key = $master_data['mpc_api_key'];
                                         $display_mid = $master_data['mpc_mid'];

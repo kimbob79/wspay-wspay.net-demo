@@ -1510,7 +1510,8 @@ input:read-only {
 				if($target_mb_id) {
 					$keyin_sql = "SELECT k.*, m.mpc_pg_code as master_pg_code, m.mpc_pg_name as master_pg_name, m.mpc_type as master_type,
 								 m.mpc_api_key as master_api_key, m.mpc_mid as master_mid, m.mpc_mkey as master_mkey,
-								 m.mpc_rootup_mid as master_rootup_mid, m.mpc_rootup_tid as master_rootup_tid, m.mpc_rootup_key as master_rootup_key
+								 m.mpc_rootup_mid as master_rootup_mid, m.mpc_rootup_tid as master_rootup_tid, m.mpc_rootup_key as master_rootup_key,
+								 m.mpc_stn_mbrno as master_stn_mbrno, m.mpc_stn_apikey as master_stn_apikey
 								 FROM g5_member_keyin_config k
 								 LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
 								 WHERE k.mb_id = '{$target_mb_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
@@ -1527,6 +1528,10 @@ input:read-only {
 								$row['api_key'] = $row['master_rootup_key']; // 결제KEY
 								$row['mid'] = $row['master_rootup_mid'];
 								$row['mkey'] = $row['master_rootup_tid']; // TID
+							} else if($row['master_pg_code'] == 'stn') {
+								$row['api_key'] = $row['master_stn_apikey']; // API KEY
+								$row['mid'] = $row['master_stn_mbrno']; // MBRNO
+								$row['mkey'] = '';
 							} else {
 								$row['api_key'] = $row['master_api_key'];
 								$row['mid'] = $row['master_mid'];

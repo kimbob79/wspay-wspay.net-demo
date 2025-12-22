@@ -1015,6 +1015,8 @@ tr.row-failed {
 				<select name="pg_filter">
 					<option value="">PG전체</option>
 					<option value="paysis" <?php if($pg_filter == 'paysis') echo 'selected'; ?>>페이시스</option>
+					<option value="rootup" <?php if($pg_filter == 'rootup') echo 'selected'; ?>>루트업</option>
+					<option value="stn" <?php if($pg_filter == 'stn') echo 'selected'; ?>>섹타나인</option>
 				</select>
 			</div>
 			<div class="manual-list-search-group">

@@ -74,7 +74,8 @@ function processPayment() {
 
     // Keyin 설정 조회
     $keyin_sql = "SELECT k.*, m.mpc_pg_code, m.mpc_pg_name, m.mpc_type, m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
-                  m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key
+                  m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key,
+                  m.mpc_stn_mbrno, m.mpc_stn_apikey
                   FROM g5_member_keyin_config k
                   LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
                   WHERE k.mkc_id = '{$mkc_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'";
@@ -104,12 +105,21 @@ function processPayment() {
         $mid = $keyin['mpc_id'] ? $keyin['mpc_rootup_mid'] : $keyin['mkc_mid'];
         $tid = $keyin['mpc_id'] ? $keyin['mpc_rootup_tid'] : $keyin['mkc_mkey'];  // TID
         $mkey = '';  // 루트업은 mkey 사용 안함
+        $mbr_no = '';  // 루트업은 mbrNo 사용 안함
+    } else if($pg_code === 'stn') {
+        // 섹타나인: MBRNO, APIKEY
+        $mbr_no = $keyin['mpc_id'] ? $keyin['mpc_stn_mbrno'] : $keyin['mkc_mid'];  // 가맹점 번호
+        $api_key = $keyin['mpc_id'] ? $keyin['mpc_stn_apikey'] : $keyin['mkc_api_key'];  // API KEY (signature 생성용)
+        $mid = $mbr_no;  // mid 필드에도 mbrNo 저장 (DB 저장용)
+        $mkey = '';
+        $tid = '';
     } else {
         // 페이시스 등 기타: API KEY, MID, MKEY
         $api_key = $keyin['mpc_id'] ? $keyin['mpc_api_key'] : $keyin['mkc_api_key'];
         $mid = $keyin['mpc_id'] ? $keyin['mpc_mid'] : $keyin['mkc_mid'];
         $mkey = $keyin['mpc_id'] ? $keyin['mpc_mkey'] : $keyin['mkc_mkey'];
         $tid = '';  // 페이시스는 tid 사용 안함
+        $mbr_no = '';  // 페이시스는 mbrNo 사용 안함
     }
 
     // 구인증인 경우 인증정보 필수 체크
@@ -236,6 +246,37 @@ function processPayment() {
             $request_data['card_pw'] = $cert_pw;   // 비밀번호 앞 2자리
             $request_data['auth_num'] = $cert_no;  // 생년월일 또는 사업자번호
         }
+    } else if($pg_code === 'stn') {
+        // 섹타나인 API 요청 데이터
+        // timestamp: yyMMddHHmmssSSS (15자리)
+        $timestamp = date('ymdHis') . substr(microtime(), 2, 3);
+        // signature: sha256(mbrNo|mbrRefNo|amount|apiKey|timestamp)
+        $signature = hash('sha256', $mbr_no . '|' . $order_no . '|' . $amount . '|' . $api_key . '|' . $timestamp);
+
+        $request_data = [
+            'mbrNo' => $mbr_no,                              // 가맹점 번호 (6자리)
+            'mbrRefNo' => $order_no,                         // 가맹점 주문번호 (20자)
+            'paymethod' => 'CARD',                           // 지불수단 (고정값)
+            'cardNo' => $card_no,                            // 카드번호
+            'expd' => $expire_yymm,                          // 유효기간 YYMM
+            'amount' => (string)$amount,                     // 결제금액
+            'installment' => str_pad($installment, 2, '0', STR_PAD_LEFT),  // 할부개월 (2자리)
+            'goodsName' => mb_substr(preg_replace('/[^\p{L}\p{N}\s]/u', '', $goods_name), 0, 30),  // 상품명 (특수문자 제거, 30자)
+            'timestamp' => $timestamp,                       // 시스템 시각
+            'signature' => $signature,                       // 서명값
+            'keyinAuthType' => ($auth_type === 'auth') ? 'O' : 'K',  // K: 비인증, O: 구인증
+            'customerName' => $buyer_name,                   // 구매자명
+            'customerTelNo' => $buyer_phone                  // 구매자 연락처
+        ];
+
+        // 구인증인 경우 인증정보 추가 (필수)
+        if($auth_type === 'auth') {
+            // authType: 0=생년월일, 1=사업자번호 (자릿수로 판단)
+            $auth_type_code = (strlen($cert_no) == 10) ? '1' : '0';
+            $request_data['authType'] = $auth_type_code;     // 인증타입
+            $request_data['regNo'] = $cert_no;               // 생년월일(YYMMDD) 또는 사업자번호
+            $request_data['passwd'] = $cert_pw;              // 카드 비밀번호 앞 2자리
+        }
     } else {
         // 페이시스 API 요청 데이터
         $request_data = [
@@ -297,6 +338,9 @@ function processPayment() {
             break;
         case 'rootup':
             $response = callRoutupPaymentAPI($api_key, $request_data);
+            break;
+        case 'stn':
+            $response = callStnPaymentAPI($request_data);
             break;
         default:
             // 지원하지 않는 PG
@@ -373,7 +417,8 @@ function processCancel() {
     // 원거래 조회
     $payment_sql = "SELECT p.*, k.mkc_cancel_yn, k.mkc_api_key, k.mkc_mid, k.mkc_mkey,
                            m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
-                           m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key
+                           m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key,
+                           m.mpc_stn_mbrno, m.mpc_stn_apikey
                     FROM g5_payment_keyin p
                     LEFT JOIN g5_member_keyin_config k ON p.mkc_id = k.mkc_id
                     LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
@@ -424,11 +469,19 @@ function processCancel() {
         $api_key = $payment['mpc_rootup_key'] ?: $payment['mkc_api_key'];
         $mid = $payment['mpc_rootup_mid'] ?: $payment['mkc_mid'];
         $tid = $payment['mpc_rootup_tid'] ?: $payment['mkc_mkey'];
+        $mbr_no = '';
+    } else if($pg_code === 'stn') {
+        // 섹타나인: MBRNO, APIKEY
+        $mbr_no = $payment['mpc_stn_mbrno'] ?: $payment['mkc_mid'];
+        $api_key = $payment['mpc_stn_apikey'] ?: $payment['mkc_api_key'];
+        $mid = $mbr_no;
+        $tid = '';
     } else {
         // 페이시스 등: API KEY, MID
         $api_key = $payment['mpc_api_key'] ?: $payment['mkc_api_key'];
         $mid = $payment['mpc_mid'] ?: $payment['mkc_mid'];
         $tid = '';
+        $mbr_no = '';
     }
 
     // PG사별 취소 요청 데이터
@@ -441,6 +494,51 @@ function processCancel() {
             'amount' => (string)$cancel_amount,
             'trx_id' => $payment['pk_tid']  // 결제시 응답받은 거래번호
         ];
+    } else if($pg_code === 'stn') {
+        // 섹타나인 취소 요청 데이터
+        // 결제 응답에서 받은 refNo, tranDate, payType 필요
+        $response_data = json_decode($payment['pk_response_data'], true);
+
+        // 정규화된 응답에서 원본 데이터 추출 (_stn_data 또는 _original.data)
+        $stn_data = $response_data['_stn_data'] ?? ($response_data['_original']['data'] ?? $response_data);
+
+        // 디버그 로그: 원본 응답 데이터 확인
+        writeApiLog('stn', 'cancel_debug', 'ORIGINAL_RESPONSE', [
+            'pk_tid' => $payment['pk_tid'],
+            'pk_app_date' => $payment['pk_app_date'] ?? '',
+            'pk_order_no' => $payment['pk_order_no'],
+            'stn_data' => $stn_data,
+            'response_data_keys' => array_keys($response_data ?? [])
+        ]);
+
+        // orgTranDate는 정확히 6자리(YYMMDD)여야 함
+        $org_tran_date = $stn_data['tranDate'] ?? '';
+        if(strlen($org_tran_date) == 8) {
+            // YYYYMMDD -> YYMMDD (앞 2자리 제거)
+            $org_tran_date = substr($org_tran_date, 2, 6);
+        } else if(strlen($org_tran_date) != 6 && !empty($payment['pk_app_date'])) {
+            // pk_app_date에서 추출 시도 (YYYYMMDDHHMMSS -> YYMMDD)
+            $org_tran_date = substr($payment['pk_app_date'], 2, 6);
+        }
+
+        // orgRefNo: 거래번호 (12자리) - pk_tid에 저장됨
+        $org_ref_no = $stn_data['refNo'] ?? $payment['pk_tid'];
+
+        // payType: 결제타입
+        $pay_type = $stn_data['payType'] ?? '';
+
+        $cancel_request = [
+            'mbrNo' => $mbr_no,                      // 가맹점 번호
+            'mbrRefNo' => $payment['pk_order_no'],   // 가맹점 주문번호
+            'orgRefNo' => $org_ref_no,               // 원거래번호
+            'orgTranDate' => $org_tran_date,         // 원거래 승인일자 (6자리)
+            'payType' => $pay_type,                  // 결제타입
+            'paymethod' => 'CARD',                   // 지불수단
+            'amount' => (string)$payment['pk_amount'] // 원거래 금액 (전체)
+        ];
+
+        // 디버그 로그: 취소 요청 데이터 확인
+        writeApiLog('stn', 'cancel_debug', 'CANCEL_REQUEST', $cancel_request);
     } else {
         // 페이시스 취소 요청 데이터
         $cancel_request = [
@@ -460,6 +558,9 @@ function processCancel() {
             break;
         case 'rootup':
             $response = callRoutupCancelAPI($api_key, $cancel_request);
+            break;
+        case 'stn':
+            $response = callStnCancelAPI($api_key, $cancel_request);
             break;
         default:
             echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $pg_code]);
@@ -794,6 +895,7 @@ function normalizeRoutupResponse($response) {
 /**
  * 주문번호 생성
  * - 페이시스: 정확히 30자 (OID-YYYYMMDD-HHMMSS-RRRRRRR)
+ * - 섹타나인: 정확히 20자 (XXXXYYYYMMDDHHMMSSRR)
  * - 기타: 19자 (OID-YYMM-HHMM-SSRR)
  */
 function generateOrderNumber($merchant_oid, $pg_code = 'paysis') {
@@ -805,6 +907,13 @@ function generateOrderNumber($merchant_oid, $pg_code = 'paysis') {
         $date = date('Ymd');      // 8자리
         $time = date('His');      // 6자리
         $rand = strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 12)); // 12자리
+        return "{$oid}{$date}{$time}{$rand}";
+    } else if($pg_code === 'stn') {
+        // 섹타나인: 정확히 20자 (하이픈 없음)
+        // 형식: XXXXYYYYMMDDHHMMSSRR (4+8+6+2 = 20자)
+        $date = date('Ymd');      // 8자리
+        $time = date('His');      // 6자리
+        $rand = strtoupper(substr(md5(microtime(true) . mt_rand()), 0, 2)); // 2자리
         return "{$oid}{$date}{$time}{$rand}";
     } else {
         // 기타 PG: 기존 19자 형식
@@ -870,4 +979,209 @@ function writeApiLog($pg_code, $action, $type, $data) {
 
     // 파일에 기록
     @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * 섹타나인 결제 API 호출
+ * URL: https://relay.mainpay.co.kr/v1/api/payments/payment/card-keyin/trans
+ * Content-Type: application/x-www-form-urlencoded
+ */
+function callStnPaymentAPI($data) {
+    $url = 'https://relay.mainpay.co.kr/v1/api/payments/payment/card-keyin/trans';
+    $pg_code = 'stn';
+    $action = 'pay';
+
+    // 카드번호는 로그에 남기지 않도록 별도 처리
+    $log_data = $data;
+    if(isset($log_data['cardNo'])) {
+        $log_data['cardNo'] = maskCardNumber($log_data['cardNo']);
+    }
+    if(isset($log_data['passwd'])) {
+        $log_data['passwd'] = '**';
+    }
+    if(isset($log_data['regNo'])) {
+        $log_data['regNo'] = '******';
+    }
+    // signature는 민감정보는 아니지만 길어서 일부만 로그
+    if(isset($log_data['signature'])) {
+        $log_data['signature'] = substr($log_data['signature'], 0, 16) . '...';
+    }
+
+    // 요청 로그
+    writeApiLog($pg_code, $action, 'REQUEST', $log_data);
+
+    // application/x-www-form-urlencoded 형식으로 변환
+    $post_data = http_build_query($data);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded; charset=utf-8'
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if($curl_error) {
+        $result = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'API 통신 오류: ' . $curl_error
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'curl_error' => $curl_error]);
+        return $result;
+    }
+
+    $result = json_decode($response, true);
+    if(!$result) {
+        $result = [
+            'resCode' => 'PARSE_ERROR',
+            'resMsg' => 'API 응답 파싱 오류 (HTTP: ' . $http_code . ')'
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'raw_response' => $response]);
+        return $result;
+    }
+
+    // 응답 로그
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    // 섹타나인 응답을 공통 포맷으로 변환
+    $normalized = normalizeStnResponse($result);
+
+    return $normalized;
+}
+
+/**
+ * 섹타나인 취소 API 호출
+ * HOST: https://relay.mainpay.co.kr
+ * POST: /v1/api/payments/payment/cancel
+ */
+function callStnCancelAPI($api_key, $data) {
+    $url = 'https://relay.mainpay.co.kr/v1/api/payments/payment/cancel';
+    $pg_code = 'stn';
+    $action = 'cancel';
+
+    // timestamp 생성 (yyMMddHHmmssSSS)
+    $timestamp = date('ymdHis') . substr(microtime(), 2, 3);
+
+    // signature 생성: sha256(mbrNo|mbrRefNo|amount|apiKey|timestamp)
+    $signature = hash('sha256', $data['mbrNo'] . '|' . $data['mbrRefNo'] . '|' . $data['amount'] . '|' . $api_key . '|' . $timestamp);
+
+    // 취소 요청 데이터
+    $cancel_data = [
+        'mbrNo' => $data['mbrNo'],           // 가맹점 번호
+        'mbrRefNo' => $data['mbrRefNo'],     // 가맹점 주문번호
+        'orgRefNo' => $data['orgRefNo'],     // 원거래번호
+        'orgTranDate' => $data['orgTranDate'], // 원거래 승인일자
+        'payType' => $data['payType'],       // 결제타입
+        'paymethod' => $data['paymethod'],   // 지불수단 (CARD)
+        'amount' => $data['amount'],         // 원거래 금액
+        'timestamp' => $timestamp,
+        'signature' => $signature
+    ];
+
+    // 요청 로그
+    $log_data = $cancel_data;
+    if(isset($log_data['signature'])) {
+        $log_data['signature'] = substr($log_data['signature'], 0, 16) . '...';
+    }
+    writeApiLog($pg_code, $action, 'REQUEST', $log_data);
+
+    // application/x-www-form-urlencoded 형식으로 변환
+    $post_data = http_build_query($cancel_data);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded; charset=utf-8'
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if($curl_error) {
+        $result = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'API 통신 오류: ' . $curl_error
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'curl_error' => $curl_error]);
+        return $result;
+    }
+
+    $result = json_decode($response, true);
+    if(!$result) {
+        $result = [
+            'resCode' => 'PARSE_ERROR',
+            'resMsg' => 'API 응답 파싱 오류 (HTTP: ' . $http_code . ')'
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'raw_response' => $response]);
+        return $result;
+    }
+
+    // 응답 로그
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    // 섹타나인 응답을 공통 포맷으로 변환
+    $normalized = normalizeStnResponse($result, true);
+
+    return $normalized;
+}
+
+/**
+ * 섹타나인 응답을 공통 포맷으로 변환
+ *
+ * 섹타나인 응답 구조:
+ * - resultCode: '200' 이면 성공
+ * - resultMessage: 응답 메시지
+ * - data.refNo: 거래번호 (취소시 필요)
+ * - data.tranDate: 거래일자 (취소시 필요)
+ * - data.payType: 결제타입 (취소시 필요)
+ * - data.applNo: 승인번호
+ * - data.issueCompanyName: 카드 발급사명
+ * - data.acqCompanyName: 카드 매입사명
+ */
+function normalizeStnResponse($response, $is_cancel = false) {
+    $result_code = $response['resultCode'] ?? '';
+    $is_success = ($result_code === '200');
+
+    $data = $response['data'] ?? [];
+
+    // 거래일시 조합 (tranDate + tranTime)
+    $app_date = '';
+    if(!empty($data['tranDate']) && !empty($data['tranTime'])) {
+        $app_date = $data['tranDate'] . $data['tranTime'];
+    }
+
+    return [
+        'resCode' => $is_success ? '0000' : ($result_code ?: 'UNKNOWN'),
+        'resMsg' => $response['resultMessage'] ?? '',
+        'appNo' => $data['applNo'] ?? '',                           // 승인번호
+        'appDate' => $app_date,                                      // 거래일시
+        'tid' => $data['refNo'] ?? '',                              // 거래번호 (취소시 필요)
+        'vanIssCpCd' => $data['issueCompanyName'] ?? '',            // 발급사명
+        'vanCpCd' => $data['acqCompanyName'] ?? '',                 // 매입사명
+        'cancelDate' => $is_cancel ? $app_date : '',                // 취소일시
+        'cancelTime' => '',
+        '_stn_data' => $data,                                        // 섹타나인 원본 data (취소시 필요한 정보 포함)
+        '_original' => $response                                     // 원본 응답 보존
+    ];
 }
