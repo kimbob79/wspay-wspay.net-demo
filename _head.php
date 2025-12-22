@@ -292,7 +292,7 @@ jQuery(function($) {
 						<li><a href="https://theme.sir.kr/gnuboard55/bbs/point.php" target="_blank">포인트<span class="arm_on">1,000</span></a></li>
 						<li><a href="https://theme.sir.kr/gnuboard55/bbs/scrap.php" target="_blank">스크랩<span>0</span></a></li>
 						*/ ?>
-						<li class="tnb_logout"><a href="/logout">로그아웃</a></li>
+						<li class="tnb_logout"><a href="/logout.php">로그아웃</a></li>
 					</ul>
 				</div>
 				<script>
