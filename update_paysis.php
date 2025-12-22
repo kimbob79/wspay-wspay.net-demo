@@ -213,10 +213,14 @@
 			if($pay['pay_id']) { // 등록되어 있다면 수정
 				$sql = " update g5_payment set {$sql_common} where trxid = '$tid' and pay_num = '{$appNo}' ";
 				sql_query($sql);
+				// sync_status 업데이트
+				sql_query("UPDATE g5_payment_paysis SET sync_status = 'success', sync_message = 'updated' WHERE pg_id = '{$pg_id}'");
 				alert_close("수정 완료");
 			} else { // 등록되지 않았다면 등록
 				$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
 				sql_query($sql);
+				// sync_status 업데이트
+				sql_query("UPDATE g5_payment_paysis SET sync_status = 'success', sync_message = '' WHERE pg_id = '{$pg_id}'");
 				alert_close("등록 완료");
 			}
 		}
