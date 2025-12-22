@@ -290,13 +290,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 		<div class="payment-search-group">
 			<select name="dv_pg" id="dv_pg">
 				<option value="">PG사</option>
-				<option value="0" <?php if($dv_pg == "0") { echo "selected"; } ?>>코페이</option>
-				<option value="1" <?php if($dv_pg == "1") { echo "selected"; } ?>>다날</option>
-				<option value="2" <?php if($dv_pg == "2") { echo "selected"; } ?>>광원</option>
-				<option value="3" <?php if($dv_pg == "3") { echo "selected"; } ?>>웰컴</option>
 				<option value="4" <?php if($dv_pg == "4") { echo "selected"; } ?>>페이시스</option>
 				<option value="5" <?php if($dv_pg == "5") { echo "selected"; } ?>>섹타나인</option>
-				<option value="6" <?php if($dv_pg == "6") { echo "selected"; } ?>>다우</option>
+				<option value="7" <?php if($dv_pg == "7") { echo "selected"; } ?>>루트업</option>
 			</select>
 			<select name="dv_type" id="dv_type">
 				<option value="">결제종류</option>
@@ -534,6 +530,8 @@ td span .fee_name {font-family: 'NanumGothic';}
 						$dv_pgs = "섹타나인";
 					} else if($row['dv_pg'] == 6) {
 						$dv_pgs = "다우";
+					} else if($row['dv_pg'] == 7) {
+						$dv_pgs = "루트업";
 					}
 
 					if($row['dv_type'] == 1) {
@@ -655,13 +653,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;">
 						<select name="dv_pg" required class="required" style="width:70px">
 							<option value="">PG사</option>
-							<option value="0" <?php if($row['dv_pg'] == "0") { echo "selected"; } ?>>코페이</option>
-							<option value="1" <?php if($row['dv_pg'] == "1") { echo "selected"; } ?>>다날</option>
-							<option value="2" <?php if($row['dv_pg'] == "2") { echo "selected"; } ?>>광원</option>
-							<option value="3" <?php if($row['dv_pg'] == "3") { echo "selected"; } ?>>웰컴</option>
 							<option value="4" <?php if($row['dv_pg'] == "4") { echo "selected"; } ?>>페이시스</option>
 							<option value="5" <?php if($row['dv_pg'] == "5") { echo "selected"; } ?>>섹타나인</option>
-							<option value="6" <?php if($row['dv_pg'] == "6") { echo "selected"; } ?>>다우</option>
+							<option value="7" <?php if($row['dv_pg'] == "7") { echo "selected"; } ?>>루트업</option>
 						</select>
 					</td>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;">
