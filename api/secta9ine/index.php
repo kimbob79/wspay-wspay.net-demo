@@ -84,6 +84,7 @@ if($paymethod) {
 
 
 	// TID 노티전송
+	/*
 	$sql = "SELECT * FROM g5_noti WHERE nt_mbrno = '{$vanCatId}'";
 	$url_row = sql_fetch($sql);
 
@@ -110,7 +111,7 @@ if($paymethod) {
 		sql_query($sql);
 
 	}
-
+	*/
 
 
 /*
@@ -218,56 +219,82 @@ if($paymethod) {
 	$sync_status = 'pending';
 	$sync_message = '';
 
-	$dv_tid_ori = $mbrNo;
+	// ========================================
+	// 수기결제 (payType = 'K')
+	// ========================================
+	if($payType == 'K') {
+		// 1. mbrRefNo(주문번호) 앞 4자리(mkc_oid)로 Keyin 설정 조회
+		// 대표가맹점/개별설정 상관없이 mkc_oid로 구분
+		$mkc_oid = substr($mbrRefNo, 0, 4);
+		$keyin_config = sql_fetch("SELECT * FROM g5_member_keyin_config
+			WHERE mkc_use = 'Y' AND mkc_status = 'active' AND mkc_pg_code = 'stn'
+			AND mkc_oid = '{$mkc_oid}'");
 
-	/* mbr 분리 */
-	$arraydata = explode(PHP_EOL, trim($config['cf_3']));
-	$arraydata = array_map('trim', $arraydata);
+		$target_mb_id = $keyin_config['mb_id'] ?? '';
 
-	/* mbr을 tid로 */
-	$arraydata2 = explode(PHP_EOL, trim($config['cf_4']));
-	$arraydata2 = array_map('trim', $arraydata2);
+		// 2. 해당 가맹점의 디바이스 정보 조회
+		$row2 = array();
+		if($target_mb_id) {
+			$row2 = sql_fetch("SELECT d.*, d.mb_6 as merchant_mb_id
+				FROM g5_device d
+				WHERE d.mb_6 = '{$target_mb_id}'
+				LIMIT 1");
+		}
 
+		// 디바이스 조회 실패 체크
+		if(!$row2['dv_id']) {
+			$sync_status = 'failed';
+			$sync_message = $target_mb_id ? "device not found for mb_id '{$target_mb_id}'" : "keyin config not found for mkc_oid '{$mkc_oid}'";
+		}
 
-	if($mbrNo == "114004") {
-
-		$mbrNo = substr($mbrRefNo, 0, 13);
-		$dv_tid_ori = "114004";
-
-	} else if(in_array($mbrNo, $arraydata)) {
-
-		$mbrNo = substr($mbrRefNo, 0, -10);
-
-	} else if(in_array($mbrNo, $arraydata2)) {
-
-		$mbrNo = $mbrNo;
-
-	/*
-	} else if($mbrNo == "114146") {	$mbrNo = "114146";
-	} else if($mbrNo == "114077") {	$mbrNo = "114077";
-	} else if($mbrNo == "113985") {	$mbrNo = "113985";
-	} else if($mbrNo == "113975") {	$mbrNo = "113975";
-	} else if($mbrNo == "113815") {	$mbrNo = "113815";
-	} else if($mbrNo == "113812") {	$mbrNo = "113812";
-	} else if($mbrNo == "113813") {	$mbrNo = "113813";
-	} else if($mbrNo == "113816") {	$mbrNo = "113816";
-//	} else if($mbrNo == "113866") {	$mbrNo = "113866";
-//	} else if($mbrNo == "114090") {	$mbrNo = "114090";
-	} else if($mbrNo == "114231") {	$mbrNo = "114231";
-	} else if($mbrNo == "114399") {	$mbrNo = "114399";
-	*/
-
-
-	} else {
-		$mbrNo = $vanCatId;
+		$dv_tid_ori = $mbrNo;
+		$dv_tid_value = $row2['dv_tid']; // 수기결제는 디바이스 TID 사용
+		$pg_name_value = 'stn_k'; // 수기결제 구분
+		$dv_type_value = '2'; // 수기결제 타입
 	}
+	// ========================================
+	// 오프라인 단말기 결제 (일반)
+	// ========================================
+	else {
+		$dv_tid_ori = $mbrNo;
 
-	$row2 = sql_fetch("select * from g5_device where dv_tid = '{$mbrNo}'");
+		/* mbr 분리 */
+		$arraydata = explode(PHP_EOL, trim($config['cf_3']));
+		$arraydata = array_map('trim', $arraydata);
 
-	// 디바이스 조회 실패 체크
-	if(!$row2['dv_id']) {
-		$sync_status = 'failed';
-		$sync_message = "device '{$mbrNo}' not found";
+		/* mbr을 tid로 */
+		$arraydata2 = explode(PHP_EOL, trim($config['cf_4']));
+		$arraydata2 = array_map('trim', $arraydata2);
+
+
+		if($mbrNo == "114004") {
+
+			$mbrNo = substr($mbrRefNo, 0, 13);
+			$dv_tid_ori = "114004";
+
+		} else if(in_array($mbrNo, $arraydata)) {
+
+			$mbrNo = substr($mbrRefNo, 0, -10);
+
+		} else if(in_array($mbrNo, $arraydata2)) {
+
+			$mbrNo = $mbrNo;
+
+		} else {
+			$mbrNo = $vanCatId;
+		}
+
+		$row2 = sql_fetch("select * from g5_device where dv_tid = '{$mbrNo}'");
+
+		// 디바이스 조회 실패 체크
+		if(!$row2['dv_id']) {
+			$sync_status = 'failed';
+			$sync_message = "device '{$mbrNo}' not found";
+		}
+
+		$dv_tid_value = $mbrNo; // 일반결제는 mbrNo 사용
+		$pg_name_value = 'stn'; // 일반결제
+		$dv_type_value = $row2['dv_type']; // 디바이스 타입 사용
 	}
 
 	$mb_1_fee = $row2['mb_1_fee'];
@@ -390,12 +417,12 @@ if($paymethod) {
 					mb_6_fee = '{$mb_6_fee}',
 					mb_6_pay = '{$mb_6_pay}',
 
-					dv_type = '{$row2['dv_type']}',
+					dv_type = '{$dv_type_value}',
 					dv_certi = '{$row2['dv_certi']}',
-					dv_tid = '{$mbrNo}',
+					dv_tid = '{$dv_tid_value}',
 					dv_tid_ori = '{$dv_tid_ori}',
 					sftp_mbrno = '{$row2['sftp_mbrno']}',
-					pg_name = 'stn' ";
+					pg_name = '{$pg_name_value}' ";
 
 
 //	$pay = sql_fetch("select * from g5_payment where trxid = '{$tid}' and pay_num = '{$appNo}'");

@@ -40,84 +40,97 @@
 
 
 		if($paymethod) {
-			/*
-			if($mid == "wel000695m") {
-				$product_code = substr($order_no, 0, -10); // tid
-			}
-			*/
 
 			$pay_type = "Y";
 			$pay_cdatetime = "";
 			// 취소
 			if($cmd != 0) {
-				$pay_type = "N";
-
-				// 원거래
-				//$cancel = sql_fetch("select * from g5_payment_stn where refNo = '{$orgRefNo}'");
+				if($cmd == "2") {
+					$pay_type = "B"; // 부분취소
+				} else {
+					$pay_type = "N";
+				}
 
 				// 취소일때 데이터 원거래에서 가져오기
-				$pay_cdatetime =  date("Y-m-d H:i:s", strtotime($tranDatetranTime));
-				/*
-				$issuer = $cancel['issuer'];
-				$acquirer = $cancel['acquirer'];
-				$cardType = $cancel['cardType'];
-				$bin = $cancel['bin'];
-				$last4 = $cancel['last4'];
-				$authCd = $cancel['authCd'];
-				*/
-				//$amt = "-".$cancel['amt']; // 음수로 변경
-				//$amount = "-".$cancel['amount']; // 음수로 변경
+				$pay_cdatetime = date("Y-m-d H:i:s", strtotime($tranDatetranTime));
+				$amount = "-" . $amount; // 음수로 변경
 				sql_query("update g5_payment set pay_cdatetime = '{$pay_cdatetime}' where trxId = '{$orgRefNo}'");
 			}
 
+			// 동기화 상태 변수 초기화
+			$sync_status = 'pending';
+			$sync_message = '';
 
-			$arraydata = explode(PHP_EOL, trim($config['cf_3']));
-			$arraydata = array_map('trim', $arraydata);
+			// ========================================
+			// 수기결제 (payType = 'K')
+			// ========================================
+			if($payType == 'K') {
+				// mbrRefNo(주문번호) 앞 4자리(mkc_oid)로 Keyin 설정 조회
+				$mkc_oid = substr($mbrRefNo, 0, 4);
+				$keyin_config = sql_fetch("SELECT * FROM g5_member_keyin_config
+					WHERE mkc_use = 'Y' AND mkc_status = 'active' AND mkc_pg_code = 'stn'
+					AND mkc_oid = '{$mkc_oid}'");
 
-			$arraydata2 = explode(PHP_EOL, trim($config['cf_4']));
-			$arraydata2 = array_map('trim', $arraydata2);
+				$target_mb_id = $keyin_config['mb_id'] ?? '';
 
-			if($mbrNo == "114004") {
+				// 해당 가맹점의 디바이스 정보 조회
+				$row2 = array();
+				if($target_mb_id) {
+					$row2 = sql_fetch("SELECT d.*, d.mb_6 as merchant_mb_id
+						FROM g5_device d
+						WHERE d.mb_6 = '{$target_mb_id}'
+						LIMIT 1");
+				}
 
-				$mbrNo = substr($mbrRefNo, 0, 13);
-				$dv_tid_ori = "114004";
+				// 디바이스 조회 실패 체크
+				if(!$row2['dv_id']) {
+					$sync_status = 'failed';
+					$sync_message = $target_mb_id ? "device not found for mb_id '{$target_mb_id}'" : "keyin config not found for mkc_oid '{$mkc_oid}'";
+				}
 
-			} else if(in_array($mbrNo, $arraydata)) {
-
-				$mbrNo = substr($mbrRefNo, 0, -10);
 				$dv_tid_ori = $mbrNo;
+				$dv_tid_value = $row2['dv_tid']; // 수기결제는 디바이스 TID 사용
+				$pg_name_value = 'stn_k'; // 수기결제 구분
+				$dv_type_value = '2'; // 수기결제 타입
+			}
+			// ========================================
+			// 오프라인 단말기 결제 (일반)
+			// ========================================
+			else {
+				$arraydata = explode(PHP_EOL, trim($config['cf_3']));
+				$arraydata = array_map('trim', $arraydata);
 
-			} else if(in_array($mbrNo, $arraydata2)) {
+				$arraydata2 = explode(PHP_EOL, trim($config['cf_4']));
+				$arraydata2 = array_map('trim', $arraydata2);
 
-				$mbrNo = $mbrNo;
+				if($mbrNo == "114004") {
+					$mbrNo = substr($mbrRefNo, 0, 13);
+					$dv_tid_ori = "114004";
+				} else if(in_array($mbrNo, $arraydata)) {
+					$mbrNo = substr($mbrRefNo, 0, -10);
+					$dv_tid_ori = $mbrNo;
+				} else if(in_array($mbrNo, $arraydata2)) {
+					$mbrNo = $mbrNo;
+					$dv_tid_ori = $mbrNo;
+				} else {
+					$dv_tid_ori = $mbrNo;
+					$mbrNo = $vanCatId;
+				}
 
-			/*
-			} else if($mbrNo == "114146") {	$mbrNo = "114146";
-			} else if($mbrNo == "114077") {	$mbrNo = "114077";
-			} else if($mbrNo == "113985") {	$mbrNo = "113985";
-			} else if($mbrNo == "113975") {	$mbrNo = "113975";
-			} else if($mbrNo == "113815") {	$mbrNo = "113815";
-			} else if($mbrNo == "113812") {	$mbrNo = "113812";
-			} else if($mbrNo == "113813") {	$mbrNo = "113813";
-			} else if($mbrNo == "113816") {	$mbrNo = "113816";
-		//	} else if($mbrNo == "113866") {	$mbrNo = "113866";
-		//	} else if($mbrNo == "114090") {	$mbrNo = "114090";
-			} else if($mbrNo == "114231") {	$mbrNo = "114231";
-			} else if($mbrNo == "114399") {	$mbrNo = "114399";
-			*/
+				$row2 = sql_fetch("select * from g5_device where dv_tid = '{$mbrNo}'");
 
+				// 디바이스 조회 실패 체크
+				if(!$row2['dv_id']) {
+					$sync_status = 'failed';
+					$sync_message = "device '{$mbrNo}' not found";
+				}
 
-			} else {
-				$dv_tid_ori = $mbrNo;
-				$mbrNo = $vanCatId;
+				$dv_tid_value = $mbrNo; // 일반결제는 mbrNo 사용
+				$pg_name_value = 'stn'; // 일반결제
+				$dv_type_value = $row2['dv_type']; // 디바이스 타입 사용
 			}
 
-
-
-
-
-			$row2 = sql_fetch("select * from g5_device where dv_tid = '{$mbrNo}'");
-
+			// 수수료 계산 (row2는 위에서 이미 조회됨)
 			$mb_1_fee = $row2['mb_1_fee'];
 			$mb_2_fee = $row2['mb_2_fee'];
 			$mb_3_fee = $row2['mb_3_fee'];
@@ -240,24 +253,32 @@
 							mb_6_fee = '{$mb_6_fee}',
 							mb_6_pay = '{$mb_6_pay}',
 
-							dv_type = '{$row2['dv_type']}',
+							dv_type = '{$dv_type_value}',
 							dv_certi = '{$row2['dv_certi']}',
-							dv_tid = '{$mbrNo}',
+							dv_tid = '{$dv_tid_value}',
 							dv_tid_ori = '{$dv_tid_ori}',
-							pg_name = 'stn' ";
+							sftp_mbrno = '{$row2['sftp_mbrno']}',
+							pg_name = '{$pg_name_value}' ";
 
 			$pay = sql_fetch("select * from g5_payment where trxid = '{$refNo}' and pay_num = '{$applNo}'");
-			echo $mbrNo."<br>";
-			if($pay['pay_id']) { // 등록되어 있다면 수정
+
+			if($sync_status == 'failed') {
+				// 디바이스 조회 실패 시 동기화 상태 업데이트
+				$sync_message_escaped = sql_escape_string($sync_message);
+				sql_query("UPDATE g5_payment_stn SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$pg_id}'");
+				alert_close("등록 실패: " . $sync_message);
+			} else if($pay['pay_id']) {
+				// 등록되어 있다면 수정
 				$sql = " update g5_payment set {$sql_common} where trxid = '{$refNo}' and pay_num = '{$applNo}' ";
 				sql_query($sql);
-				echo $sql;
+				sql_query("UPDATE g5_payment_stn SET sync_status = 'success', sync_message = 'updated' WHERE pg_id = '{$pg_id}'");
 				alert_close("수정 완료");
-			} else { // 등록되지 않았다면 등록
+			} else {
+				// 등록되지 않았다면 등록
 				$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
 				sql_query($sql);
-				echo $sql;
-//				alert_close("등록 완료");
+				sql_query("UPDATE g5_payment_stn SET sync_status = 'success', sync_message = '' WHERE pg_id = '{$pg_id}'");
+				alert_close("등록 완료");
 			}
 		}
 	}

@@ -201,8 +201,16 @@ if($mode == 'save') {
     } else {
         // 개별 설정
         $mpc_id = null;
-        if(!$mkc_pg_code || !$mkc_type || !$mkc_api_key || !$mkc_mid || !$mkc_mkey) {
-            alert("모든 필수 항목을 입력해주세요.");
+        // 섹타나인은 mkey가 필요없음
+        if($mkc_pg_code == 'stn') {
+            if(!$mkc_pg_code || !$mkc_type || !$mkc_api_key || !$mkc_mid) {
+                alert("모든 필수 항목을 입력해주세요.");
+            }
+            $mkc_mkey = ''; // 섹타나인은 mkey 없음
+        } else {
+            if(!$mkc_pg_code || !$mkc_type || !$mkc_api_key || !$mkc_mid || !$mkc_mkey) {
+                alert("모든 필수 항목을 입력해주세요.");
+            }
         }
     }
 
@@ -865,7 +873,7 @@ textarea.form-control {
                             <?php echo $edit_data ? 'Keyin 설정 수정' : '새 Keyin 설정 추가'; ?>
                         </h3>
 
-                        <form method="post" action="./?p=member_keyin_config&mb_id=<?php echo $mb_id; ?>&level=<?php echo $level; ?>&page=<?php echo $page; ?>&mb_nick=<?php echo urlencode($mb_nick); ?>&dv_tid=<?php echo urlencode($dv_tid); ?>">
+                        <form method="post" action="./?p=member_keyin_config&mb_id=<?php echo $mb_id; ?>&level=<?php echo $level; ?>&page=<?php echo $page; ?>&mb_nick=<?php echo urlencode($mb_nick); ?>&dv_tid=<?php echo urlencode($dv_tid); ?>" onsubmit="return prepareFormSubmit()">
                             <input type="hidden" name="mode" value="save">
                             <input type="hidden" name="mkc_id" value="<?php echo $edit_data['mkc_id']; ?>">
 
@@ -932,6 +940,7 @@ textarea.form-control {
                                                 <option value="">선택하세요</option>
                                                 <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
                                                 <option value="rootup" data-name="루트업" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
+                                                <option value="stn" data-name="섹타나인" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'stn') echo 'selected'; ?>>섹타나인</option>
                                             </select>
                                         </td>
                                         <th>인증 타입 <span class="required">*</span></th>
@@ -954,10 +963,21 @@ textarea.form-control {
                                             <input type="text" name="mkc_mid" id="mkc_mid" class="form-control" placeholder="MID (10자)" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mid'] : ''; ?>">
                                         </td>
                                     </tr>
-                                    <tr class="pg-fields paysis-fields">
+                                    <tr class="pg-fields paysis-fields rootup-fields">
                                         <th id="label_mkey">암호화 키 <span class="required">*</span></th>
                                         <td colspan="3">
                                             <input type="text" name="mkc_mkey" id="mkc_mkey" class="form-control" placeholder="암호화 키 (100자)" maxlength="200" value="<?php echo ($edit_data && !$edit_data['mpc_id']) ? $edit_data['mkc_mkey'] : ''; ?>">
+                                        </td>
+                                    </tr>
+                                    <!-- 섹타나인 전용 필드 -->
+                                    <tr class="pg-fields stn-fields" style="display:none;">
+                                        <th>회원번호 <span class="required">*</span></th>
+                                        <td>
+                                            <input type="text" name="mkc_mid" id="mkc_stn_mbrno" class="form-control" placeholder="mbrNo" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'stn') ? $edit_data['mkc_mid'] : ''; ?>">
+                                        </td>
+                                        <th>API KEY <span class="required">*</span></th>
+                                        <td colspan="3">
+                                            <input type="text" name="mkc_api_key" id="mkc_stn_apikey" class="form-control" placeholder="apiKey" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'stn') ? $edit_data['mkc_api_key'] : ''; ?>">
                                         </td>
                                     </tr>
                                 </table>
@@ -1099,9 +1119,11 @@ textarea.form-control {
                                         $display_mkey = $master_data['mpc_mkey'];
                                     }
                                 } else {
+                                    // 개별설정
                                     $display_api_key = $row['mkc_api_key'];
                                     $display_mid = $row['mkc_mid'];
-                                    $display_mkey = $row['mkc_mkey'];
+                                    // 섹타나인은 mkey 없음
+                                    $display_mkey = ($row['mkc_pg_code'] == 'stn') ? '-' : $row['mkc_mkey'];
                                 }
                             ?>
                             <div class="keyin-card compact">
@@ -1202,6 +1224,11 @@ var pgFieldConfig = {
         api_key: { label: '결제 KEY', placeholder: '결제 KEY' },
         mid: { label: 'MID', placeholder: 'MID' },
         mkey: { label: 'TID', placeholder: 'TID' }
+    },
+    'stn': {
+        api_key: { label: 'API KEY', placeholder: 'apiKey' },
+        mid: { label: '회원번호', placeholder: 'mbrNo' },
+        mkey: null // 섹타나인은 mkey 없음
     }
 };
 
@@ -1213,22 +1240,68 @@ function setPgFields(select) {
     // PG사 이름 설정
     document.getElementById('mkc_pg_name').value = pgName;
 
-    // PG사별 필드 라벨 및 placeholder 변경
+    // 모든 PG 필드 숨기기
+    document.querySelectorAll('.pg-fields').forEach(function(el) {
+        el.style.display = 'none';
+    });
+
+    // PG사별 필드 표시 및 라벨/placeholder 변경
     if(pgCode && pgFieldConfig[pgCode]) {
         var config = pgFieldConfig[pgCode];
 
-        // API KEY / 결제 KEY
-        document.getElementById('label_api_key').innerHTML = config.api_key.label + ' <span class="required">*</span>';
-        document.getElementById('mkc_api_key').placeholder = config.api_key.placeholder;
+        if(pgCode === 'stn') {
+            // 섹타나인: 전용 필드 표시
+            document.querySelectorAll('.stn-fields').forEach(function(el) {
+                el.style.display = '';
+            });
+        } else {
+            // 페이시스/루트업: 공통 필드 표시
+            document.querySelectorAll('.paysis-fields').forEach(function(el) {
+                el.style.display = '';
+            });
 
-        // 상점 ID / MID
-        document.getElementById('label_mid').innerHTML = config.mid.label + ' <span class="required">*</span>';
-        document.getElementById('mkc_mid').placeholder = config.mid.placeholder;
+            // API KEY / 결제 KEY
+            document.getElementById('label_api_key').innerHTML = config.api_key.label + ' <span class="required">*</span>';
+            document.getElementById('mkc_api_key').placeholder = config.api_key.placeholder;
 
-        // 암호화 키 / TID
-        document.getElementById('label_mkey').innerHTML = config.mkey.label + ' <span class="required">*</span>';
-        document.getElementById('mkc_mkey').placeholder = config.mkey.placeholder;
+            // 상점 ID / MID
+            document.getElementById('label_mid').innerHTML = config.mid.label + ' <span class="required">*</span>';
+            document.getElementById('mkc_mid').placeholder = config.mid.placeholder;
+
+            // 암호화 키 / TID
+            document.getElementById('label_mkey').innerHTML = config.mkey.label + ' <span class="required">*</span>';
+            document.getElementById('mkc_mkey').placeholder = config.mkey.placeholder;
+        }
     }
+}
+
+// 폼 제출 전 숨겨진 필드 비활성화 (중복 name 문제 해결)
+function prepareFormSubmit() {
+    var pgCode = document.getElementById('mkc_pg_code').value;
+    var configType = document.querySelector('input[name="config_type"]:checked').value;
+
+    // 개별설정이 아니면 개별설정 필드 비활성화
+    if(configType !== 'custom') {
+        document.querySelectorAll('#customPanel input').forEach(function(el) {
+            el.disabled = true;
+        });
+        return true;
+    }
+
+    // 선택한 PG가 아닌 필드 비활성화
+    if(pgCode === 'stn') {
+        // 섹타나인 선택: 페이시스/루트업 필드 비활성화
+        document.querySelectorAll('.paysis-fields input, .rootup-fields input').forEach(function(el) {
+            el.disabled = true;
+        });
+    } else {
+        // 페이시스/루트업 선택: 섹타나인 필드 비활성화
+        document.querySelectorAll('.stn-fields input').forEach(function(el) {
+            el.disabled = true;
+        });
+    }
+
+    return true;
 }
 
 // 페이지 로드 시 현재 선택된 PG사에 맞게 필드 설정

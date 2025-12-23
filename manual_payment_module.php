@@ -2240,8 +2240,8 @@ function updateRequiredFields(pgCode) {
 	// 휴대전화 필드 라벨 찾기
 	var $phoneLabel = $('#pay_phone').closest('.stripe-form-col').find('.stripe-form-label');
 
-	if(pgCode === 'rootup') {
-		// 루트업: 휴대전화 필수
+	if(pgCode === 'rootup' || pgCode === 'stn') {
+		// 루트업, 섹타나인: 휴대전화 필수
 		$phoneLabel.html('구매자 휴대전화 <span style="color:#f44336;">(필수)</span>');
 		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
 	} else {
@@ -2349,11 +2349,12 @@ function processPayment() {
 
 	// PG사별 휴대전화 필수 여부 체크
 	// - 루트업(rootup): 휴대전화 필수
+	// - 섹타나인(stn): 휴대전화 필수
 	// - 페이시스(paysis): 휴대전화 선택
-	if(pg_code === 'rootup') {
-		// 루트업은 휴대전화 필수
+	if(pg_code === 'rootup' || pg_code === 'stn') {
+		// 루트업, 섹타나인은 휴대전화 필수
 		if (!pay_phone) {
-			showFieldError('#pay_phone', '휴대전화번호를 입력하세요 (루트업 필수)');
+			showFieldError('#pay_phone', '휴대전화번호를 입력하세요 (필수)');
 			$("#btn1, #btn2").show();
 			return;
 		}

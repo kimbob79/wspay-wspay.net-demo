@@ -508,7 +508,7 @@
 						$pg_name = "다날";
 					} else if($row['pg_name'] == "paysis") {
 						$pg_name = "페이시스";
-					} else if($row['pg_name'] == "stn") {
+					} else if($row['pg_name'] == "stn" || $row['pg_name'] == "stn_k") {
 						$pg_name = "섹타나인";
 					} else if($row['pg_name'] == "daou") {
 						$pg_name = "다우";
