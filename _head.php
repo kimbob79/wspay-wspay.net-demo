@@ -356,11 +356,11 @@ jQuery(function($) {
 					<a href="/txn" target="_self" class="gnb_1da <?php if($p == "payment") { echo "on"; } ?>"><span>실시간 결제내역</span></a>
 				</li>
 				<?php if(!$is_van_fee_member) { ?>
-				<?php /*if($member['mb_level'] >= 4) { ?>
+				<?php if($member['mb_level'] >= 4) { ?>
 				<li class="gnb_1dli">
 					<a href="/txn/merchant" target="_self" class="gnb_1da <?php if($p == "payment_member") { echo "on"; } ?>"><span>가맹점별 결제내역</span></a>
 				</li>
-				<?php }*/ ?>
+				<?php } ?>
 				<?php if($is_admin) { ?>
 				<li class="gnb_1dli">
 					<a href="/txn/missing" target="_self" class="gnb_1da <?php if($p == "payment_loss") { echo "on"; } ?>"><span>누락 결제내역</span></a>

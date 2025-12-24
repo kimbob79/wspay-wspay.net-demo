@@ -2,6 +2,9 @@
 	$title1 = "결제관리";
 	$title2 = "가맹점별 결제내역";
 
+	if(!$fr_date) { $fr_date = date("Ymd"); }
+	if(!$to_date) { $to_date = date("Ymd"); }
+
 	$fr_dates = date("Y-m-d", strtotime($fr_date));
 	$to_dates = date("Y-m-d", strtotime($to_date));
 
@@ -78,55 +81,200 @@
 	$result = sql_query($sql);
 ?>
 
+<style>
+.pm-header {
+	background: linear-gradient(135deg, #00695c 0%, #00897b 100%);
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 10px;
+	box-shadow: 0 2px 8px rgba(0, 105, 92, 0.2);
+}
+.pm-header-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.pm-title {
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.pm-title i {
+	font-size: 14px;
+	opacity: 0.8;
+}
+.pm-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.pm-stat {
+	display: inline-flex;
+	align-items: center;
+	background: rgba(255,255,255,0.12);
+	border-radius: 4px;
+	padding: 4px 10px;
+	font-size: 12px;
+	color: rgba(255,255,255,0.85);
+	gap: 6px;
+}
+.pm-stat.total {
+	background: rgba(255,193,7,0.3);
+	color: #fff;
+	font-weight: 600;
+}
+.pm-stat span {
+	color: #fff;
+	font-weight: 600;
+}
+.pm-search {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 12px;
+	margin-bottom: 10px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.pm-search-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.pm-search-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.pm-search-group input[type="text"] {
+	width: 90px;
+	padding: 6px 8px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 13px;
+	background: #f8f9fa;
+}
+.pm-search-group input[type="text"]:focus {
+	outline: none;
+	border-color: #00695c;
+	background: #fff;
+}
+.pm-search-group span {
+	color: #999;
+	font-size: 12px;
+}
+.pm-date-btns {
+	display: flex;
+	gap: 3px;
+}
+.pm-date-btns button {
+	padding: 5px 8px;
+	font-size: 11px;
+	border: 1px solid #ddd;
+	background: #f8f9fa;
+	border-radius: 3px;
+	cursor: pointer;
+	color: #555;
+	transition: all 0.15s;
+}
+.pm-date-btns button:hover {
+	background: #00695c;
+	border-color: #00695c;
+	color: #fff;
+}
+.pm-search-divider {
+	width: 1px;
+	height: 24px;
+	background: #e0e0e0;
+	margin: 0 6px;
+}
+.pm-search-input {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.pm-search-input input[type="text"] {
+	width: 150px;
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 13px;
+}
+.pm-search-input input[type="text"]:focus {
+	outline: none;
+	border-color: #00695c;
+}
+.pm-btn-search {
+	padding: 6px 12px;
+	background: #00695c;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.pm-btn-search:hover {
+	background: #00897b;
+}
+@media (max-width: 768px) {
+	.pm-header-top {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.pm-stats {
+		width: 100%;
+	}
+	.pm-search-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.pm-search-divider {
+		display: none;
+	}
+}
+</style>
 
-<div class="index_menu">
-	<ul class="shortcut">
-		<li class="sc_current"><a>가맹점별 결제내역</a></li>
-		<li class="sc_visit">
-			<aside id="visit">
-			</aside>
-		</li>
-	</ul>
-</div>
-
-<form id="fsearch" name="fsearch" class="local_sch01 local_sch" method="get">
-<input type="hidden" name="p" value="<?php echo $p; ?>">
-	<div class="searchbox">
-		<div class="midd">
-			<ul>
-				<li>
-					<strong>일자</strong>
-					<div>
-						<div>
-							<input type="text" name="fr_date" value="<?php echo $fr_date ?>" id="fr_date" class="frm_input" size="6" maxlength="10">
-						</div>
-						<span>~</span>
-						<div>
-							<input type="text" name="to_date" value="<?php echo $to_date ?>" id="to_date" class="frm_input" size="6" maxlength="10">
-						</div>
-					</div>
-				</li>
-				<li>
-					<strong>단축</strong>
-					<div>
-						<button type="submit" onclick="javascript:set_date('오늘');" class="btn_b btn_b09"><span>오늘</span></button>
-						<button type="submit" onclick="javascript:set_date('어제');" class="btn_b btn_b09"><span>어제</span></button>
-						<button type="submit" onclick="javascript:set_date('이번주');" class="btn_b btn_b09"><span>이번주</span></button>
-						<button type="submit" onclick="javascript:set_date('이번달');" class="btn_b btn_b09"><span>이번달</span></button>
-						<button type="submit" onclick="javascript:set_date('지난주');" class="btn_b btn_b09"><span>지난주</span></button>
-						<button type="submit" onclick="javascript:set_date('지난달');" class="btn_b btn_b09"><span>지난달</span></button>
-					</div>
-				</li>
-				<li>
-					<strong>검색</strong>
-					<div>
-						<input type="text" name="mb_6_name" value="<?php echo $mb_6_name ?>" id="stx" class="frm_input" size="7" placeholder="가맹점명" style="width:150px;">
-						<button type="submit" class="btn_b btn_b02"><span>검색</span></button>
-					</div>
-				</li>
-			</ul>
+<div class="pm-header">
+	<div class="pm-header-top">
+		<div class="pm-title">
+			<i class="fa fa-users"></i>
+			가맹점별 결제내역
+		</div>
+		<div class="pm-stats">
+			<div class="pm-stat total">총 가맹점 <span><?php echo number_format($total_count); ?>개</span></div>
 		</div>
 	</div>
+</div>
+
+<form id="fsearch" name="fsearch" method="get">
+<input type="hidden" name="p" value="<?php echo $p; ?>">
+<div class="pm-search">
+	<div class="pm-search-row">
+		<div class="pm-search-group">
+			<input type="text" name="fr_date" value="<?php echo $fr_date ?>" id="fr_date" placeholder="시작일">
+			<span>~</span>
+			<input type="text" name="to_date" value="<?php echo $to_date ?>" id="to_date" placeholder="종료일">
+		</div>
+		<div class="pm-date-btns">
+			<button type="submit" onclick="javascript:set_date('오늘');">오늘</button>
+			<button type="submit" onclick="javascript:set_date('어제');">어제</button>
+			<button type="submit" onclick="javascript:set_date('이번달');">이번달</button>
+			<button type="submit" onclick="javascript:set_date('지난주');">지난주</button>
+			<button type="submit" onclick="javascript:set_date('지난달');">지난달</button>
+		</div>
+		<div class="pm-search-divider"></div>
+		<div class="pm-search-input">
+			<input type="text" name="mb_6_name" value="<?php echo $mb_6_name ?>" placeholder="가맹점명 검색">
+			<button type="submit" class="pm-btn-search">검색</button>
+		</div>
+	</div>
+</div>
 </form>
 
 
