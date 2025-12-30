@@ -410,11 +410,15 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/?p=payment_routeup" target="_self" class="gnb_1da <?php if($p == "payment_routeup") { echo "on"; } ?>"><span>루트업</span></a>
 				</li>
-				<?php /*
 				<li class="gnb_1dli">
 					<a href="/?p=payment_daou" target="_self" class="gnb_1da <?php if($p == "payment_daou") { echo "on"; } ?>"><span>다우</span></a>
 				</li>
-				*/ ?>
+				<li class="gnb_1dli">
+					<a href="/?p=payment_korpay" target="_self" class="gnb_1da <?php if($p == "payment_korpay") { echo "on"; } ?>"><span>코페이</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=payment_danal" target="_self" class="gnb_1da <?php if($p == "payment_danal") { echo "on"; } ?>"><span>다날</span></a>
+				</li>
 			</ul>
 		</div>
 		<?php } ?>

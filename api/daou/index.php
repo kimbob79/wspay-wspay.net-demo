@@ -1,6 +1,39 @@
 <?php
 	error_reporting( E_ALL );
 	ini_set( "display_errors", 1 );
+	date_default_timezone_set('Asia/Seoul');
+
+	// ========================================
+	// 요청 로깅 - /logs/trans/api/daou
+	// ========================================
+	$log_dir = dirname(__FILE__) . '/../../logs/trans/api/daou';
+	if(!is_dir($log_dir)) {
+		@mkdir($log_dir, 0755, true);
+	}
+
+	$log_file = $log_dir . '/' . date('Y-m-d') . '.log';
+	$log_time = date('Y-m-d H:i:s');
+	$log_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$log_method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
+
+	// 요청 데이터 수집
+	$log_data = [
+		'timestamp' => $log_time,
+		'ip' => $log_ip,
+		'method' => $log_method,
+		'GET' => $_GET,
+		'POST' => $_POST,
+		'REQUEST' => $_REQUEST,
+		'raw_input' => file_get_contents('php://input')
+	];
+
+	// 로그 기록
+	$log_entry = "[{$log_time}] [{$log_ip}] [{$log_method}]\n";
+	$log_entry .= json_encode($log_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+	$log_entry .= str_repeat('-', 80) . "\n";
+
+	@file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+	// ========================================
 
 	include('./_common.php');
 
