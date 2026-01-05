@@ -32,6 +32,22 @@ if($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
+// [DEBUG] API 요청 시작 로그 (가장 먼저 기록) - 민감정보 마스킹
+$debug_post = $_POST;
+if(isset($debug_post['card_no'])) $debug_post['card_no'] = substr($debug_post['card_no'], 0, 6) . '****' . substr($debug_post['card_no'], -4);
+if(isset($debug_post['cert_pw'])) $debug_post['cert_pw'] = '**';
+if(isset($debug_post['cert_no'])) $debug_post['cert_no'] = '******';
+writeErrorLog('DEBUG_API_START', 'API 요청 시작', [
+    'action' => $action,
+    'mb_id' => $member['mb_id'] ?? 'unknown',
+    'mb_level' => $member['mb_level'] ?? 'unknown',
+    'mb_mailling' => $member['mb_mailling'] ?? 'unknown',
+    'is_admin' => $is_admin ?? false,
+    'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+    'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+    'post_data' => $debug_post
+]);
+
 switch($action) {
     case 'pay':
         processPayment();
@@ -50,10 +66,31 @@ switch($action) {
 function processPayment() {
     global $member, $is_admin;
 
+    // [DEBUG] API 진입 로그 - 상세 파라미터
+    writeErrorLog('DEBUG_ENTRY', 'processPayment() 진입', [
+        'mb_id' => $member['mb_id'] ?? 'unknown',
+        'mb_level' => $member['mb_level'] ?? 'unknown',
+        'is_admin' => $is_admin,
+        'mkc_id' => $_POST['mkc_id'] ?? 'not_set',
+        'amount' => $_POST['amount'] ?? 'not_set',
+        'goods_name' => $_POST['goods_name'] ?? 'not_set',
+        'buyer_name' => $_POST['buyer_name'] ?? 'not_set',
+        'buyer_phone' => $_POST['buyer_phone'] ?? 'not_set',
+        'buyer_email' => $_POST['buyer_email'] ?? 'not_set',
+        'card_no_masked' => isset($_POST['card_no']) ? substr($_POST['card_no'], 0, 6) . '****' : 'not_set',
+        'expire_yymm' => $_POST['expire_yymm'] ?? 'not_set',
+        'installment' => $_POST['installment'] ?? 'not_set'
+    ]);
+
     // 필수 파라미터 체크
     $required_fields = ['mkc_id', 'amount', 'goods_name', 'buyer_name', 'card_no', 'expire_yymm', 'installment'];
     foreach($required_fields as $field) {
         if(empty($_POST[$field])) {
+            writeErrorLog('DEBUG_MISSING_PARAM', '필수 파라미터 누락', [
+                'missing_field' => $field,
+                'mb_id' => $member['mb_id'] ?? 'unknown',
+                'all_post_keys' => array_keys($_POST)
+            ]);
             echo json_encode(['success' => false, 'message' => "필수 항목이 누락되었습니다: {$field}"]);
             exit;
         }
@@ -84,12 +121,23 @@ function processPayment() {
     $keyin = sql_fetch($keyin_sql);
 
     if(!$keyin) {
+        writeErrorLog('DEBUG_KEYIN_NOT_FOUND', 'Keyin 설정을 찾을 수 없음', [
+            'mkc_id' => $mkc_id,
+            'mb_id' => $member['mb_id'] ?? 'unknown',
+            'sql' => $keyin_sql
+        ]);
         echo json_encode(['success' => false, 'message' => 'Keyin 설정을 찾을 수 없습니다.']);
         exit;
     }
 
     // 권한 체크 (관리자가 아닌 경우 자신의 설정만 사용 가능)
     if(!$is_admin && $keyin['mb_id'] !== $member['mb_id']) {
+        writeErrorLog('DEBUG_PERMISSION_DENIED', '권한 없음', [
+            'mkc_id' => $mkc_id,
+            'member_mb_id' => $member['mb_id'] ?? 'unknown',
+            'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+            'is_admin' => $is_admin
+        ]);
         echo json_encode(['success' => false, 'message' => '해당 Keyin 설정에 대한 권한이 없습니다.']);
         exit;
     }
@@ -224,6 +272,12 @@ function processPayment() {
     $merchant = sql_fetch($member_sql);
 
     if(!$merchant) {
+        writeErrorLog('DEBUG_MERCHANT_NOT_FOUND', '가맹점 정보를 찾을 수 없음', [
+            'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+            'mkc_id' => $mkc_id,
+            'operator_id' => $member['mb_id'] ?? 'unknown',
+            'sql' => $member_sql
+        ]);
         echo json_encode(['success' => false, 'message' => '가맹점 정보를 찾을 수 없습니다.']);
         exit;
     } 
@@ -360,6 +414,30 @@ function processPayment() {
         }
     }
 
+    // [DEBUG] INSERT 전 상태 로그 - 모든 주요 변수
+    writeErrorLog('DEBUG_PRE_INSERT', 'INSERT 시작 직전', [
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'installment' => $installment,
+        'mkc_id' => $mkc_id,
+        'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+        'keyin_mpc_id' => $keyin['mpc_id'] ?? 'null',
+        'mid' => $mid ?? 'not_set',
+        'api_key_set' => !empty($api_key) ? 'yes' : 'no',
+        'goods_name' => $goods_name,
+        'buyer_name' => $buyer_name,
+        'buyer_phone' => $buyer_phone,
+        'buyer_email' => $buyer_email,
+        'card_no_masked' => $card_no_masked,
+        'merchant_mb_1' => $merchant['mb_1'] ?? '',
+        'merchant_mb_6' => $merchant['mb_6'] ?? '',
+        'merchant_nick' => $merchant['mb_nick'] ?? ''
+    ]);
+
     // DB에 pending 상태로 먼저 저장
     $insert_sql = "INSERT INTO g5_payment_keyin SET
         pk_order_no = '" . sql_escape_string($order_no) . "',
@@ -394,17 +472,47 @@ function processPayment() {
     if(!$insert_result) {
         global $g5;
         $sql_error = mysqli_error($g5['connect_db']);
+        $errno = mysqli_errno($g5['connect_db']);
         writeErrorLog('INSERT_ERROR', 'g5_payment_keyin INSERT 실패', [
             'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $keyin['mb_id'] ?? '',
+            'mkc_id' => $mkc_id,
             'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
             'amount' => $amount,
+            'goods_name' => $goods_name,
+            'buyer_name' => $buyer_name,
+            'buyer_phone' => $buyer_phone,
+            'buyer_email' => $buyer_email,
+            'card_no_masked' => $card_no_masked,
+            'operator_id' => $member['mb_id'] ?? '',
+            'sql_errno' => $errno,
             'sql_error' => $sql_error,
-            'sql' => $insert_sql
+            'sql_length' => strlen($insert_sql)
         ]);
         echo json_encode(['success' => false, 'message' => 'DB 저장 중 오류가 발생했습니다: ' . $sql_error]);
         exit;
     }
     $pk_id = sql_insert_id();
+
+    // [DEBUG] INSERT 성공 로그
+    writeErrorLog('DEBUG_POST_INSERT', 'INSERT 성공', [
+        'pk_id' => $pk_id,
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'mb_id' => $keyin['mb_id'] ?? '',
+        'mkc_id' => $mkc_id,
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'goods_name' => $goods_name,
+        'buyer_name' => $buyer_name,
+        'card_no_masked' => $card_no_masked,
+        'operator_id' => $member['mb_id'] ?? ''
+    ]);
 
     // PG사별 API 호출
     $response = null;
@@ -423,9 +531,51 @@ function processPayment() {
             break;
         default:
             // 지원하지 않는 PG
+            writeErrorLog('DEBUG_UNSUPPORTED_PG', '지원하지 않는 PG사', [
+                'pk_id' => $pk_id,
+                'order_no' => $order_no,
+                'pg_code' => $pg_code,
+                'pg_name' => $pg_name,
+                'amount' => $amount,
+                'mb_id' => $member['mb_id'] ?? ''
+            ]);
             sql_query("UPDATE g5_payment_keyin SET pk_status = 'failed', pk_res_code = 'UNSUPPORTED', pk_res_msg = '지원하지 않는 PG사입니다.' WHERE pk_id = '{$pk_id}'");
             echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $pg_code]);
             exit;
+    }
+
+    // [DEBUG] PG API 응답 로그 - 전체 응답
+    writeErrorLog('DEBUG_PG_RESPONSE', 'PG API 응답 수신', [
+        'pk_id' => $pk_id,
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'mb_id' => $member['mb_id'] ?? '',
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'response_is_null' => is_null($response),
+        'response_is_array' => is_array($response),
+        'res_code' => $response['resCode'] ?? 'null',
+        'res_msg' => $response['resMsg'] ?? 'null',
+        'app_no' => $response['appNo'] ?? 'null',
+        'app_date' => $response['appDate'] ?? 'null',
+        'tid' => $response['tid'] ?? 'null',
+        'full_response' => $response
+    ]);
+
+    // response가 null이면 에러 처리
+    if($response === null || !is_array($response)) {
+        writeErrorLog('DEBUG_PG_NULL_RESPONSE', 'PG API 응답이 null 또는 비정상', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'pg_code' => $pg_code,
+            'response_type' => gettype($response),
+            'response_value' => $response
+        ]);
+        sql_query("UPDATE g5_payment_keyin SET pk_status = 'failed', pk_res_code = 'NULL_RESPONSE', pk_res_msg = 'PG API 응답 없음', pk_updated_at = NOW() WHERE pk_id = '{$pk_id}'");
+        echo json_encode(['success' => false, 'message' => 'PG API 응답을 받지 못했습니다.']);
+        exit;
     }
 
     // 응답 저장 및 상태 업데이트
@@ -447,6 +597,26 @@ function processPayment() {
         $update_sql .= " WHERE pk_id = '{$pk_id}'";
         sql_query($update_sql);
 
+        // [DEBUG] 최종 성공 응답 직전 로그
+        writeErrorLog('DEBUG_FINAL_SUCCESS', '결제 성공 - JSON 응답 직전', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $member['mb_id'] ?? '',
+            'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
+            'amount' => $amount,
+            'card_no_masked' => substr($card_no, 0, 6) . '****' . substr($card_no, -4),
+            'app_no' => $response['appNo'] ?? '',
+            'app_date' => $response['appDate'] ?? '',
+            'res_code' => $response['resCode'] ?? '',
+            'res_msg' => $response['resMsg'] ?? '',
+            'tid' => $response['tid'] ?? '',
+            'card_issuer' => $response['vanIssCpCd'] ?? '',
+            'card_acquirer' => $response['vanCpCd'] ?? ''
+        ]);
+
         echo json_encode([
             'success' => true,
             'message' => '결제가 완료되었습니다.',
@@ -460,6 +630,22 @@ function processPayment() {
             ]
         ]);
     } else {
+        // [DEBUG] PG 응답 실패 로그
+        writeErrorLog('DEBUG_PG_FAILED', 'PG 응답 실패', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $member['mb_id'] ?? '',
+            'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
+            'amount' => $amount,
+            'card_no_masked' => substr($card_no, 0, 6) . '****' . substr($card_no, -4),
+            'res_code' => $response['resCode'] ?? '',
+            'res_msg' => $response['resMsg'] ?? '',
+            'full_response' => $response
+        ]);
+
         // 실패
         $update_sql .= ", pk_status = 'failed'";
         $update_sql .= " WHERE pk_id = '{$pk_id}'";
@@ -1550,8 +1736,14 @@ function normalizeWinglobalRefundResponse($response) {
  */
 function writeErrorLog($action, $message, $data = []) {
     $log_dir = __DIR__ . '/logs/errorlog';
+
+    // 디렉토리 생성 (에러 억제 추가)
     if(!is_dir($log_dir)) {
-        mkdir($log_dir, 0755, true);
+        if(!@mkdir($log_dir, 0755, true)) {
+            // mkdir 실패 시 error_log로 대체 기록
+            error_log("[ERRORLOG_MKDIR_FAIL] {$action}: {$message} | " . json_encode($data, JSON_UNESCAPED_UNICODE));
+            return false;
+        }
     }
 
     $log_file = $log_dir . '/' . date('Y-m-d') . '.log';
@@ -1563,5 +1755,13 @@ function writeErrorLog($action, $message, $data = []) {
     }
     $log_entry .= "\n";
 
-    file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+    // 파일 쓰기 (에러 억제 추가)
+    $result = @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+    if($result === false) {
+        // file_put_contents 실패 시 error_log로 대체 기록
+        error_log("[ERRORLOG_WRITE_FAIL] {$action}: {$message} | " . json_encode($data, JSON_UNESCAPED_UNICODE));
+        return false;
+    }
+
+    return true;
 }
