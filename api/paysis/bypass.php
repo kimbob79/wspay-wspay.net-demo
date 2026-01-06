@@ -56,7 +56,8 @@ define('PAYSIS_API_CANCEL', 'https://apis.paysis.co.kr:9443/dalgate/api/v1/manua
 // 허용된 IP 목록 (비어있으면 모두 허용, 설정하면 해당 IP만 허용)
 $ALLOWED_IPS = [
     '117.52.20.162',
-    '61.111.38.139'
+    '61.111.38.139',
+    '14.55.246.103'
 ];
 
 // 로그 디렉토리
