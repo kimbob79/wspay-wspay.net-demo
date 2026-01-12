@@ -1058,6 +1058,7 @@ tr.row-failed {
 					<th>금액</th>
 					<th>할부</th>
 					<th>카드사</th>
+					<th>구매자명</th>
 					<th>구매자연락처</th>
 					<th>상태</th>
 					<th>승인번호</th>
@@ -1074,7 +1075,7 @@ tr.row-failed {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="16" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="17" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
@@ -1139,6 +1140,7 @@ tr.row-failed {
 						<?php if($row['pk_card_issuer']) { echo htmlspecialchars(str_replace('카드', '', $row['pk_card_issuer'])); } ?>
 						<?php if($row['pk_card_no_masked']) { ?> <small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
 					</td>
+					<td class="center"><?php echo $row['pk_buyer_name'] ? htmlspecialchars($row['pk_buyer_name']) : '-'; ?></td>
 					<td class="center"><?php echo $row['pk_buyer_phone'] ? htmlspecialchars($row['pk_buyer_phone']) : '-'; ?></td>
 					<td class="center">
 						<?php
@@ -1404,6 +1406,7 @@ function openReceipt(pk_id) {
 					<th>금액</th>
 					<th>할부</th>
 					<th>카드사</th>
+					<th>구매자명</th>
 					<th>구매자연락처</th>
 					<th>상태</th>
 					<th>승인번호</th>
@@ -1417,7 +1420,7 @@ function openReceipt(pk_id) {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="12" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="13" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
@@ -1476,6 +1479,7 @@ function openReceipt(pk_id) {
 						<?php if($row['pk_card_issuer']) { echo htmlspecialchars(str_replace('카드', '', $row['pk_card_issuer'])); } ?>
 						<?php if($row['pk_card_no_masked']) { ?> <small style="color:#999;"><?php echo $row['pk_card_no_masked']; ?></small><?php } ?>
 					</td>
+					<td class="center"><?php echo $row['pk_buyer_name'] ? htmlspecialchars($row['pk_buyer_name']) : '-'; ?></td>
 					<td class="center"><?php echo $row['pk_buyer_phone'] ? htmlspecialchars($row['pk_buyer_phone']) : '-'; ?></td>
 					<td class="center">
 						<?php
