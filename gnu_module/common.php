@@ -209,7 +209,12 @@ if (file_exists($dbconfig_file)) {
 @ini_set("url_rewriter.tags",""); // 링크에 PHPSESSID가 따라다니는것을 무력화함 (해뜰녘님께서 알려주셨습니다.)
 
 // 세션파일 저장 디렉토리를 지정할 경우
-// session_save_path(G5_SESSION_PATH);
+if(!is_dir(G5_SESSION_PATH)) {
+    @mkdir(G5_SESSION_PATH, 0755, true);
+}
+if(is_dir(G5_SESSION_PATH) && is_writable(G5_SESSION_PATH)) {
+    session_save_path(G5_SESSION_PATH);
+}
 
 if (isset($SESSION_CACHE_LIMITER))
     @session_cache_limiter($SESSION_CACHE_LIMITER);
