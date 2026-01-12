@@ -107,7 +107,7 @@
 	$xlsx_sql = "select * {$sql_common} {$sql_search} {$sql_order} ";
 	$result = sql_query($sql);
 
-//	echo $sql;
+	echo $sql;
 //	echo $total_pay;
 
 if($member['mb_level']==10){
@@ -530,6 +530,15 @@ select { width:100px; }
 		</table>
 	</div>
 </div>
+
+<?php
+/*
+<?= $member['mb_level'] ?>@
+<?= $level ?>@
+<?= $is_admin ?>@
+*/
+?>
+
 <?php
 // 등록 버튼 권한 체크:
 // - 레벨 7 이상만 등록 가능 (member_form.php에서 레벨 7 미만 차단)
