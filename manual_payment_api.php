@@ -32,6 +32,22 @@ if($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
+// [DEBUG] API 요청 시작 로그 (가장 먼저 기록) - 민감정보 마스킹
+$debug_post = $_POST;
+if(isset($debug_post['card_no'])) $debug_post['card_no'] = substr($debug_post['card_no'], 0, 6) . '****' . substr($debug_post['card_no'], -4);
+if(isset($debug_post['cert_pw'])) $debug_post['cert_pw'] = '**';
+if(isset($debug_post['cert_no'])) $debug_post['cert_no'] = '******';
+writeErrorLog('DEBUG_API_START', 'API 요청 시작', [
+    'action' => $action,
+    'mb_id' => $member['mb_id'] ?? 'unknown',
+    'mb_level' => $member['mb_level'] ?? 'unknown',
+    'mb_mailling' => $member['mb_mailling'] ?? 'unknown',
+    'is_admin' => $is_admin ?? false,
+    'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+    'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+    'post_data' => $debug_post
+]);
+
 switch($action) {
     case 'pay':
         processPayment();
@@ -50,10 +66,31 @@ switch($action) {
 function processPayment() {
     global $member, $is_admin;
 
+    // [DEBUG] API 진입 로그 - 상세 파라미터
+    writeErrorLog('DEBUG_ENTRY', 'processPayment() 진입', [
+        'mb_id' => $member['mb_id'] ?? 'unknown',
+        'mb_level' => $member['mb_level'] ?? 'unknown',
+        'is_admin' => $is_admin,
+        'mkc_id' => $_POST['mkc_id'] ?? 'not_set',
+        'amount' => $_POST['amount'] ?? 'not_set',
+        'goods_name' => $_POST['goods_name'] ?? 'not_set',
+        'buyer_name' => $_POST['buyer_name'] ?? 'not_set',
+        'buyer_phone' => $_POST['buyer_phone'] ?? 'not_set',
+        'buyer_email' => $_POST['buyer_email'] ?? 'not_set',
+        'card_no_masked' => isset($_POST['card_no']) ? substr($_POST['card_no'], 0, 6) . '****' : 'not_set',
+        'expire_yymm' => $_POST['expire_yymm'] ?? 'not_set',
+        'installment' => $_POST['installment'] ?? 'not_set'
+    ]);
+
     // 필수 파라미터 체크
     $required_fields = ['mkc_id', 'amount', 'goods_name', 'buyer_name', 'card_no', 'expire_yymm', 'installment'];
     foreach($required_fields as $field) {
         if(empty($_POST[$field])) {
+            writeErrorLog('DEBUG_MISSING_PARAM', '필수 파라미터 누락', [
+                'missing_field' => $field,
+                'mb_id' => $member['mb_id'] ?? 'unknown',
+                'all_post_keys' => array_keys($_POST)
+            ]);
             echo json_encode(['success' => false, 'message' => "필수 항목이 누락되었습니다: {$field}"]);
             exit;
         }
@@ -64,6 +101,7 @@ function processPayment() {
     $goods_name = trim($_POST['goods_name']);
     $buyer_name = trim($_POST['buyer_name']);
     $buyer_phone = isset($_POST['buyer_phone']) ? preg_replace('/[^0-9]/', '', $_POST['buyer_phone']) : '';
+    $buyer_email = isset($_POST['buyer_email']) ? trim($_POST['buyer_email']) : '';  // 윈글로벌용
     $card_no = preg_replace('/[^0-9]/', '', $_POST['card_no']);
     $expire_yymm = preg_replace('/[^0-9]/', '', $_POST['expire_yymm']);
     $installment = str_pad(intval($_POST['installment']), 2, '0', STR_PAD_LEFT);
@@ -75,19 +113,31 @@ function processPayment() {
     // Keyin 설정 조회
     $keyin_sql = "SELECT k.*, m.mpc_pg_code, m.mpc_pg_name, m.mpc_type, m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
                   m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key,
-                  m.mpc_stn_mbrno, m.mpc_stn_apikey
+                  m.mpc_stn_mbrno, m.mpc_stn_apikey,
+                  m.mpc_winglobal_tid, m.mpc_winglobal_apikey
                   FROM g5_member_keyin_config k
                   LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
                   WHERE k.mkc_id = '{$mkc_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'";
     $keyin = sql_fetch($keyin_sql);
 
     if(!$keyin) {
+        writeErrorLog('DEBUG_KEYIN_NOT_FOUND', 'Keyin 설정을 찾을 수 없음', [
+            'mkc_id' => $mkc_id,
+            'mb_id' => $member['mb_id'] ?? 'unknown',
+            'sql' => $keyin_sql
+        ]);
         echo json_encode(['success' => false, 'message' => 'Keyin 설정을 찾을 수 없습니다.']);
         exit;
     }
 
     // 권한 체크 (관리자가 아닌 경우 자신의 설정만 사용 가능)
     if(!$is_admin && $keyin['mb_id'] !== $member['mb_id']) {
+        writeErrorLog('DEBUG_PERMISSION_DENIED', '권한 없음', [
+            'mkc_id' => $mkc_id,
+            'member_mb_id' => $member['mb_id'] ?? 'unknown',
+            'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+            'is_admin' => $is_admin
+        ]);
         echo json_encode(['success' => false, 'message' => '해당 Keyin 설정에 대한 권한이 없습니다.']);
         exit;
     }
@@ -113,6 +163,13 @@ function processPayment() {
         $mid = $mbr_no;  // mid 필드에도 mbrNo 저장 (DB 저장용)
         $mkey = '';
         $tid = '';
+    } else if($pg_code === 'winglobal') {
+        // 윈글로벌: TID, API KEY (Pay Key)
+        $tid = $keyin['mpc_id'] ? $keyin['mpc_winglobal_tid'] : $keyin['mkc_mid'];  // TID
+        $api_key = $keyin['mpc_id'] ? $keyin['mpc_winglobal_apikey'] : $keyin['mkc_api_key'];  // Pay Key
+        $mid = $tid;  // mid 필드에도 TID 저장 (DB 저장용)
+        $mkey = '';
+        $mbr_no = '';
     } else {
         // 페이시스 등 기타: API KEY, MID, MKEY
         $api_key = $keyin['mpc_id'] ? $keyin['mpc_api_key'] : $keyin['mkc_api_key'];
@@ -215,6 +272,12 @@ function processPayment() {
     $merchant = sql_fetch($member_sql);
 
     if(!$merchant) {
+        writeErrorLog('DEBUG_MERCHANT_NOT_FOUND', '가맹점 정보를 찾을 수 없음', [
+            'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+            'mkc_id' => $mkc_id,
+            'operator_id' => $member['mb_id'] ?? 'unknown',
+            'sql' => $member_sql
+        ]);
         echo json_encode(['success' => false, 'message' => '가맹점 정보를 찾을 수 없습니다.']);
         exit;
     } 
@@ -277,6 +340,57 @@ function processPayment() {
             $request_data['regNo'] = $cert_no;               // 생년월일(YYMMDD) 또는 사업자번호
             $request_data['passwd'] = $cert_pw;              // 카드 비밀번호 앞 2자리
         }
+    } else if($pg_code === 'winglobal') {
+        // 윈글로벌 API 요청 데이터
+        // 이메일 필수 체크
+        if(empty($buyer_email)) {
+            echo json_encode(['success' => false, 'message' => '윈글로벌 결제는 구매자 이메일이 필수입니다.']);
+            exit;
+        }
+        // 이메일 형식 검증
+        if(!filter_var($buyer_email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => '올바른 이메일 형식을 입력하세요.']);
+            exit;
+        }
+
+        $request_data = [
+            'pay' => [
+                'trxType' => 'ONTR',                         // 고정값
+                'trackId' => $order_no,                      // 가맹점 주문번호
+                'amount' => (int)$amount,                    // 결제금액 (long)
+                'payerName' => $buyer_name,                  // 구매자명
+                'payerEmail' => $buyer_email,                // 구매자 이메일
+                'payerTel' => $buyer_phone,                  // 구매자 전화번호
+                'card' => [
+                    'number' => $card_no,                    // 카드번호
+                    'expiry' => $expire_yymm,                // 유효기간 YYMM
+                    'cvv' => '',                             // CVV 미사용
+                    'installment' => (int)$installment       // 할부개월
+                ],
+                'products' => [
+                    [
+                        'prodId' => '',                      // 상품ID (미사용)
+                        'name' => $goods_name,               // 상품명
+                        'qty' => 1,                          // 수량 고정
+                        'price' => (int)$amount,             // 가격
+                        'desc' => $goods_name                // 설명 (상품명과 동일)
+                    ]
+                ],
+                'trxId' => '',                               // 응답시 회신
+                'udf1' => '',                                // 가맹점 정의 필드
+                'udf2' => '',
+                'metadata' => []                             // 비인증일 때 빈 객체
+            ]
+        ];
+
+        // 구인증인 경우 metadata에 인증정보 추가
+        if($auth_type === 'auth') {
+            $request_data['pay']['metadata'] = [
+                'cardAuth' => 'true',                        // 구인증 플래그
+                'authPw' => $cert_pw,                        // 카드비밀번호 앞 2자리
+                'authDob' => $cert_no                        // 생년월일 YYMMDD
+            ];
+        }
     } else {
         // 페이시스 API 요청 데이터
         $request_data = [
@@ -300,6 +414,30 @@ function processPayment() {
         }
     }
 
+    // [DEBUG] INSERT 전 상태 로그 - 모든 주요 변수
+    writeErrorLog('DEBUG_PRE_INSERT', 'INSERT 시작 직전', [
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'installment' => $installment,
+        'mkc_id' => $mkc_id,
+        'keyin_mb_id' => $keyin['mb_id'] ?? 'unknown',
+        'keyin_mpc_id' => $keyin['mpc_id'] ?? 'null',
+        'mid' => $mid ?? 'not_set',
+        'api_key_set' => !empty($api_key) ? 'yes' : 'no',
+        'goods_name' => $goods_name,
+        'buyer_name' => $buyer_name,
+        'buyer_phone' => $buyer_phone,
+        'buyer_email' => $buyer_email,
+        'card_no_masked' => $card_no_masked,
+        'merchant_mb_1' => $merchant['mb_1'] ?? '',
+        'merchant_mb_6' => $merchant['mb_6'] ?? '',
+        'merchant_nick' => $merchant['mb_nick'] ?? ''
+    ]);
+
     // DB에 pending 상태로 먼저 저장
     $insert_sql = "INSERT INTO g5_payment_keyin SET
         pk_order_no = '" . sql_escape_string($order_no) . "',
@@ -315,6 +453,7 @@ function processPayment() {
         pk_goods_name = '" . sql_escape_string($goods_name) . "',
         pk_buyer_name = '" . sql_escape_string($buyer_name) . "',
         pk_buyer_phone = '" . sql_escape_string($buyer_phone) . "',
+        pk_buyer_email = '" . sql_escape_string($buyer_email) . "',
         pk_card_no_masked = '" . sql_escape_string($card_no_masked) . "',
         pk_status = 'pending',
         pk_mb_1 = '" . sql_escape_string($merchant['mb_1']) . "',
@@ -327,8 +466,53 @@ function processPayment() {
         pk_request_data = '" . sql_escape_string(json_encode($request_data, JSON_UNESCAPED_UNICODE)) . "',
         pk_operator_id = '" . sql_escape_string($member['mb_id']) . "',
         pk_created_at = NOW()";
-    sql_query($insert_sql);
+
+    // INSERT 실행 및 에러 체크
+    $insert_result = sql_query($insert_sql, false);
+    if(!$insert_result) {
+        global $g5;
+        $sql_error = mysqli_error($g5['connect_db']);
+        $errno = mysqli_errno($g5['connect_db']);
+        writeErrorLog('INSERT_ERROR', 'g5_payment_keyin INSERT 실패', [
+            'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $keyin['mb_id'] ?? '',
+            'mkc_id' => $mkc_id,
+            'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
+            'amount' => $amount,
+            'goods_name' => $goods_name,
+            'buyer_name' => $buyer_name,
+            'buyer_phone' => $buyer_phone,
+            'buyer_email' => $buyer_email,
+            'card_no_masked' => $card_no_masked,
+            'operator_id' => $member['mb_id'] ?? '',
+            'sql_errno' => $errno,
+            'sql_error' => $sql_error,
+            'sql_length' => strlen($insert_sql)
+        ]);
+        echo json_encode(['success' => false, 'message' => 'DB 저장 중 오류가 발생했습니다: ' . $sql_error]);
+        exit;
+    }
     $pk_id = sql_insert_id();
+
+    // [DEBUG] INSERT 성공 로그
+    writeErrorLog('DEBUG_POST_INSERT', 'INSERT 성공', [
+        'pk_id' => $pk_id,
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'mb_id' => $keyin['mb_id'] ?? '',
+        'mkc_id' => $mkc_id,
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'goods_name' => $goods_name,
+        'buyer_name' => $buyer_name,
+        'card_no_masked' => $card_no_masked,
+        'operator_id' => $member['mb_id'] ?? ''
+    ]);
 
     // PG사별 API 호출
     $response = null;
@@ -342,11 +526,56 @@ function processPayment() {
         case 'stn':
             $response = callStnPaymentAPI($request_data);
             break;
+        case 'winglobal':
+            $response = callWinglobalPaymentAPI($api_key, $request_data);
+            break;
         default:
             // 지원하지 않는 PG
+            writeErrorLog('DEBUG_UNSUPPORTED_PG', '지원하지 않는 PG사', [
+                'pk_id' => $pk_id,
+                'order_no' => $order_no,
+                'pg_code' => $pg_code,
+                'pg_name' => $pg_name,
+                'amount' => $amount,
+                'mb_id' => $member['mb_id'] ?? ''
+            ]);
             sql_query("UPDATE g5_payment_keyin SET pk_status = 'failed', pk_res_code = 'UNSUPPORTED', pk_res_msg = '지원하지 않는 PG사입니다.' WHERE pk_id = '{$pk_id}'");
             echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $pg_code]);
             exit;
+    }
+
+    // [DEBUG] PG API 응답 로그 - 전체 응답
+    writeErrorLog('DEBUG_PG_RESPONSE', 'PG API 응답 수신', [
+        'pk_id' => $pk_id,
+        'order_no' => $order_no,
+        'merchant_oid' => $merchant_oid,
+        'mb_id' => $member['mb_id'] ?? '',
+        'pg_code' => $pg_code,
+        'pg_name' => $pg_name,
+        'auth_type' => $auth_type,
+        'amount' => $amount,
+        'response_is_null' => is_null($response),
+        'response_is_array' => is_array($response),
+        'res_code' => $response['resCode'] ?? 'null',
+        'res_msg' => $response['resMsg'] ?? 'null',
+        'app_no' => $response['appNo'] ?? 'null',
+        'app_date' => $response['appDate'] ?? 'null',
+        'tid' => $response['tid'] ?? 'null',
+        'full_response' => $response
+    ]);
+
+    // response가 null이면 에러 처리
+    if($response === null || !is_array($response)) {
+        writeErrorLog('DEBUG_PG_NULL_RESPONSE', 'PG API 응답이 null 또는 비정상', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'pg_code' => $pg_code,
+            'response_type' => gettype($response),
+            'response_value' => $response
+        ]);
+        sql_query("UPDATE g5_payment_keyin SET pk_status = 'failed', pk_res_code = 'NULL_RESPONSE', pk_res_msg = 'PG API 응답 없음', pk_updated_at = NOW() WHERE pk_id = '{$pk_id}'");
+        echo json_encode(['success' => false, 'message' => 'PG API 응답을 받지 못했습니다.']);
+        exit;
     }
 
     // 응답 저장 및 상태 업데이트
@@ -368,6 +597,26 @@ function processPayment() {
         $update_sql .= " WHERE pk_id = '{$pk_id}'";
         sql_query($update_sql);
 
+        // [DEBUG] 최종 성공 응답 직전 로그
+        writeErrorLog('DEBUG_FINAL_SUCCESS', '결제 성공 - JSON 응답 직전', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $member['mb_id'] ?? '',
+            'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
+            'amount' => $amount,
+            'card_no_masked' => substr($card_no, 0, 6) . '****' . substr($card_no, -4),
+            'app_no' => $response['appNo'] ?? '',
+            'app_date' => $response['appDate'] ?? '',
+            'res_code' => $response['resCode'] ?? '',
+            'res_msg' => $response['resMsg'] ?? '',
+            'tid' => $response['tid'] ?? '',
+            'card_issuer' => $response['vanIssCpCd'] ?? '',
+            'card_acquirer' => $response['vanCpCd'] ?? ''
+        ]);
+
         echo json_encode([
             'success' => true,
             'message' => '결제가 완료되었습니다.',
@@ -381,6 +630,22 @@ function processPayment() {
             ]
         ]);
     } else {
+        // [DEBUG] PG 응답 실패 로그
+        writeErrorLog('DEBUG_PG_FAILED', 'PG 응답 실패', [
+            'pk_id' => $pk_id,
+            'order_no' => $order_no,
+            'merchant_oid' => $merchant_oid,
+            'mb_id' => $member['mb_id'] ?? '',
+            'pg_code' => $pg_code,
+            'pg_name' => $pg_name,
+            'auth_type' => $auth_type,
+            'amount' => $amount,
+            'card_no_masked' => substr($card_no, 0, 6) . '****' . substr($card_no, -4),
+            'res_code' => $response['resCode'] ?? '',
+            'res_msg' => $response['resMsg'] ?? '',
+            'full_response' => $response
+        ]);
+
         // 실패
         $update_sql .= ", pk_status = 'failed'";
         $update_sql .= " WHERE pk_id = '{$pk_id}'";
@@ -418,7 +683,8 @@ function processCancel() {
     $payment_sql = "SELECT p.*, k.mkc_cancel_yn, k.mkc_api_key, k.mkc_mid, k.mkc_mkey,
                            m.mpc_api_key, m.mpc_mid, m.mpc_mkey,
                            m.mpc_rootup_mid, m.mpc_rootup_tid, m.mpc_rootup_key,
-                           m.mpc_stn_mbrno, m.mpc_stn_apikey
+                           m.mpc_stn_mbrno, m.mpc_stn_apikey,
+                           m.mpc_winglobal_tid, m.mpc_winglobal_apikey
                     FROM g5_payment_keyin p
                     LEFT JOIN g5_member_keyin_config k ON p.mkc_id = k.mkc_id
                     LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
@@ -476,6 +742,12 @@ function processCancel() {
         $api_key = $payment['mpc_stn_apikey'] ?: $payment['mkc_api_key'];
         $mid = $mbr_no;
         $tid = '';
+    } else if($pg_code === 'winglobal') {
+        // 윈글로벌: TID, API KEY (Pay Key)
+        $tid = $payment['mpc_winglobal_tid'] ?: $payment['mkc_mid'];
+        $api_key = $payment['mpc_winglobal_apikey'] ?: $payment['mkc_api_key'];
+        $mid = $tid;
+        $mbr_no = '';
     } else {
         // 페이시스 등: API KEY, MID
         $api_key = $payment['mpc_api_key'] ?: $payment['mkc_api_key'];
@@ -539,6 +811,40 @@ function processCancel() {
 
         // 디버그 로그: 취소 요청 데이터 확인
         writeApiLog('stn', 'cancel_debug', 'CANCEL_REQUEST', $cancel_request);
+    } else if($pg_code === 'winglobal') {
+        // 윈글로벌 취소 요청 데이터
+        // 결제 응답에서 저장된 trxId(pk_tid), 주문번호, 승인일자 필요
+        $response_data = json_decode($payment['pk_response_data'], true);
+
+        // 윈글로벌 원본 데이터에서 trxId 추출
+        $winglobal_data = $response_data['_winglobal_data'] ?? ($response_data['_original']['pay'] ?? []);
+        $root_trx_id = $winglobal_data['trxId'] ?? $payment['pk_tid'];
+
+        // 원거래일 (YYYYMMDD)
+        // pk_app_date가 YYYYMMDDHHMMSS 형식일 경우 앞 8자리만 사용
+        $root_trx_day = '';
+        if(!empty($payment['pk_app_date'])) {
+            $root_trx_day = substr(preg_replace('/[^0-9]/', '', $payment['pk_app_date']), 0, 8);
+        }
+
+        // 취소 주문번호 생성 (원주문번호 + _C + 타임스탬프)
+        $cancel_track_id = $payment['pk_order_no'] . '_C' . date('His');
+
+        $cancel_request = [
+            'refund' => [
+                'trxType' => 'ONTR',                              // 고정값
+                'trackId' => $cancel_track_id,                     // 취소 주문번호
+                'amount' => (int)$cancel_amount,                   // 취소금액
+                'rootTrxId' => $root_trx_id,                       // 원거래 윈글로벌 거래번호
+                'rootTrackId' => $payment['pk_order_no'],          // 원거래 가맹점 주문번호
+                'rootTrxDay' => $root_trx_day,                     // 원거래일 (YYYYMMDD)
+                'udf1' => '',
+                'udf2' => ''
+            ]
+        ];
+
+        // 디버그 로그
+        writeApiLog('winglobal', 'cancel_debug', 'CANCEL_REQUEST', $cancel_request);
     } else {
         // 페이시스 취소 요청 데이터
         $cancel_request = [
@@ -561,6 +867,9 @@ function processCancel() {
             break;
         case 'stn':
             $response = callStnCancelAPI($api_key, $cancel_request);
+            break;
+        case 'winglobal':
+            $response = callWinglobalRefundAPI($api_key, $cancel_request);
             break;
         default:
             echo json_encode(['success' => false, 'message' => '지원하지 않는 PG사입니다: ' . $pg_code]);
@@ -1190,4 +1499,269 @@ function normalizeStnResponse($response, $is_cancel = false) {
         '_stn_data' => $data,                                        // 섹타나인 원본 data (취소시 필요한 정보 포함)
         '_original' => $response                                     // 원본 응답 보존
     ];
+}
+
+/**
+ * 윈글로벌 결제 API 호출
+ * URL: https://api.winglobalpay.com/api/pay
+ * Authorization: Pay Key (api key)
+ * Content-Type: application/json
+ */
+function callWinglobalPaymentAPI($pay_key, $data) {
+    $url = 'https://api.winglobalpay.com/api/pay';
+    $pg_code = 'winglobal';
+    $action = 'pay';
+
+    // 카드번호는 로그에 남기지 않도록 별도 처리
+    $log_data = $data;
+    if(isset($log_data['pay']['card']['number'])) {
+        $log_data['pay']['card']['number'] = maskCardNumber($log_data['pay']['card']['number']);
+    }
+    if(isset($log_data['pay']['metadata']['authPw'])) {
+        $log_data['pay']['metadata']['authPw'] = '**';
+    }
+    if(isset($log_data['pay']['metadata']['authDob'])) {
+        $log_data['pay']['metadata']['authDob'] = '******';
+    }
+
+    // 요청 로그
+    writeApiLog($pg_code, $action, 'REQUEST', $log_data);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: ' . $pay_key
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    if($curl_error) {
+        $result = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'API 통신 오류: ' . $curl_error
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'curl_error' => $curl_error]);
+        return $result;
+    }
+
+    $result = json_decode($response, true);
+    if(!$result) {
+        $result = [
+            'resCode' => 'PARSE_ERROR',
+            'resMsg' => 'API 응답 파싱 오류 (HTTP: ' . $http_code . ')'
+        ];
+        // 에러 로그
+        writeApiLog($pg_code, $action, 'ERROR', ['http_code' => $http_code, 'raw_response' => $response]);
+        return $result;
+    }
+
+    // 응답 로그
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    // 윈글로벌 응답을 공통 포맷으로 변환
+    $normalized = normalizeWinglobalResponse($result);
+
+    return $normalized;
+}
+
+/**
+ * 윈글로벌 응답을 공통 포맷으로 변환
+ *
+ * 윈글로벌 응답 구조:
+ * - result.resultCd: '0000' 이면 성공
+ * - result.resultMsg: 응답 메시지
+ * - result.advanceMsg: 상세 메시지
+ * - result.create: 생성일시 (YYYYMMDDHHmmss)
+ * - pay.authCd: 승인번호
+ * - pay.trxId: 거래번호 (취소시 필요)
+ * - pay.card.issuer: 카드 매입사
+ * - pay.card.cardType: 신용/체크/기타
+ * - pay.card.last4: 카드번호 뒤 4자리
+ */
+function normalizeWinglobalResponse($response, $is_cancel = false) {
+    $result = $response['result'] ?? [];
+    $pay = $response['pay'] ?? [];
+    $card = $pay['card'] ?? [];
+
+    $result_cd = $result['resultCd'] ?? '';
+    $is_success = ($result_cd === '0000');
+
+    // 응답 메시지 조합
+    $res_msg = $result['resultMsg'] ?? '';
+    if(!empty($result['advanceMsg']) && $result['advanceMsg'] !== $res_msg) {
+        $res_msg .= ' - ' . $result['advanceMsg'];
+    }
+
+    return [
+        'resCode' => $is_success ? '0000' : ($result_cd ?: 'UNKNOWN'),
+        'resMsg' => $res_msg,
+        'appNo' => $pay['authCd'] ?? '',                             // 승인번호
+        'appDate' => $result['create'] ?? '',                        // 거래일시 (YYYYMMDDHHmmss)
+        'tid' => $pay['trxId'] ?? '',                                // 거래번호 (취소시 필요)
+        'vanIssCpCd' => $card['issuer'] ?? '',                       // 카드 매입사
+        'vanCpCd' => $card['cardType'] ?? '',                        // 카드 타입 (신용/체크)
+        'cancelDate' => $is_cancel ? ($result['create'] ?? '') : '', // 취소일시
+        'cancelTime' => '',
+        '_winglobal_data' => $pay,                                   // 윈글로벌 원본 pay 데이터
+        '_original' => $response                                     // 원본 응답 보존
+    ];
+}
+
+/**
+ * 윈글로벌 취소(Refund) API 호출
+ *
+ * API URL: https://api.winglobalpay.com/api/refund
+ * 인증: HTTP Header Authorization: Pay Key
+ */
+function callWinglobalRefundAPI($pay_key, $data) {
+    $url = 'https://api.winglobalpay.com/api/refund';
+    $pg_code = 'winglobal';
+    $action = 'refund';
+
+    // 요청 헤더
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: ' . $pay_key
+    ];
+
+    // 로그용 데이터 (민감 정보 마스킹 없음 - 취소 요청에는 카드정보 없음)
+    $log_data = $data;
+    writeApiLog($pg_code, $action, 'REQUEST', $log_data);
+
+    // cURL 요청
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+
+    // 응답 처리
+    if($curl_error) {
+        $error_response = [
+            'resCode' => 'CURL_ERROR',
+            'resMsg' => 'cURL 오류: ' . $curl_error,
+            'cancelDate' => '',
+            'cancelTime' => ''
+        ];
+        writeApiLog($pg_code, $action, 'ERROR', ['curl_error' => $curl_error, 'http_code' => $http_code]);
+        return $error_response;
+    }
+
+    $result = json_decode($response, true);
+    if($result === null) {
+        $error_response = [
+            'resCode' => 'JSON_ERROR',
+            'resMsg' => 'JSON 파싱 오류',
+            'cancelDate' => '',
+            'cancelTime' => ''
+        ];
+        writeApiLog($pg_code, $action, 'ERROR', ['raw_response' => $response, 'http_code' => $http_code]);
+        return $error_response;
+    }
+
+    // 응답 로깅
+    writeApiLog($pg_code, $action, 'RESPONSE', $result);
+
+    // 윈글로벌 취소 응답을 공통 포맷으로 변환
+    $normalized = normalizeWinglobalRefundResponse($result);
+
+    return $normalized;
+}
+
+/**
+ * 윈글로벌 취소(Refund) 응답을 공통 포맷으로 변환
+ *
+ * 윈글로벌 취소 응답 구조:
+ * - result.resultCd: '0000' 이면 성공
+ * - result.resultMsg: 응답 메시지
+ * - result.advanceMsg: 상세 메시지
+ * - result.create: 취소일시 (YYYYMMDDHHmmss)
+ * - refund.authCd: 취소 승인번호
+ * - refund.trxId: 취소 거래번호
+ */
+function normalizeWinglobalRefundResponse($response) {
+    $result = $response['result'] ?? [];
+    $refund = $response['refund'] ?? [];
+
+    $result_cd = $result['resultCd'] ?? '';
+    $is_success = ($result_cd === '0000');
+
+    // 응답 메시지 조합
+    $res_msg = $result['resultMsg'] ?? '';
+    if(!empty($result['advanceMsg']) && $result['advanceMsg'] !== $res_msg) {
+        $res_msg .= ' - ' . $result['advanceMsg'];
+    }
+
+    // 취소일시 분리 (YYYYMMDDHHmmss -> YYYYMMDD, HHmmss)
+    $create = $result['create'] ?? '';
+    $cancel_date = strlen($create) >= 8 ? substr($create, 0, 8) : '';
+    $cancel_time = strlen($create) >= 14 ? substr($create, 8, 6) : '';
+
+    return [
+        'resCode' => $is_success ? '0000' : ($result_cd ?: 'UNKNOWN'),
+        'resMsg' => $res_msg,
+        'appNo' => $refund['authCd'] ?? '',                          // 취소 승인번호
+        'appDate' => $create,                                        // 취소일시
+        'tid' => $refund['trxId'] ?? '',                             // 취소 거래번호
+        'cancelDate' => $cancel_date,                                // 취소일 (YYYYMMDD)
+        'cancelTime' => $cancel_time,                                // 취소시간 (HHmmss)
+        '_winglobal_refund_data' => $refund,                         // 윈글로벌 원본 refund 데이터
+        '_original' => $response                                     // 원본 응답 보존
+    ];
+}
+
+/**
+ * 에러 로그 기록
+ * 저장 경로: /logs/errorlog/YYYY-MM-DD.log
+ */
+function writeErrorLog($action, $message, $data = []) {
+    $log_dir = __DIR__ . '/logs/errorlog';
+
+    // 디렉토리 생성 (에러 억제 추가)
+    if(!is_dir($log_dir)) {
+        if(!@mkdir($log_dir, 0755, true)) {
+            // mkdir 실패 시 error_log로 대체 기록
+            error_log("[ERRORLOG_MKDIR_FAIL] {$action}: {$message} | " . json_encode($data, JSON_UNESCAPED_UNICODE));
+            return false;
+        }
+    }
+
+    $log_file = $log_dir . '/' . date('Y-m-d') . '.log';
+    $timestamp = date('Y-m-d H:i:s.') . sprintf('%03d', (microtime(true) - floor(microtime(true))) * 1000);
+
+    $log_entry = "[{$timestamp}] [{$action}] {$message}";
+    if(!empty($data)) {
+        $log_entry .= " | " . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    $log_entry .= "\n";
+
+    // 파일 쓰기 (에러 억제 추가)
+    $result = @file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+    if($result === false) {
+        // file_put_contents 실패 시 error_log로 대체 기록
+        error_log("[ERRORLOG_WRITE_FAIL] {$action}: {$message} | " . json_encode($data, JSON_UNESCAPED_UNICODE));
+        return false;
+    }
+
+    return true;
 }

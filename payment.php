@@ -506,7 +506,7 @@
 						$pg_name = "코페이";
 					} else if($row['pg_name'] == "danal") {
 						$pg_name = "다날";
-					} else if($row['pg_name'] == "paysis") {
+					} else if($row['pg_name'] == "paysis" || $row['pg_name'] == "paysis_keyin") {
 						$pg_name = "페이시스";
 					} else if($row['pg_name'] == "stn" || $row['pg_name'] == "stn_k") {
 						$pg_name = "섹타나인";

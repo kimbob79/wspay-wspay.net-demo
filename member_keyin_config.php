@@ -201,12 +201,12 @@ if($mode == 'save') {
     } else {
         // 개별 설정
         $mpc_id = null;
-        // 섹타나인은 mkey가 필요없음
-        if($mkc_pg_code == 'stn') {
+        // 섹타나인/윈글로벌은 mkey가 필요없음
+        if($mkc_pg_code == 'stn' || $mkc_pg_code == 'winglobal') {
             if(!$mkc_pg_code || !$mkc_type || !$mkc_api_key || !$mkc_mid) {
                 alert("모든 필수 항목을 입력해주세요.");
             }
-            $mkc_mkey = ''; // 섹타나인은 mkey 없음
+            $mkc_mkey = ''; // 섹타나인/윈글로벌은 mkey 없음
         } else {
             if(!$mkc_pg_code || !$mkc_type || !$mkc_api_key || !$mkc_mid || !$mkc_mkey) {
                 alert("모든 필수 항목을 입력해주세요.");
@@ -914,6 +914,9 @@ textarea.form-control {
                                                     } else if($mc['mpc_pg_code'] == 'stn') {
                                                         $display_mid = $mc['mpc_stn_mbrno'];
                                                         $mid_label = 'MBRNO';
+                                                    } else if($mc['mpc_pg_code'] == 'winglobal') {
+                                                        $display_mid = $mc['mpc_winglobal_tid'];
+                                                        $mid_label = 'TID';
                                                     } else {
                                                         $display_mid = $mc['mpc_mid'];
                                                         $mid_label = 'MID';
@@ -941,6 +944,7 @@ textarea.form-control {
                                                 <option value="paysis" data-name="페이시스" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
                                                 <option value="rootup" data-name="루트업" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
                                                 <option value="stn" data-name="섹타나인" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'stn') echo 'selected'; ?>>섹타나인</option>
+                                                <option value="winglobal" data-name="윈글로벌" <?php if($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'winglobal') echo 'selected'; ?>>윈글로벌</option>
                                             </select>
                                         </td>
                                         <th>인증 타입 <span class="required">*</span></th>
@@ -978,6 +982,17 @@ textarea.form-control {
                                         <th>API KEY <span class="required">*</span></th>
                                         <td colspan="3">
                                             <input type="text" name="mkc_api_key" id="mkc_stn_apikey" class="form-control" placeholder="apiKey" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'stn') ? $edit_data['mkc_api_key'] : ''; ?>">
+                                        </td>
+                                    </tr>
+                                    <!-- 윈글로벌 전용 필드 -->
+                                    <tr class="pg-fields winglobal-fields" style="display:none;">
+                                        <th>TID <span class="required">*</span></th>
+                                        <td>
+                                            <input type="text" name="mkc_mid" id="mkc_winglobal_tid" class="form-control" placeholder="TID" maxlength="50" value="<?php echo ($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'winglobal') ? $edit_data['mkc_mid'] : ''; ?>">
+                                        </td>
+                                        <th>API KEY <span class="required">*</span></th>
+                                        <td colspan="3">
+                                            <input type="text" name="mkc_api_key" id="mkc_winglobal_apikey" class="form-control" placeholder="API KEY" maxlength="100" value="<?php echo ($edit_data && !$edit_data['mpc_id'] && $edit_data['mkc_pg_code'] == 'winglobal') ? $edit_data['mkc_api_key'] : ''; ?>">
                                         </td>
                                     </tr>
                                 </table>
@@ -1113,6 +1128,10 @@ textarea.form-control {
                                         $display_api_key = $master_data['mpc_stn_apikey'];
                                         $display_mid = $master_data['mpc_stn_mbrno'];
                                         $display_mkey = '-'; // 섹타나인은 mkey 없음
+                                    } else if($master_data['mpc_pg_code'] == 'winglobal') {
+                                        $display_api_key = $master_data['mpc_winglobal_apikey'];
+                                        $display_mid = $master_data['mpc_winglobal_tid'];
+                                        $display_mkey = '-'; // 윈글로벌은 mkey 없음
                                     } else {
                                         $display_api_key = $master_data['mpc_api_key'];
                                         $display_mid = $master_data['mpc_mid'];
@@ -1122,8 +1141,8 @@ textarea.form-control {
                                     // 개별설정
                                     $display_api_key = $row['mkc_api_key'];
                                     $display_mid = $row['mkc_mid'];
-                                    // 섹타나인은 mkey 없음
-                                    $display_mkey = ($row['mkc_pg_code'] == 'stn') ? '-' : $row['mkc_mkey'];
+                                    // 섹타나인/윈글로벌은 mkey 없음
+                                    $display_mkey = ($row['mkc_pg_code'] == 'stn' || $row['mkc_pg_code'] == 'winglobal') ? '-' : $row['mkc_mkey'];
                                 }
                             ?>
                             <div class="keyin-card compact">
@@ -1229,6 +1248,11 @@ var pgFieldConfig = {
         api_key: { label: 'API KEY', placeholder: 'apiKey' },
         mid: { label: '회원번호', placeholder: 'mbrNo' },
         mkey: null // 섹타나인은 mkey 없음
+    },
+    'winglobal': {
+        api_key: { label: 'API KEY', placeholder: 'API KEY' },
+        mid: { label: 'TID', placeholder: 'TID' },
+        mkey: null // 윈글로벌은 mkey 없음
     }
 };
 
@@ -1252,6 +1276,11 @@ function setPgFields(select) {
         if(pgCode === 'stn') {
             // 섹타나인: 전용 필드 표시
             document.querySelectorAll('.stn-fields').forEach(function(el) {
+                el.style.display = '';
+            });
+        } else if(pgCode === 'winglobal') {
+            // 윈글로벌: 전용 필드 표시
+            document.querySelectorAll('.winglobal-fields').forEach(function(el) {
                 el.style.display = '';
             });
         } else {
@@ -1290,13 +1319,18 @@ function prepareFormSubmit() {
 
     // 선택한 PG가 아닌 필드 비활성화
     if(pgCode === 'stn') {
-        // 섹타나인 선택: 페이시스/루트업 필드 비활성화
-        document.querySelectorAll('.paysis-fields input, .rootup-fields input').forEach(function(el) {
+        // 섹타나인 선택: 다른 PG 필드 비활성화
+        document.querySelectorAll('.paysis-fields input, .rootup-fields input, .winglobal-fields input').forEach(function(el) {
+            el.disabled = true;
+        });
+    } else if(pgCode === 'winglobal') {
+        // 윈글로벌 선택: 다른 PG 필드 비활성화
+        document.querySelectorAll('.paysis-fields input, .rootup-fields input, .stn-fields input').forEach(function(el) {
             el.disabled = true;
         });
     } else {
-        // 페이시스/루트업 선택: 섹타나인 필드 비활성화
-        document.querySelectorAll('.stn-fields input').forEach(function(el) {
+        // 페이시스/루트업 선택: 섹타나인/윈글로벌 필드 비활성화
+        document.querySelectorAll('.stn-fields input, .winglobal-fields input').forEach(function(el) {
             el.disabled = true;
         });
     }

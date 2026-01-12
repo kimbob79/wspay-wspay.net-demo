@@ -43,10 +43,6 @@
 	}
 
 	if($gname) { $sql_search .= " and level_company_name like '%{$gname}%' "; }
-	/*
-	if ($is_admin != 'super')
-		$sql_search .= " and (gr_admin = '{$member['mb_id']}') ";
-	*/
 
 	if ($stx) {
 		$sql_search .= " and ( ";
@@ -61,7 +57,7 @@
 		}
 		$sql_search .= " ) ";
 	}
-	
+
 	if ($sst)
 		$sql_order = " order by {$sst} {$sod} ";
 	else
@@ -86,19 +82,81 @@
 	$result = sql_query($sql);
 ?>
 
-<div class="index_menu">
-	<ul class="shortcut">
-		<li class="sc_current"><a>다날 NOTI</a></li>
-		<li class="sc_visit">
-			<aside id="visit">
-				<ul>
-					<li>승인<span><?php echo number_format($total_Y_pay); ?></span></li>
-					<li>취소<span><?php echo number_format($total_M_pay); ?></span></li>
-					<li>합계<span style="color:#ffff00;"><?php echo number_format($total_pay); ?></span></li>
-				</ul>
-			</aside>
-		</li>
-	</ul>
+<style>
+.noti-header {
+	background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.noti-header-title {
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.noti-header-title i {
+	font-size: 18px;
+}
+.noti-header-stats {
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+}
+.noti-header-stats .stat-item {
+	background: rgba(255,255,255,0.15);
+	border-radius: 6px;
+	padding: 6px 12px;
+	color: #fff;
+	font-size: 13px;
+}
+.noti-header-stats .stat-item .stat-label {
+	opacity: 0.9;
+	margin-right: 6px;
+}
+.noti-header-stats .stat-item .stat-value {
+	font-weight: 600;
+}
+.noti-header-stats .stat-item.total .stat-value {
+	color: #ffeb3b;
+}
+@media (max-width: 768px) {
+	.noti-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.noti-header-stats {
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+</style>
+<div class="noti-header">
+	<div class="noti-header-title">
+		<i class="fa fa-credit-card"></i>
+		<span>다날 NOTI</span>
+	</div>
+	<div class="noti-header-stats">
+		<div class="stat-item">
+			<span class="stat-label">승인</span>
+			<span class="stat-value"><?php echo number_format($total_Y_pay); ?></span>
+		</div>
+		<div class="stat-item">
+			<span class="stat-label">취소</span>
+			<span class="stat-value"><?php echo number_format($total_M_pay); ?></span>
+		</div>
+		<div class="stat-item total">
+			<span class="stat-label">합계</span>
+			<span class="stat-value"><?php echo number_format($total_pay); ?></span>
+		</div>
+	</div>
 </div>
 
 
@@ -161,6 +219,7 @@
 		<table class="table_list td_pd">
 			<thead>
 				<tr>
+					<th>동기화</th>
 					<th>등록</th>
 					<th>CPID</th>
 					<th>다날 원거래 키</th>
@@ -180,6 +239,7 @@
 					<th>등록일</th>
 				</tr>
 				<tr>
+					<th>sync</th>
 					<th></th>
 					<th>CPID</th>
 					<th>O_TID</th>
@@ -203,8 +263,21 @@
 				<?php
 					for ($i=0; $row=sql_fetch_array($result); $i++) {
 					$num = number_format($total_count - ($page - 1) * $rows - $i);
+					$sync_style = '';
+					if($row['sync_status'] == 'failed') {
+						$sync_style = 'background-color: #ffebee;';
+					}
 				?>
-				<tr>
+				<tr style="<?php echo $sync_style; ?>">
+					<td>
+						<?php if($row['sync_status'] == 'failed') { ?>
+							<span style="color: #d32f2f; font-weight: bold;" title="<?php echo htmlspecialchars($row['sync_message']); ?>">실패</span>
+						<?php } else if($row['sync_status'] == 'success') { ?>
+							<span style="color: #388e3c;">성공</span>
+						<?php } else { ?>
+							<span style="color: #757575;">대기</span>
+						<?php } ?>
+					</td>
 					<td>
 						<div class="buttons">
 							<button  class="btn_b btn_b02" onclick="update_danal('<?php echo $row['pg_id']; ?>')" type="button">등록</button>
@@ -233,7 +306,6 @@
 	</div>
 </div>
 <?php
-	//http://cajung.com/new4/?p=payment&fr_date=20220906&to_date=20220906&sfl=mb_id&stx=
 	$qstr = "p=".$p;
 	$qstr .= "&fr_date=".$fr_date;
 	$qstr .= "&to_date=".$to_date;

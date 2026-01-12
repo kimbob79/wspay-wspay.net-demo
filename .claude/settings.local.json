@@ -16,7 +16,8 @@
       "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php\" \"C:\\workspace_grooember\\mpchosting_www\\settlement_master.php.bak\")",
       "Bash(find:*)",
       "Bash(copy \"C:\\workspace_grooember\\mpchosting_www\\manual_payment.php\" \"C:\\workspace_grooember\\mpchosting_www\\manual_payment.php.bak\")",
-      "Bash(del \"C:\\\\workspace_grooember\\\\mpchosting_www\\\\fix_routeup_dv_type.php\")"
+      "Bash(del \"C:\\\\workspace_grooember\\\\mpchosting_www\\\\fix_routeup_dv_type.php\")",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": [],
     "ask": []

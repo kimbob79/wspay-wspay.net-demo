@@ -57,6 +57,13 @@ if(sql_num_rows($check_stn_column) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_stn_apikey` varchar(100) DEFAULT NULL COMMENT '섹타나인 API키' AFTER `mpc_stn_mbrno`");
 }
 
+// 윈글로벌 전용 컬럼 추가 (마이그레이션)
+$check_winglobal_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mpc_winglobal_tid'");
+if(sql_num_rows($check_winglobal_column) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_winglobal_tid` varchar(20) DEFAULT NULL COMMENT '윈글로벌 TID' AFTER `mpc_stn_apikey`");
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mpc_winglobal_apikey` varchar(100) DEFAULT NULL COMMENT '윈글로벌 API키' AFTER `mpc_winglobal_tid`");
+}
+
 // 저장 처리
 if($_POST['mode'] == 'save') {
     $mpc_id = (int)$_POST['mpc_id'];
@@ -80,6 +87,10 @@ if($_POST['mode'] == 'save') {
     $mpc_stn_mbrno = sql_escape_string($_POST['mpc_stn_mbrno']);
     $mpc_stn_apikey = sql_escape_string($_POST['mpc_stn_apikey']);
 
+    // 윈글로벌 전용 필드
+    $mpc_winglobal_tid = sql_escape_string($_POST['mpc_winglobal_tid']);
+    $mpc_winglobal_apikey = sql_escape_string($_POST['mpc_winglobal_apikey']);
+
     if($mpc_id > 0) {
         // 수정
         $sql = "UPDATE {$table_name} SET
@@ -94,6 +105,8 @@ if($_POST['mode'] == 'save') {
             mpc_rootup_key = '{$mpc_rootup_key}',
             mpc_stn_mbrno = '{$mpc_stn_mbrno}',
             mpc_stn_apikey = '{$mpc_stn_apikey}',
+            mpc_winglobal_tid = '{$mpc_winglobal_tid}',
+            mpc_winglobal_apikey = '{$mpc_winglobal_apikey}',
             mpc_use = '{$mpc_use}',
             mpc_memo = '{$mpc_memo}'
             WHERE mpc_id = {$mpc_id}";
@@ -102,9 +115,9 @@ if($_POST['mode'] == 'save') {
     } else {
         // 신규 등록
         $sql = "INSERT INTO {$table_name}
-            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_rootup_mid, mpc_rootup_tid, mpc_rootup_key, mpc_stn_mbrno, mpc_stn_apikey, mpc_use, mpc_memo)
+            (mpc_pg_code, mpc_pg_name, mpc_type, mpc_api_key, mpc_mid, mpc_mkey, mpc_rootup_mid, mpc_rootup_tid, mpc_rootup_key, mpc_stn_mbrno, mpc_stn_apikey, mpc_winglobal_tid, mpc_winglobal_apikey, mpc_use, mpc_memo)
             VALUES
-            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_rootup_mid}', '{$mpc_rootup_tid}', '{$mpc_rootup_key}', '{$mpc_stn_mbrno}', '{$mpc_stn_apikey}', '{$mpc_use}', '{$mpc_memo}')";
+            ('{$mpc_pg_code}', '{$mpc_pg_name}', '{$mpc_type}', '{$mpc_api_key}', '{$mpc_mid}', '{$mpc_mkey}', '{$mpc_rootup_mid}', '{$mpc_rootup_tid}', '{$mpc_rootup_key}', '{$mpc_stn_mbrno}', '{$mpc_stn_apikey}', '{$mpc_winglobal_tid}', '{$mpc_winglobal_apikey}', '{$mpc_use}', '{$mpc_memo}')";
         sql_query($sql);
         $msg = "등록되었습니다.";
     }
@@ -587,6 +600,7 @@ textarea.form-control {
                                             <option value="paysis" data-name="페이시스" <?php if($edit_data['mpc_pg_code'] == 'paysis') echo 'selected'; ?>>페이시스</option>
                                             <option value="rootup" data-name="루트업" <?php if($edit_data['mpc_pg_code'] == 'rootup') echo 'selected'; ?>>루트업</option>
                                             <option value="stn" data-name="섹타나인" <?php if($edit_data['mpc_pg_code'] == 'stn') echo 'selected'; ?>>섹타나인</option>
+                                            <option value="winglobal" data-name="윈글로벌" <?php if($edit_data['mpc_pg_code'] == 'winglobal') echo 'selected'; ?>>윈글로벌</option>
                                         </select>
                                     </td>
                                     <th>인증 타입 <span class="required">*</span></th>
@@ -646,6 +660,17 @@ textarea.form-control {
                                         <input type="text" name="mpc_stn_apikey" id="mpc_stn_apikey" class="form-control" value="<?php echo $edit_data['mpc_stn_apikey']; ?>" placeholder="apiKey" maxlength="100">
                                     </td>
                                 </tr>
+                                <!-- 윈글로벌 전용 필드 -->
+                                <tr class="pg-fields winglobal-fields" style="<?php echo (!$edit_data || $edit_data['mpc_pg_code'] != 'winglobal') ? 'display:none;' : ''; ?>">
+                                    <th>TID <span class="required">*</span></th>
+                                    <td>
+                                        <input type="text" name="mpc_winglobal_tid" id="mpc_winglobal_tid" class="form-control" value="<?php echo $edit_data['mpc_winglobal_tid']; ?>" placeholder="TID" maxlength="20">
+                                    </td>
+                                    <th>API KEY <span class="required">*</span></th>
+                                    <td colspan="3">
+                                        <input type="text" name="mpc_winglobal_apikey" id="mpc_winglobal_apikey" class="form-control" value="<?php echo $edit_data['mpc_winglobal_apikey']; ?>" placeholder="API KEY" maxlength="100">
+                                    </td>
+                                </tr>
                                 <tr>
                                     <th>메모</th>
                                     <td colspan="5">
@@ -685,6 +710,8 @@ textarea.form-control {
                                     $display_mid = $row['mpc_rootup_mid'];
                                 } else if($row['mpc_pg_code'] == 'stn') {
                                     $display_mid = $row['mpc_stn_mbrno'];
+                                } else if($row['mpc_pg_code'] == 'winglobal') {
+                                    $display_mid = $row['mpc_winglobal_tid'];
                                 } else {
                                     $display_mid = $row['mpc_mid'];
                                 }
@@ -730,6 +757,18 @@ textarea.form-control {
                                         <div class="config-card-item">
                                             <span class="config-card-label">API KEY</span>
                                             <span class="config-card-value"><code><?php echo $row['mpc_stn_apikey']; ?></code></span>
+                                        </div>
+                                    </div>
+                                    <?php } else if($row['mpc_pg_code'] == 'winglobal') { ?>
+                                    <!-- 윈글로벌 필드 표시 -->
+                                    <div class="config-card-row">
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">TID</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_winglobal_tid']; ?></code></span>
+                                        </div>
+                                        <div class="config-card-item">
+                                            <span class="config-card-label">API KEY</span>
+                                            <span class="config-card-value"><code><?php echo $row['mpc_winglobal_apikey']; ?></code></span>
                                         </div>
                                     </div>
                                     <?php } else { ?>
@@ -784,6 +823,8 @@ function togglePgFields(pgCode) {
     document.getElementById('mpc_rootup_key').required = false;
     document.getElementById('mpc_stn_mbrno').required = false;
     document.getElementById('mpc_stn_apikey').required = false;
+    document.getElementById('mpc_winglobal_tid').required = false;
+    document.getElementById('mpc_winglobal_apikey').required = false;
 
     // 선택한 PG 필드만 표시
     if(pgCode === 'paysis') {
@@ -809,6 +850,13 @@ function togglePgFields(pgCode) {
         // 섹타나인 필드 required 설정
         document.getElementById('mpc_stn_mbrno').required = true;
         document.getElementById('mpc_stn_apikey').required = true;
+    } else if(pgCode === 'winglobal') {
+        document.querySelectorAll('.winglobal-fields').forEach(function(el) {
+            el.style.display = '';
+        });
+        // 윈글로벌 필드 required 설정
+        document.getElementById('mpc_winglobal_tid').required = true;
+        document.getElementById('mpc_winglobal_apikey').required = true;
     }
 }
 

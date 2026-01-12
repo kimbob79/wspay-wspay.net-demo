@@ -1,6 +1,39 @@
 <?php
 	error_reporting( E_ALL );
 	ini_set( "display_errors", 1 );
+	date_default_timezone_set('Asia/Seoul');
+
+	// ========================================
+	// 요청 로깅 - /logs/trans/api/daou
+	// ========================================
+	$log_dir = dirname(__FILE__) . '/../../logs/trans/api/daou';
+	if(!is_dir($log_dir)) {
+		@mkdir($log_dir, 0755, true);
+	}
+
+	$log_file = $log_dir . '/' . date('Y-m-d') . '.log';
+	$log_time = date('Y-m-d H:i:s');
+	$log_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$log_method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
+
+	// 요청 데이터 수집
+	$log_data = [
+		'timestamp' => $log_time,
+		'ip' => $log_ip,
+		'method' => $log_method,
+		'GET' => $_GET,
+		'POST' => $_POST,
+		'REQUEST' => $_REQUEST,
+		'raw_input' => file_get_contents('php://input')
+	];
+
+	// 로그 기록
+	$log_entry = "[{$log_time}] [{$log_ip}] [{$log_method}]\n";
+	$log_entry .= json_encode($log_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+	$log_entry .= str_repeat('-', 80) . "\n";
+
+	@file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
+	// ========================================
 
 	include('./_common.php');
 
@@ -75,7 +108,11 @@ if($catId) {
 
 	$sql = "insert into g5_payment_daou set ".$sql_common." datetime = '".G5_TIME_YMDHIS."'";
 	sql_query($sql);
+	$daou_insert_id = sql_insert_id();
 
+	// 동기화 상태 변수 초기화
+	$sync_status = 'pending';
+	$sync_message = '';
 
 	/*
 	$arraydata = explode(PHP_EOL, trim($config['cf_2']));
@@ -95,6 +132,12 @@ if($catId) {
 
 
 	$row2 = sql_fetch("select * from g5_device where dv_tid = '{$catId}'");
+
+	// 디바이스 조회 실패 체크
+	if(!$row2['dv_id']) {
+		$sync_status = 'failed';
+		$sync_message = "device '{$catId}' not found";
+	}
 
 	$mb_1_fee = $row2['mb_1_fee'];
 	$mb_2_fee = $row2['mb_2_fee'];
@@ -198,8 +241,26 @@ if($catId) {
 //	$pay = sql_fetch("select * from g5_payment where trxid = '{$tid}' and pay_num = '{$appNo}'");
 
 	if(!$pay['pay_id']) {
-		$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
-		sql_query($sql);
+		if($sync_status != 'failed') {
+			$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
+			$insert_result = sql_query($sql);
+			if($insert_result) {
+				$sync_status = 'success';
+				$sync_message = '';
+			} else {
+				$sync_status = 'failed';
+				$sync_message = 'g5_payment insert failed';
+			}
+		}
+	} else {
+		$sync_status = 'success';
+		$sync_message = 'already exists';
+	}
+
+	// g5_payment_daou 동기화 상태 업데이트
+	if($daou_insert_id) {
+		$sync_message_escaped = sql_escape_string($sync_message);
+		sql_query("UPDATE g5_payment_daou SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$daou_insert_id}'");
 	}
 
 	echo 'OK';

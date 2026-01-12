@@ -100,9 +100,7 @@
 					*/ ?>
 					<option value="4" <?php if($row['dv_pg'] == "4") { echo "selected"; } ?>>페이시스</option>
 					<option value="5" <?php if($row['dv_pg'] == "5") { echo "selected"; } ?>>섹타나인</option>
-					<?php /*
-					<option value="6" <?php if($row['dv_pg'] == "6") { echo "selected"; } ?>>다우</option>
-					*/ ?>
+					<option value="6" <?php if($row['dv_pg'] == "6") { echo "selected"; } ?>>윈글로벌</option>
 					<option value="7" <?php if($row['dv_pg'] == "7") { echo "selected"; } ?>>루트업</option>
 				</select>
 			</td>

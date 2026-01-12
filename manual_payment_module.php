@@ -1511,7 +1511,8 @@ input:read-only {
 					$keyin_sql = "SELECT k.*, m.mpc_pg_code as master_pg_code, m.mpc_pg_name as master_pg_name, m.mpc_type as master_type,
 								 m.mpc_api_key as master_api_key, m.mpc_mid as master_mid, m.mpc_mkey as master_mkey,
 								 m.mpc_rootup_mid as master_rootup_mid, m.mpc_rootup_tid as master_rootup_tid, m.mpc_rootup_key as master_rootup_key,
-								 m.mpc_stn_mbrno as master_stn_mbrno, m.mpc_stn_apikey as master_stn_apikey
+								 m.mpc_stn_mbrno as master_stn_mbrno, m.mpc_stn_apikey as master_stn_apikey,
+								 m.mpc_winglobal_tid as master_winglobal_tid, m.mpc_winglobal_apikey as master_winglobal_apikey
 								 FROM g5_member_keyin_config k
 								 LEFT JOIN g5_manual_payment_config m ON k.mpc_id = m.mpc_id
 								 WHERE k.mb_id = '{$target_mb_id}' AND k.mkc_use = 'Y' AND k.mkc_status = 'active'
@@ -1531,6 +1532,10 @@ input:read-only {
 							} else if($row['master_pg_code'] == 'stn') {
 								$row['api_key'] = $row['master_stn_apikey']; // API KEY
 								$row['mid'] = $row['master_stn_mbrno']; // MBRNO
+								$row['mkey'] = '';
+							} else if($row['master_pg_code'] == 'winglobal') {
+								$row['api_key'] = $row['master_winglobal_apikey']; // Pay Key
+								$row['mid'] = $row['master_winglobal_tid']; // TID
 								$row['mkey'] = '';
 							} else {
 								$row['api_key'] = $row['master_api_key'];
@@ -1797,12 +1802,20 @@ input:read-only {
 
 							<div class="stripe-form-row">
 								<div class="stripe-form-col">
-									<label class="stripe-form-label">구매자명</label>
+									<label class="stripe-form-label">구매자명 <span id="pname_required" style="color: #dc2626; display: none;">*</span></label>
 									<input type="text" name="pay_pname" id="pay_pname" class="stripe-form-input" placeholder="구매자명을 입력하세요" maxlength="50">
 								</div>
 								<div class="stripe-form-col">
-									<label class="stripe-form-label">구매자 휴대전화 (선택)</label>
+									<label class="stripe-form-label" id="phone_label">구매자 휴대전화 <span id="phone_optional">(선택)</span><span id="phone_required" style="color: #dc2626; display: none;">*</span></label>
 									<input type="text" name="pay_phone" id="pay_phone" class="stripe-form-input" placeholder="01012345678" maxlength="15">
+								</div>
+							</div>
+
+							<!-- 윈글로벌 전용 이메일 필드 -->
+							<div class="stripe-form-row" id="winglobal_email_row" style="display: none;">
+								<div class="stripe-form-col" style="flex: 1;">
+									<label class="stripe-form-label">구매자 이메일 <span style="color: #dc2626;">*</span></label>
+									<input type="email" name="pay_email" id="pay_email" class="stripe-form-input" placeholder="email@example.com" maxlength="100">
 								</div>
 							</div>
 
@@ -2237,17 +2250,29 @@ function selectPgModule(mkcId, certiType, maxInstallment, pgCode) {
 
 // PG사별 필수 필드 표시 업데이트
 function updateRequiredFields(pgCode) {
-	// 휴대전화 필드 라벨 찾기
-	var $phoneLabel = $('#pay_phone').closest('.stripe-form-col').find('.stripe-form-label');
-
-	if(pgCode === 'rootup' || pgCode === 'stn') {
-		// 루트업, 섹타나인: 휴대전화 필수
-		$phoneLabel.html('구매자 휴대전화 <span style="color:#f44336;">(필수)</span>');
+	if(pgCode === 'winglobal') {
+		// 윈글로벌: 구매자명, 휴대전화, 이메일 모두 필수
+		$('#pname_required').show();
+		$('#phone_optional').hide();
+		$('#phone_required').show();
 		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
+		$('#winglobal_email_row').show();
+	} else if(pgCode === 'rootup' || pgCode === 'stn') {
+		// 루트업, 섹타나인: 휴대전화 필수
+		$('#pname_required').hide();
+		$('#phone_optional').hide();
+		$('#phone_required').show();
+		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
+		$('#winglobal_email_row').hide();
+		$('#pay_email').val('');
 	} else {
 		// 페이시스 등: 휴대전화 선택
-		$phoneLabel.html('구매자 휴대전화 (선택)');
+		$('#pname_required').hide();
+		$('#phone_optional').show();
+		$('#phone_required').hide();
 		$('#pay_phone').attr('placeholder', '01012345678');
+		$('#winglobal_email_row').hide();
+		$('#pay_email').val('');
 	}
 }
 
@@ -2350,9 +2375,10 @@ function processPayment() {
 	// PG사별 휴대전화 필수 여부 체크
 	// - 루트업(rootup): 휴대전화 필수
 	// - 섹타나인(stn): 휴대전화 필수
+	// - 윈글로벌(winglobal): 휴대전화 필수
 	// - 페이시스(paysis): 휴대전화 선택
-	if(pg_code === 'rootup' || pg_code === 'stn') {
-		// 루트업, 섹타나인은 휴대전화 필수
+	if(pg_code === 'rootup' || pg_code === 'stn' || pg_code === 'winglobal') {
+		// 루트업, 섹타나인, 윈글로벌은 휴대전화 필수
 		if (!pay_phone) {
 			showFieldError('#pay_phone', '휴대전화번호를 입력하세요 (필수)');
 			$("#btn1, #btn2").show();
@@ -2373,6 +2399,22 @@ function processPayment() {
 				$("#btn1, #btn2").show();
 				return;
 			}
+		}
+	}
+
+	// 윈글로벌: 이메일 필수
+	if(pg_code === 'winglobal') {
+		var pay_email = $("#pay_email").val();
+		if (!pay_email) {
+			showFieldError('#pay_email', '이메일 주소를 입력하세요');
+			$("#btn1, #btn2").show();
+			return;
+		}
+		var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(pay_email)) {
+			showFieldError('#pay_email', '올바른 이메일 형식을 입력하세요');
+			$("#btn1, #btn2").show();
+			return;
 		}
 	}
 
@@ -2502,6 +2544,7 @@ function executePayment() {
 		goods_name: pay_product,
 		buyer_name: pay_pname,
 		buyer_phone: pay_phone.replace(/-/g, ''),
+		buyer_email: $('#pay_email').val(),  // 윈글로벌용 이메일
 		card_no: pay_cardnum.replace(/[^0-9]/g, ''),
 		expire_yymm: pay_YY + pay_MM,
 		installment: pay_installment
@@ -2570,6 +2613,7 @@ function resetForm() {
 	$('#pay_price').val('');
 	$('#pay_pname').val('');
 	$('#pay_phone').val('');
+	$('#pay_email').val('');  // 윈글로벌용 이메일
 	$('#pay_cardnum').val('');
 	$('#pay_installment').val('');
 	$('#pay_MM').val('');
