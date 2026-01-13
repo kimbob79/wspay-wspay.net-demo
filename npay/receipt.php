@@ -42,7 +42,7 @@
 	$pgc_name = '조용기';
 	$pgc_number = '596-88-02642';
 	$pgc_tel = '1555-0985';
-	$pgc_addr = '경기도 수원시 영통구 창룡대로 256번길 91, B107호';
+	$pgc_addr = '서울시 강남구 영동대로411, 3층';
 	$pgc_homepage = '';
 
 	$pay = $row['pay_price'];

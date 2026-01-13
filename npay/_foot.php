@@ -13,8 +13,8 @@
 							<span>통신판매업 신고번호 : 제 2012-서울구로-0239호<a href="http://www.ftc.go.kr/www/bizCommList.do?key=232" target="_blank"> [사업자정보확인]</a></span><span>고객센터 : 1800-3772</span><span>팩스 : 02-6008-9760</span><span><a href="mailto:payapp@udid.co.kr">이메일 : payapp@udid.co.kr</a></span>
 						</p>
 						*/ ?>
-						<p>주소 : 경기도 수원시 영통구 창룡대로 256번길 91, B107호</p>
-						<p>Copyright © 2022 <strong>REDPAY</strong> Inc. All rights reserved.</p>
+						<p>주소 : 서울시 강남구 영동대로411, 3층</p>
+						<p>Copyright © 2024 <strong>Wonsung Payments</strong> Inc. All rights reserved.</p>
 					</div>
 				</div>
 				<?php /*
