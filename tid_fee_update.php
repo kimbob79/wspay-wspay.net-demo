@@ -24,6 +24,18 @@
 	$memberd    = isset($_POST['memberd']) ? trim($_POST['memberd']) : '';
 	$membere    = isset($_POST['membere']) ? trim($_POST['membere']) : '';
 
+	// 검색 필터용 (수정된 값이 아닌 기존 검색 조건 유지)
+	$search_dv_pg    = isset($_POST['search_dv_pg']) ? trim($_POST['search_dv_pg']) : '';
+	$search_dv_type    = isset($_POST['search_dv_type']) ? trim($_POST['search_dv_type']) : '';
+	$search_dv_certi    = isset($_POST['search_dv_certi']) ? trim($_POST['search_dv_certi']) : '';
+	$mb_1_name    = isset($_POST['mb_1_name']) ? trim($_POST['mb_1_name']) : '';
+	$mb_2_name    = isset($_POST['mb_2_name']) ? trim($_POST['mb_2_name']) : '';
+	$mb_3_name    = isset($_POST['mb_3_name']) ? trim($_POST['mb_3_name']) : '';
+	$mb_4_name    = isset($_POST['mb_4_name']) ? trim($_POST['mb_4_name']) : '';
+	$mb_5_name    = isset($_POST['mb_5_name']) ? trim($_POST['mb_5_name']) : '';
+	$mb_6_name    = isset($_POST['mb_6_name']) ? trim($_POST['mb_6_name']) : '';
+	$dv_tid    = isset($_POST['dv_tid']) ? trim($_POST['dv_tid']) : '';
+
 //	$dv = sql_fetch(" select * from g5_device where dv_id = '{$dv_id}' "); // 기존자료
 
 	$mb_1_fee    = isset($_POST['mb_1_fee']) ? trim($_POST['mb_1_fee']) : '';
@@ -54,4 +66,4 @@
 	sql_query($sql);
 //	echo $sql;
 
-	goto_url("./?p=tid_fee&dv_pg=".$dv_pg."&dv_type=".$dv_type."&dv_certi=".$dv_certi."&memberb=".$memberb."&memberc=".$memberc."&memberd=".$memberd."&membere=".$membere."&mb_1_name=".$mb_1_name."&mb_2_name=".$mb_2_name."&mb_3_name=".$mb_3_name."&mb_4_name=".$mb_4_name."&mb_5_name=".$mb_5_name."&mb_6_name=".$mb_6_name."&dv_tid=".$dv_tid."&page=".$page."&results=ok");
+	goto_url("./?p=tid_fee&dv_pg=".$search_dv_pg."&dv_type=".$search_dv_type."&dv_certi=".$search_dv_certi."&memberb=".$memberb."&memberc=".$memberc."&memberd=".$memberd."&membere=".$membere."&mb_1_name=".$mb_1_name."&mb_2_name=".$mb_2_name."&mb_3_name=".$mb_3_name."&mb_4_name=".$mb_4_name."&mb_5_name=".$mb_5_name."&mb_6_name=".$mb_6_name."&dv_tid=".$dv_tid."&page=".$page."&results=ok#row-".$dv_id);

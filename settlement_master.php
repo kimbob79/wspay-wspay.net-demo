@@ -109,6 +109,11 @@
 		$sql_search .= " and a.dv_type = '{$dv_type}' ";
 	}
 
+	// 재정산여부 필터
+	if($settle_gbn !== '' && $settle_gbn !== null) {
+		$sql_search .= " and b.mb_settle_gbn = '{$settle_gbn}' ";
+	}
+
 	$sql_search .= " and (a.pay_datetime BETWEEN '{$fr_dates} 00:00:00' and '{$to_dates} 23:59:59') ";
 	
 
@@ -441,6 +446,14 @@ td span .fee_name {font-family: 'NanumGothic';}
 			<label><input type="radio" name="dv_type" value="" <?php if(!$dv_type) { echo "checked"; } ?>>전체</label>
 			<label><input type="radio" name="dv_type" value="2" <?php if($dv_type == "2") { echo "checked"; } ?>>온라인</label>
 			<label><input type="radio" name="dv_type" value="1" <?php if($dv_type == "1") { echo "checked"; } ?>>오프라인</label>
+		</div>
+
+		<div class="search-divider"></div>
+		<!-- 재정산여부 -->
+		<div class="radio-group">
+			<label><input type="radio" name="settle_gbn" value="" <?php if($settle_gbn === '' || $settle_gbn === null) { echo "checked"; } ?>>전체</label>
+			<label><input type="radio" name="settle_gbn" value="Y" <?php if($settle_gbn == "Y") { echo "checked"; } ?>>재정산</label>
+			<label><input type="radio" name="settle_gbn" value="N" <?php if($settle_gbn == "N") { echo "checked"; } ?>>일반</label>
 		</div>
 
 		<div class="search-divider"></div>

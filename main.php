@@ -2,6 +2,19 @@
 // 밴피 설정 여부 확인
 $is_van_fee_member = ($member['mb_van_fee'] > 0) ? true : false;
 
+// 팝업 공지사항 조회 (wr_1='Y'인 가장 최신 1개, 파일첨부 있는 것만)
+$popup_notice = null;
+$popup_image_url = '';
+$sql_popup = "SELECT w.*, f.bf_file
+	FROM g5_write_notice w
+	INNER JOIN g5_board_file f ON f.bo_table = 'notice' AND f.wr_id = w.wr_id AND f.bf_no = 0
+	WHERE w.wr_1 = 'Y' AND f.bf_file != ''
+	ORDER BY w.wr_id DESC LIMIT 1";
+$popup_notice = sql_fetch($sql_popup);
+if($popup_notice && $popup_notice['bf_file']) {
+	$popup_image_url = G5_DATA_URL . '/file/notice/' . $popup_notice['bf_file'];
+}
+
 if($is_admin) {
 	if(adm_sql_common) {
 		$adm_sql = " mb_1 IN (".adm_sql_common.")";
@@ -522,3 +535,174 @@ if($is_van_fee_member) {
 		</div>
 	</div>
 </div>
+
+<?php if($popup_notice && $popup_image_url) { ?>
+<!-- 팝업 공지사항 Lightbox -->
+<style>
+.popup-lightbox {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0,0,0,0.7);
+	z-index: 9999;
+	justify-content: center;
+	align-items: center;
+}
+.popup-lightbox.show {
+	display: flex;
+}
+.popup-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-width: 90%;
+	max-height: 90%;
+}
+.popup-content {
+	background: #fff;
+	border-radius: 8px;
+	max-width: 90%;
+	max-height: 90%;
+	overflow: hidden;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+	animation: popupIn 0.3s ease;
+	position: relative;
+}
+@keyframes popupIn {
+	from { transform: scale(0.9); opacity: 0; }
+	to { transform: scale(1); opacity: 1; }
+}
+.popup-image-wrap {
+	position: relative;
+	display: block;
+}
+.popup-close {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 32px;
+	height: 32px;
+	background: none;
+	border: none;
+	color: #fff;
+	font-size: 28px;
+	cursor: pointer;
+	line-height: 32px;
+	text-align: center;
+	z-index: 10;
+	text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.popup-close:hover {
+	color: #eee;
+}
+.popup-image {
+	display: block;
+	max-width: 100%;
+	max-height: 90vh;
+	cursor: pointer;
+}
+.popup-bottom {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
+	color: #fff;
+	font-size: 13px;
+	padding: 12px 0;
+}
+.popup-bottom label {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	cursor: pointer;
+}
+.popup-bottom input[type="checkbox"] {
+	width: 14px;
+	height: 14px;
+	accent-color: #fff;
+}
+.popup-bottom .popup-btn-close {
+	background: none;
+	border: none;
+	color: #fff;
+	font-size: 13px;
+	cursor: pointer;
+	text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.popup-bottom .popup-btn-close:hover {
+	text-decoration: underline;
+}
+@media (max-width: 768px) {
+	.popup-content {
+		max-width: 95%;
+	}
+	.popup-image {
+		max-height: 80vh;
+	}
+}
+</style>
+
+<div class="popup-lightbox" id="popupLightbox">
+	<div class="popup-wrap">
+		<div class="popup-content">
+			<div class="popup-image-wrap">
+				<button type="button" class="popup-close" onclick="closePopup()">&times;</button>
+				<a href="./?p=bbs&t=notice&v=view&id=<?php echo $popup_notice['wr_id']; ?>">
+					<img src="<?php echo $popup_image_url; ?>" alt="<?php echo htmlspecialchars($popup_notice['wr_subject']); ?>" class="popup-image">
+				</a>
+			</div>
+		</div>
+		<div class="popup-bottom">
+			<label><input type="checkbox" id="popupNoShow"> 다시 보지 않기</label>
+			<button type="button" class="popup-btn-close" onclick="closePopup()">X 닫기</button>
+		</div>
+	</div>
+</div>
+
+<script>
+(function() {
+	var popupId = 'notice_popup_<?php echo $popup_notice['wr_id']; ?>';
+	var noShowCookie = getCookie(popupId);
+
+	// 다시 보지 않기 쿠키가 없으면 팝업 표시
+	if (!noShowCookie) {
+		document.getElementById('popupLightbox').classList.add('show');
+	}
+
+	// 배경 클릭 시 닫기
+	document.getElementById('popupLightbox').addEventListener('click', function(e) {
+		if (e.target === this) {
+			closePopup();
+		}
+	});
+
+	// ESC 키로 닫기
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape') {
+			closePopup();
+		}
+	});
+
+	window.closePopup = function() {
+		var checkbox = document.getElementById('popupNoShow');
+		if (checkbox && checkbox.checked) {
+			// 1년간 쿠키 설정
+			var expires = new Date();
+			expires.setFullYear(expires.getFullYear() + 1);
+			document.cookie = popupId + '=1; expires=' + expires.toUTCString() + '; path=/';
+		}
+		document.getElementById('popupLightbox').classList.remove('show');
+	};
+
+	function getCookie(name) {
+		var value = '; ' + document.cookie;
+		var parts = value.split('; ' + name + '=');
+		if (parts.length === 2) return parts.pop().split(';').shift();
+		return null;
+	}
+})();
+</script>
+<?php } ?>

@@ -156,8 +156,17 @@
 	</div>
 	<div class="form-group">
 		<label><i class="fa fa-paperclip"></i> 파일첨부</label>
-		<input type="file" name="bf_file[]" id="bf_file_1" title="파일첨부 : 용량 1MB 이하만 업로드 가능">
+		<input type="file" name="bf_file[]" id="bf_file_1" title="파일첨부 : 용량 1MB 이하만 업로드 가능" accept="image/*">
 	</div>
+	<?php if($is_admin && $t == 'notice') { ?>
+	<div class="form-group" style="display:flex; align-items:center; gap:10px;">
+		<label style="margin-bottom:0;"><i class="fa fa-window-restore"></i> 팝업설정</label>
+		<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:5px;">
+			<input type="checkbox" name="wr_1" value="Y" id="wr_popup" <?php if($row['wr_1'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;">
+			홈화면 팝업으로 표시 (이미지 첨부 필수)
+		</label>
+	</div>
+	<?php } ?>
 </div>
 
 <div class="notice-btn-group">
@@ -192,6 +201,17 @@ function fwrite_submit(f)
 {
 	var wr_content_editor = document.getElementById('wr_content');
 if (!wr_content_editor.value) { alert("내용을 입력해 주십시오."); wr_content_editor.focus(); return false; }
+
+	// 팝업 체크 시 파일 첨부 필수 검증
+	var popupCheck = document.getElementById('wr_popup');
+	if (popupCheck && popupCheck.checked) {
+		var fileInput = document.getElementById('bf_file_1');
+		if (!fileInput.value) {
+			alert("팝업으로 표시하려면 이미지 파일을 첨부해야 합니다.");
+			fileInput.focus();
+			return false;
+		}
+	}
 
 	var subject = "";
 	var content = "";

@@ -426,6 +426,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 <input type="hidden" name="membere" value="<?php echo $membere ?>">
 
 <input type="hidden" name="dv_tid" value="<?php echo $dv_tid ?>">
+<input type="hidden" name="search_dv_pg" value="<?php echo $dv_pg ?>">
+<input type="hidden" name="search_dv_type" value="<?php echo $dv_type ?>">
+<input type="hidden" name="search_dv_certi" value="<?php echo $dv_certi ?>">
 <input type="hidden" name="page" value="<?php echo $page ?>">
 <input type="hidden" name="token" value="">
 <input type="hidden" name="dv_id" value="<?php echo $dv_id ?>">
@@ -611,7 +614,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 					if($dv_id == $row['dv_id']) {
 				?>
-				<tr>
+				<tr id="row-<?php echo $row['dv_id']; ?>">
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;"><?php echo $num; ?></td>
 					<?php if($is_admin) { ?>
 					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>; <?php if($results != "ok") { echo "background:#ffff99"; } ?>">
@@ -680,7 +683,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					</td>
 				</tr>
 				<?php } else { ?>
-				<tr>
+				<tr id="row-<?php echo $row['dv_id']; ?>">
 					<td><?php echo $num; ?></td>
 					<?php if($is_admin) { ?>
 					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>">
@@ -727,7 +730,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php if($member['mb_level'] >= 8) { ?>
 					<td class="is-actions-cell">
 						<div class="buttons">
-							<a href="./?p=tid_fee&dv_pg=<?php echo $dv_pg; ?>&dv_type=<?php echo $dv_type; ?>&dv_certi=<?php echo $dv_certi; ?>&membera=<?php echo $membera; ?>&memberb=<?php echo $memberb; ?>&memberc=<?php echo $memberc; ?>&memberd=<?php echo $memberd; ?>&membere=<?php echo $membere; ?>&memberf=<?php echo $memberf; ?>&mb_nick=<?php echo $mb_nick; ?>&dv_tid=<?php echo $dv_tid; ?>&dv_id=<?php echo $row['dv_id']; ?>&mb_6_name=<?php echo $mb_6_name; ?>&page_count=<?php echo $page_count; ?>&page=<?php echo $page; ?>" class="btn_b btn_b02">수정</a>
+							<a href="./?p=tid_fee&dv_pg=<?php echo $dv_pg; ?>&dv_type=<?php echo $dv_type; ?>&dv_certi=<?php echo $dv_certi; ?>&membera=<?php echo $membera; ?>&memberb=<?php echo $memberb; ?>&memberc=<?php echo $memberc; ?>&memberd=<?php echo $memberd; ?>&membere=<?php echo $membere; ?>&memberf=<?php echo $memberf; ?>&mb_nick=<?php echo $mb_nick; ?>&dv_tid=<?php echo $dv_tid; ?>&dv_id=<?php echo $row['dv_id']; ?>&mb_6_name=<?php echo $mb_6_name; ?>&page_count=<?php echo $page_count; ?>&page=<?php echo $page; ?>#row-<?php echo $row['dv_id']; ?>" class="btn_b btn_b02">수정</a>
 
 							<a href="./?p=tid_fee_delete&dv_id=<?php echo $row['dv_id']; ?>&page_count=<?php echo $page_count; ?>&page=<?php echo $page; ?>" class="btn_b btn_b06" onclick="return confirm('정말 <?php echo $row['mb_6_name']; ?>가맹점을 삭제 하시겠습니까');">삭제</a>
 						</div>
@@ -774,4 +777,36 @@ td span .fee_name {font-family: 'NanumGothic';}
 		$("#membera, #memberb, #memberc, #memberd, #membere, #memberf, #dv_pg, #dv_type, #dv_certi").val();
 		$(this).parents().filter("form").submit();
 	});
+
+	// 스크롤 위치 복원
+	$(document).ready(function() {
+		if(window.location.hash) {
+			var hash = window.location.hash;
+			var targetRow = $(hash);
+
+			if(targetRow.length) {
+				setTimeout(function() {
+					$('html, body').animate({
+						scrollTop: targetRow.offset().top - 100
+					}, 400);
+
+					// 해당 행 하이라이트 효과
+					targetRow.addClass('highlight-flash');
+					setTimeout(function() {
+						targetRow.removeClass('highlight-flash');
+					}, 2000);
+				}, 100);
+			}
+		}
+	});
 </script>
+
+<style>
+@keyframes flashHighlight {
+	0%, 100% { background-color: transparent; }
+	50% { background-color: #fff3cd; }
+}
+.highlight-flash td {
+	animation: flashHighlight 1.5s ease-in-out;
+}
+</style>

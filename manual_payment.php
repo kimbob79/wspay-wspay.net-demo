@@ -1040,10 +1040,30 @@ tr.row-failed {
 		<div class="search-input-group">
 			<input type="text" name="stx" value="<?php echo $stx ?>" id="stx" placeholder="검색어">
 			<button type="submit" class="btn-search">검색</button>
+			<button type="button" class="btn-excel" onclick="downloadCsv()"><i class="fa fa-file-excel-o"></i> 엑셀</button>
 		</div>
 	</div>
 </div>
 </form>
+
+<script>
+function downloadCsv() {
+	var params = new URLSearchParams(window.location.search);
+	params.delete('p');
+	var url = 'manual_payment_excel.php?' + params.toString();
+
+	// iframe으로 다운로드 (로딩바 문제 해결)
+	var iframe = document.createElement('iframe');
+	iframe.style.display = 'none';
+	iframe.src = url;
+	document.body.appendChild(iframe);
+
+	// 5초 후 iframe 제거
+	setTimeout(function() {
+		document.body.removeChild(iframe);
+	}, 5000);
+}
+</script>
 
 <div class="m_board_scroll">
 	<div class="m_table_wrap" style="padding-bottom:115px;">
@@ -1389,10 +1409,30 @@ function openReceipt(pk_id) {
 		<div class="search-input-group">
 			<input type="text" name="stx" value="<?php echo $stx ?>" id="stx" placeholder="검색어">
 			<button type="submit" class="btn-search">검색</button>
+			<button type="button" class="btn-excel" onclick="downloadCsv()"><i class="fa fa-file-excel-o"></i> 엑셀</button>
 		</div>
 	</div>
 </div>
 </form>
+
+<script>
+function downloadCsv() {
+	var params = new URLSearchParams(window.location.search);
+	params.delete('p');
+	var url = 'manual_payment_excel.php?' + params.toString();
+
+	// iframe으로 다운로드 (로딩바 문제 해결)
+	var iframe = document.createElement('iframe');
+	iframe.style.display = 'none';
+	iframe.src = url;
+	document.body.appendChild(iframe);
+
+	// 5초 후 iframe 제거
+	setTimeout(function() {
+		document.body.removeChild(iframe);
+	}, 5000);
+}
+</script>
 
 <div class="m_board_scroll">
 	<div class="m_table_wrap" style="padding-bottom:115px;">
@@ -1412,6 +1452,7 @@ function openReceipt(pk_id) {
 					<th>승인번호</th>
 					<th>요청일시</th>
 					<th>취소일시</th>
+					<th>응답메시지</th>
 					<th>관리</th>
 				</tr>
 			</thead>
@@ -1420,7 +1461,7 @@ function openReceipt(pk_id) {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="13" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="14" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
@@ -1515,6 +1556,7 @@ function openReceipt(pk_id) {
 							echo '-';
 						}
 					?></td>
+					<td class="center" style="max-width:150px; word-break:break-all; font-size:11px;"><?php echo $row['pk_res_msg'] ? htmlspecialchars($row['pk_res_msg']) : '-'; ?></td>
 					<td class="center">
 						<?php if($row['pk_status'] == 'approved') { ?>
 						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
