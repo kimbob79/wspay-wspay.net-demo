@@ -301,7 +301,7 @@ function set_date(today) {
 }
 
 function receiptPopup(pay_id) {
-	PopupCenter('./receipt.php?pay_id='+pay_id, 'receipt_popup', 420, 830, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
+	PopupCenter('/receipt.php?pay_id='+pay_id, 'receipt_popup', 420, 830, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
 
 function receiptPopup2(ref_no, tran_date) {
@@ -345,11 +345,11 @@ function update_daou(pg_id) {
 }
 
 function payment_copy(pay_id) {
-	PopupCenter('./payment_copy.php?pay_id='+pay_id, 'payment_copy', 450, 550, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
+	PopupCenter('/payment_copy.php?pay_id='+pay_id, 'payment_copy', 450, 550, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
  
 function payment_memo(pay_id) {
-	PopupCenter('./memo.php?pay_id='+pay_id, 'payment_memo', 600, 400, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
+	PopupCenter('/memo.php?pay_id='+pay_id, 'payment_memo', 600, 400, {toolbar:0, resizable:0, location:0, menubar:0, status:0});
 }
 
 function sftp_data(date) {
