@@ -318,18 +318,71 @@ td span .fee_name {font-family: 'NanumGothic';}
 	background: #388e3c;
 }
 @media (max-width: 768px) {
+	.settlement-search {
+		padding: 8px;
+	}
 	.settlement-search-row {
 		flex-direction: column;
-		align-items: flex-start;
+		align-items: stretch;
+		gap: 10px;
 	}
 	.search-divider {
 		display: none;
 	}
-	.select-group {
+	/* 날짜 선택 영역 */
+	.settlement-search-group {
+		width: 100%;
+		justify-content: flex-start;
+	}
+	.settlement-search-group input[type="text"] {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+	}
+	/* 날짜 단축 버튼 */
+	.date-btns {
+		width: 100%;
 		flex-wrap: wrap;
 	}
-	.radio-group {
+	.date-btns button {
+		flex: 1;
+		min-width: calc(33.33% - 4px);
+		padding: 8px 4px;
+	}
+	/* 회원 선택 드롭다운 */
+	.select-group {
+		width: 100%;
 		flex-wrap: wrap;
+	}
+	.select-group select {
+		flex: 1;
+		min-width: calc(33.33% - 4px) !important;
+		width: auto !important;
+	}
+	/* 회원명 검색 입력 */
+	.search-input-group {
+		width: 100%;
+		flex-wrap: wrap;
+	}
+	.search-input-group input[type="text"] {
+		flex: 1;
+		min-width: calc(50% - 4px);
+		width: auto !important;
+	}
+	.search-input-group select {
+		flex: 1;
+		min-width: 70px;
+	}
+	/* 라디오 그룹 */
+	.radio-group {
+		width: 100%;
+		flex-wrap: wrap;
+		gap: 6px 12px;
+	}
+	/* 버튼 영역 */
+	.btn-search, .btn-excel {
+		flex: 1;
+		padding: 10px 12px;
 	}
 }
 </style>
