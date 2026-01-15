@@ -329,6 +329,25 @@
 		flex-wrap: wrap;
 	}
 }
+
+/* 툴팁 최소 높이 보장 */
+[data-tooltip].simptip-multiline:after,
+.simptip-position-bottom.simptip-multiline:after {
+	min-height: 100px !important;
+	height: auto !important;
+	box-sizing: border-box !important;
+	padding: 11px !important;
+	white-space: pre-line !important;
+}
+.m_table_wrap {
+	overflow: visible !important;
+}
+.td_name {
+	overflow: visible !important;
+}
+table, tbody, tr, td {
+	overflow: visible !important;
+}
 </style>
 
 <div class="payment-header">

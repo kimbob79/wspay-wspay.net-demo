@@ -101,7 +101,7 @@ $is_van_fee_member = ($member['mb_van_fee'] > 0) ? true : false;
 	<link rel="stylesheet" href="/css/popular.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="/css/mui.min.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="/css/btn.css?v=<?php echo time(); ?>">
-	<link rel="stylesheet" href="/css/tooltip.css?v=<?php echo time(); ?>">
+	<link rel="stylesheet" href="/css/tooltip.css?v=20260115">
 	<link rel="stylesheet" href="/css/header-custom.css?v=<?php echo time(); ?>">
 	<link rel="stylesheet" href="/css/top-button.css?v=<?php echo time(); ?>">
 	<link type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/themes/base/jquery-ui.css" rel="stylesheet" />

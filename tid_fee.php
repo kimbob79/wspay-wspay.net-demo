@@ -39,7 +39,14 @@
 
 
 
-	if($dv_pg != null) { $sql_search .= " and a.dv_pg = '{$dv_pg}' "; }
+	if($dv_pg != null) {
+		if($dv_pg == 'winglobal') {
+			// 윈글로벌: 다우(6), 코페이(0), 다날(1) 검색
+			$sql_search .= " and a.dv_pg IN ('0', '1', '6') ";
+		} else {
+			$sql_search .= " and a.dv_pg = '{$dv_pg}' ";
+		}
+	}
 	if($dv_type) { $sql_search .= " and a.dv_type = '{$dv_type}' "; }
 	if($dv_certi) { $sql_search .= " and a.dv_certi = '{$dv_certi}' "; }
 
@@ -293,6 +300,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 				<option value="4" <?php if($dv_pg == "4") { echo "selected"; } ?>>페이시스</option>
 				<option value="5" <?php if($dv_pg == "5") { echo "selected"; } ?>>섹타나인</option>
 				<option value="7" <?php if($dv_pg == "7") { echo "selected"; } ?>>루트업</option>
+				<option value="winglobal" <?php if($dv_pg == "winglobal") { echo "selected"; } ?>>윈글로벌</option>
 			</select>
 			<select name="dv_type" id="dv_type">
 				<option value="">결제종류</option>

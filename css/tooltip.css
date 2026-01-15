@@ -314,11 +314,13 @@
 
 .simptip-multiline:after {
   height: auto;
+  min-height: 40px;
   width: 200px;
   padding: 11px;
   line-height: 19px;
   white-space: normal;
   text-align: left;
+  box-sizing: border-box;
 }
 
 /**************************** Diverse Colors *************************/

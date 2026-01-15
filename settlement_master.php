@@ -537,7 +537,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 		<table class="table_list td_pd">
 			<thead>
 				<tr>
-					<?php if($is_admin) { ?>
+					<?php if($member['mb_level'] >= 4) { ?>
 					<th rowspan="2">구분</th>
 					<?php } ?>
 					<th rowspan="2">가맹점명</th>
@@ -762,7 +762,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 				?>
 				<tr>
-					<?php if($is_admin) { ?>
+					<?php if($member['mb_level'] >= 4) { ?>
 					<td style="text-align:center; font-weight:bold; color:<?php echo $row['mb_settle_gbn'] == 'Y' ? '#4caf50' : '#f44336'; ?>">
 						<?php echo $row['mb_settle_gbn'] == 'Y' ? 'O' : 'X'; ?>
 					</td>
@@ -843,7 +843,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 			</tbody>
 			<tfoot>
 				<tr style="border-top:1px solid #e5e5e5;">
-					<?php if($is_admin) { ?>
+					<?php if($member['mb_level'] >= 4) { ?>
 					<th>구분</th>
 					<?php } ?>
 					<th>가맹점명</th>
@@ -880,7 +880,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					<?php } ?>
 				</tr>
 				<tr>
-					<td colspan="<?php echo $is_admin ? '3' : '2'; ?>">합계</td>
+					<td colspan="<?php echo $member['mb_level'] >= 4 ? '3' : '2'; ?>">합계</td>
 					<td><?php echo number_format($scnt_total); ?></td>
 					<td><?php echo number_format($ccnt_total); ?></td>
 

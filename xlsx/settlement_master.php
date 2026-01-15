@@ -1,6 +1,6 @@
 <?php
 include_once('./_common.php');
-if(!$is_admin) {
+if($member['mb_level'] < 4) {
 	alert("잘못된 접근입니다.");
 }
 
@@ -21,6 +21,7 @@ $widths = [];
 $halign = [];
 
 // $header 제목명은 모두 달라야 됨
+$header["구분"] = 'string';
 $header["TID"] = 'integer';
 $header["가맹점명"] = 'integer';
 $header["승인"] = 'string';
@@ -48,6 +49,7 @@ $header["영업점수익금"] = '#,##0';
 $header["계좌정보"] = 'string';
 
 //셀너비
+$widths[] = 8;  // 구분
 $widths[] = 20; // tid
 $widths[] = 30; // tid
 $widths[] = 20; // tid
@@ -291,6 +293,7 @@ foreach ($result as $field) {
 	*/
 
 	$x++;
+	$contents[] = $field['mb_settle_gbn'] == 'Y' ? 'O' : 'X';
 	$contents[] = $field['dv_tid'];
 	$contents[] = $field['mb_6_name'];
 	$contents[] = $field['scnt'];
