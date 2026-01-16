@@ -528,9 +528,9 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 
 					if($row['dv_pg'] == 0) {
-						$dv_pgs = "코페이";
+						$dv_pgs = "윈(코페이)";
 					} else if($row['dv_pg'] == 1) {
-						$dv_pgs = "다날";
+						$dv_pgs = "윈(다날)";
 					} else if($row['dv_pg'] == 2) {
 						$dv_pgs = "광원";
 					} else if($row['dv_pg'] == 3) {
@@ -540,7 +540,7 @@ td span .fee_name {font-family: 'NanumGothic';}
 					} else if($row['dv_pg'] == 5) {
 						$dv_pgs = "섹타나인";
 					} else if($row['dv_pg'] == 6) {
-						$dv_pgs = "다우";
+						$dv_pgs = "윈(다우)";
 					} else if($row['dv_pg'] == 7) {
 						$dv_pgs = "루트업";
 					}
@@ -662,8 +662,11 @@ td span .fee_name {font-family: 'NanumGothic';}
 
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;"><?php echo $row['dv_tid']; ?></td>
 					<td style="<?php if($results != "ok") { echo "background:#ffff99"; } ?>;">
-						<select name="dv_pg" required class="required" style="width:70px">
+						<select name="dv_pg" required class="required" style="width:90px">
 							<option value="">PG사</option>
+							<option value="0" <?php if($row['dv_pg'] == "0") { echo "selected"; } ?>>윈(코페이)</option>
+							<option value="1" <?php if($row['dv_pg'] == "1") { echo "selected"; } ?>>윈(다날)</option>
+							<option value="6" <?php if($row['dv_pg'] == "6") { echo "selected"; } ?>>윈(다우)</option>
 							<option value="4" <?php if($row['dv_pg'] == "4") { echo "selected"; } ?>>페이시스</option>
 							<option value="5" <?php if($row['dv_pg'] == "5") { echo "selected"; } ?>>섹타나인</option>
 							<option value="7" <?php if($row['dv_pg'] == "7") { echo "selected"; } ?>>루트업</option>
