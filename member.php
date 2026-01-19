@@ -107,7 +107,7 @@
 	$xlsx_sql = "select * {$sql_common} {$sql_search} {$sql_order} ";
 	$result = sql_query($sql);
 
-	echo $sql;
+	// echo $sql;
 //	echo $total_pay;
 
 if($member['mb_level']==10){
