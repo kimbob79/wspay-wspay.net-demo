@@ -96,12 +96,12 @@ if($trx_id) {
 		$amount = "-" . $amount; // 음수로 변경
 
 		// 취소 거래의 pay_datetime을 취소일시로 설정 (실시간 결제내역에 최신으로 표시)
-		$trx_dttm = $trx_dttm;
+		$trx_dttm = $cxl_dttm;
 
 		// 원거래 취소일시 업데이트
 		sql_query("UPDATE g5_payment SET pay_cdatetime = '{$pay_cdatetime}' WHERE trxId = '{$ori_trx_id}'");
 	} else {
-		$trx_id_for_payment = $trx_id;
+		$trx_id_for_payment = $trx_id; 
 	}
 
 	// g5_payment_routeup 테이블에 저장
