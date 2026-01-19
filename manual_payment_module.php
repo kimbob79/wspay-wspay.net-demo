@@ -1356,6 +1356,170 @@ input:read-only {
 		border-radius: 0;
 	}
 }
+
+/* 한도 정보 영역 */
+.limit-info-area {
+	background: #fff;
+	border-radius: 16px;
+	padding: 20px;
+	margin-bottom: 16px;
+	border: 1px solid #e8e8e8;
+}
+
+.limit-info-area h3 {
+	font-size: 16px;
+	font-weight: 700;
+	color: #1a1a1a;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 3px solid #FFD369;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.limit-info-area h3 i {
+	font-size: 18px;
+	color: #FFD369;
+}
+
+.limit-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.limit-cards-row {
+	display: flex;
+	gap: 10px;
+}
+
+.limit-card {
+	flex: 1;
+	background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+	border: 1px solid #e8e8e8;
+	border-radius: 12px;
+	padding: 12px 14px;
+	transition: all 0.2s ease;
+}
+
+.limit-card:hover {
+	border-color: #FFD369;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(255, 211, 105, 0.15);
+}
+
+.limit-card-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #666;
+}
+
+.limit-card-header i {
+	font-size: 14px;
+	color: #FFD369;
+}
+
+.limit-card-body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.limit-value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #1a1a1a;
+}
+
+.limit-value.unlimited {
+	font-size: 14px;
+	color: #4CAF50;
+}
+
+.limit-progress-wrap {
+	margin-top: 4px;
+}
+
+.limit-progress {
+	width: 100%;
+	height: 8px;
+	background: #e8e8e8;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.limit-progress-bar {
+	height: 100%;
+	border-radius: 4px;
+	transition: width 0.3s ease;
+	background: linear-gradient(90deg, #4CAF50, #81C784);
+}
+
+.limit-stats {
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+	color: #888;
+	margin-top: 6px;
+}
+
+.limit-stats .used {
+	color: #666;
+}
+
+.limit-stats .remaining {
+	font-weight: 600;
+	color: #4CAF50;
+}
+
+.limit-stats .remaining.exceeded {
+	color: #f44336;
+}
+
+.limit-card.limit-exceeded {
+	border-color: #f44336;
+	background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+}
+
+.limit-card.limit-exceeded .limit-value {
+	color: #f44336;
+}
+
+.limit-card.limit-exceeded .limit-progress-bar {
+	background: linear-gradient(90deg, #f44336, #ef5350);
+}
+
+@media (max-width: 768px) {
+	.limit-info-area {
+		padding: 16px;
+		border-radius: 12px;
+	}
+
+	.limit-info-area h3 {
+		font-size: 15px;
+	}
+
+	.limit-cards-row {
+		flex-direction: column;
+	}
+
+	.limit-card {
+		padding: 10px 12px;
+	}
+
+	.limit-value {
+		font-size: 15px;
+	}
+
+	.limit-stats {
+		font-size: 11px;
+	}
+}
 </style>
 
 <div class="wrap-loading display-none">
@@ -1586,6 +1750,32 @@ input:read-only {
 							$keyin_configs[] = $row;
 						}
 					}
+
+					// 한도 사용량 조회 (관리자 및 가맹점)
+					if($target_mb_id && !empty($keyin_configs)) {
+						$today = date('Y-m-d');
+						$month_start = date('Y-m-01');
+						$month_end = date('Y-m-t');
+
+						// 오늘 사용량 조회
+						$daily_usage_sql = "SELECT SUM(pk_amount) as daily_used
+							FROM g5_payment_keyin
+							WHERE mb_id = '{$target_mb_id}'
+							AND pk_status = 'approved'
+							AND DATE(pk_created_at) = '{$today}'";
+						$daily_usage_row = sql_fetch($daily_usage_sql);
+						$daily_used = (int)$daily_usage_row['daily_used'];
+
+						// 이번달 사용량 조회
+						$monthly_usage_sql = "SELECT SUM(pk_amount) as monthly_used
+							FROM g5_payment_keyin
+							WHERE mb_id = '{$target_mb_id}'
+							AND pk_status = 'approved'
+							AND DATE(pk_created_at) BETWEEN '{$month_start}' AND '{$month_end}'";
+						$monthly_usage_row = sql_fetch($monthly_usage_sql);
+						$monthly_used = (int)$monthly_usage_row['monthly_used'];
+
+					}
 				}
 				?>
 
@@ -1654,7 +1844,10 @@ input:read-only {
 							 data-mid="<?php echo htmlspecialchars($config['mid']); ?>"
 							 data-mkey="<?php echo htmlspecialchars($config['mkey']); ?>"
 							 data-pg-code="<?php echo htmlspecialchars($config['pg_code']); ?>"
-							 data-max-installment="<?php echo (int)$config['mkc_max_installment']; ?>">
+							 data-max-installment="<?php echo (int)$config['mkc_max_installment']; ?>"
+							 data-limit-once="<?php echo (int)$config['mkc_limit_once']; ?>"
+							 data-limit-daily="<?php echo (int)$config['mkc_limit_daily']; ?>"
+							 data-limit-monthly="<?php echo (int)$config['mkc_limit_monthly']; ?>">
 							<div class="pg-module-left">
 								<div class="pg-module-name"><?php echo htmlspecialchars($config['display_name']); ?></div>
 								<?php if($config['mkc_max_installment'] > 0 && $config['mkc_max_installment'] < 12) { ?>
@@ -1683,6 +1876,71 @@ input:read-only {
 					<?php } ?>
 					<?php } ?>
 				</div>
+
+				<!-- 한도 정보 표시 (관리자 및 가맹점) - 동적 업데이트 -->
+				<?php if($target_mb_id && !empty($keyin_configs)) { ?>
+				<div class="limit-info-area" id="limitInfoArea" style="display: none;">
+					<h3><i class="fa fa-tachometer"></i> 결제 한도</h3>
+					<div class="limit-cards">
+						<!-- 1행: 1회 한도 + 일 한도 -->
+						<div class="limit-cards-row">
+							<!-- 1회 한도 -->
+							<div class="limit-card limit-once" id="limitOnceCard">
+								<div class="limit-card-header">
+									<i class="fa fa-credit-card"></i>
+									<span>1회 한도</span>
+								</div>
+								<div class="limit-card-body">
+									<div class="limit-value" id="limitOnceValue">-</div>
+								</div>
+							</div>
+
+							<!-- 일 한도 -->
+							<div class="limit-card limit-daily" id="limitDailyCard">
+								<div class="limit-card-header">
+									<i class="fa fa-calendar-o"></i>
+									<span>일 한도</span>
+								</div>
+								<div class="limit-card-body" id="limitDailyBody">
+									<div class="limit-value" id="limitDailyValue">-</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 2행: 월 한도 + 최대 할부 -->
+						<div class="limit-cards-row">
+							<!-- 월 한도 -->
+							<div class="limit-card limit-monthly" id="limitMonthlyCard">
+								<div class="limit-card-header">
+									<i class="fa fa-calendar"></i>
+									<span>월 한도</span>
+								</div>
+								<div class="limit-card-body" id="limitMonthlyBody">
+									<div class="limit-value" id="limitMonthlyValue">-</div>
+								</div>
+							</div>
+
+							<!-- 최대 할부 -->
+							<div class="limit-card limit-installment" id="limitInstallmentCard">
+								<div class="limit-card-header">
+									<i class="fa fa-list-ol"></i>
+									<span>최대 할부</span>
+								</div>
+								<div class="limit-card-body">
+									<div class="limit-value" id="limitInstallmentValue">-</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<script>
+				// 한도 사용량 데이터
+				var limitUsageData = {
+					dailyUsed: <?php echo (int)$daily_used; ?>,
+					monthlyUsed: <?php echo (int)$monthly_used; ?>
+				};
+				</script>
+				<?php } ?>
 
 				<!-- 결제 폼 -->
 				<div class="payment-form-area<?php echo !empty($keyin_configs) ? ' active' : ''; ?>">
@@ -1815,7 +2073,7 @@ input:read-only {
 							<div class="stripe-form-row" id="winglobal_email_row" style="display: none;">
 								<div class="stripe-form-col" style="flex: 1;">
 									<label class="stripe-form-label">구매자 이메일 <span style="color: #dc2626;">*</span></label>
-									<input type="email" name="pay_email" id="pay_email" class="stripe-form-input" placeholder="email@example.com" maxlength="100">
+									<input type="email" name="pay_email" id="pay_email" class="stripe-form-input" value="wspay@wspay.kr" maxlength="100">
 								</div>
 							</div>
 
@@ -2223,6 +2481,14 @@ function selectPgModule(mkcId, certiType, maxInstallment, pgCode) {
 	pgCode = pgCode || $item.data('pg-code') || '';
 	maxInstallment = maxInstallment || $item.data('max-installment') || 12;
 
+	// 한도 정보 가져오기
+	var limitOnce = parseInt($item.data('limit-once')) || 0;
+	var limitDaily = parseInt($item.data('limit-daily')) || 0;
+	var limitMonthly = parseInt($item.data('limit-monthly')) || 0;
+
+	// 한도 정보 업데이트
+	updateLimitDisplay(limitOnce, limitDaily, limitMonthly, maxInstallment);
+
 	// hidden 필드에 설정 ID 및 PG 코드 저장
 	$('#pg_id').val(mkcId);
 	$('#pg_code').val(pgCode);
@@ -2242,10 +2508,17 @@ function selectPgModule(mkcId, certiType, maxInstallment, pgCode) {
 		$('#auth_panel').hide();
 	}
 
-	// 결제 폼 스크롤
-	$('html, body').animate({
-		scrollTop: $('.payment-form-area').offset().top - 100
-	}, 500);
+	// 결제 한도 영역으로 스크롤 (한도 정보가 표시되는 경우)
+	if($('#limitInfoArea').is(':visible')) {
+		$('html, body').animate({
+			scrollTop: $('#limitInfoArea').offset().top - 50
+		}, 300);
+	} else {
+		// 한도 정보가 없는 경우 결제 폼으로 스크롤
+		$('html, body').animate({
+			scrollTop: $('.payment-form-area').offset().top - 100
+		}, 300);
+	}
 }
 
 // PG사별 필수 필드 표시 업데이트
@@ -2264,7 +2537,7 @@ function updateRequiredFields(pgCode) {
 		$('#phone_required').show();
 		$('#pay_phone').attr('placeholder', '01012345678 (필수)');
 		$('#winglobal_email_row').hide();
-		$('#pay_email').val('');
+		$('#pay_email').val('wspay@wspay.kr');
 	} else {
 		// 페이시스 등: 휴대전화 선택
 		$('#pname_required').hide();
@@ -2272,7 +2545,7 @@ function updateRequiredFields(pgCode) {
 		$('#phone_required').hide();
 		$('#pay_phone').attr('placeholder', '01012345678');
 		$('#winglobal_email_row').hide();
-		$('#pay_email').val('');
+		$('#pay_email').val('wspay@wspay.kr');
 	}
 }
 
@@ -2304,6 +2577,79 @@ function updateInstallmentOptions(maxInstallment) {
 	if(currentVal && parseInt(currentVal) <= maxInstallment) {
 		$select.val(currentVal);
 	}
+}
+
+// 한도 정보 표시 업데이트
+function updateLimitDisplay(limitOnce, limitDaily, limitMonthly, maxInstallment) {
+	var $area = $('#limitInfoArea');
+	if(!$area.length) return;
+
+	// 한도가 하나라도 설정되어 있으면 표시
+	var hasLimit = (limitOnce > 0) || (limitDaily > 0) || (limitMonthly > 0) || (maxInstallment > 0 && maxInstallment < 12);
+	if(!hasLimit) {
+		$area.hide();
+		return;
+	}
+	$area.show();
+
+	// 사용량 데이터 (PHP에서 전달)
+	var dailyUsed = (typeof limitUsageData !== 'undefined') ? limitUsageData.dailyUsed : 0;
+	var monthlyUsed = (typeof limitUsageData !== 'undefined') ? limitUsageData.monthlyUsed : 0;
+
+	// 1회 한도
+	$('#limitOnceValue').text(limitOnce > 0 ? formatNumber(limitOnce) + '원' : '제한없음');
+	$('#limitOnceValue').toggleClass('unlimited', limitOnce <= 0);
+
+	// 일 한도
+	var dailyRemaining = (limitDaily > 0) ? Math.max(0, limitDaily - dailyUsed) : -1;
+	$('#limitDailyCard').toggleClass('limit-exceeded', limitDaily > 0 && dailyRemaining === 0);
+	if(limitDaily > 0) {
+		var dailyPercent = Math.min(100, (dailyUsed / limitDaily) * 100);
+		$('#limitDailyBody').html(
+			'<div class="limit-value">' + formatNumber(limitDaily) + '원</div>' +
+			'<div class="limit-progress-wrap">' +
+				'<div class="limit-progress">' +
+					'<div class="limit-progress-bar" style="width: ' + dailyPercent + '%"></div>' +
+				'</div>' +
+				'<div class="limit-stats">' +
+					'<span class="used">사용: ' + formatNumber(dailyUsed) + '원</span>' +
+					'<span class="remaining' + (dailyRemaining === 0 ? ' exceeded' : '') + '">남은: ' + formatNumber(dailyRemaining) + '원</span>' +
+				'</div>' +
+			'</div>'
+		);
+	} else {
+		$('#limitDailyBody').html('<div class="limit-value unlimited">제한없음</div>');
+	}
+
+	// 월 한도
+	var monthlyRemaining = (limitMonthly > 0) ? Math.max(0, limitMonthly - monthlyUsed) : -1;
+	$('#limitMonthlyCard').toggleClass('limit-exceeded', limitMonthly > 0 && monthlyRemaining === 0);
+	if(limitMonthly > 0) {
+		var monthlyPercent = Math.min(100, (monthlyUsed / limitMonthly) * 100);
+		$('#limitMonthlyBody').html(
+			'<div class="limit-value">' + formatNumber(limitMonthly) + '원</div>' +
+			'<div class="limit-progress-wrap">' +
+				'<div class="limit-progress">' +
+					'<div class="limit-progress-bar" style="width: ' + monthlyPercent + '%"></div>' +
+				'</div>' +
+				'<div class="limit-stats">' +
+					'<span class="used">사용: ' + formatNumber(monthlyUsed) + '원</span>' +
+					'<span class="remaining' + (monthlyRemaining === 0 ? ' exceeded' : '') + '">남은: ' + formatNumber(monthlyRemaining) + '원</span>' +
+				'</div>' +
+			'</div>'
+		);
+	} else {
+		$('#limitMonthlyBody').html('<div class="limit-value unlimited">제한없음</div>');
+	}
+
+	// 최대 할부
+	$('#limitInstallmentValue').text((maxInstallment > 0 && maxInstallment < 12) ? maxInstallment + '개월' : '제한없음');
+	$('#limitInstallmentValue').toggleClass('unlimited', !(maxInstallment > 0 && maxInstallment < 12));
+}
+
+// 숫자 포맷 (천단위 콤마)
+function formatNumber(num) {
+	return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // 에러 표시 함수
@@ -2613,7 +2959,7 @@ function resetForm() {
 	$('#pay_price').val('');
 	$('#pay_pname').val('');
 	$('#pay_phone').val('');
-	$('#pay_email').val('');  // 윈글로벌용 이메일
+	$('#pay_email').val('wspay@wspay.kr');  // 윈글로벌용 이메일
 	$('#pay_cardnum').val('');
 	$('#pay_installment').val('');
 	$('#pay_MM').val('');
@@ -2714,6 +3060,11 @@ function initFirstPgModule() {
 		var mkcId = $firstModule.data('mkc-id') || '';
 		var maxInstallment = $firstModule.data('max-installment') || 12;
 
+		// 한도 정보 가져오기
+		var limitOnce = parseInt($firstModule.data('limit-once')) || 0;
+		var limitDaily = parseInt($firstModule.data('limit-daily')) || 0;
+		var limitMonthly = parseInt($firstModule.data('limit-monthly')) || 0;
+
 		// hidden 필드에 설정 ID 및 PG 코드 저장
 		$('#pg_id').val(mkcId);
 		$('#pg_code').val(pgCode);
@@ -2731,17 +3082,8 @@ function initFirstPgModule() {
 			$('#auth_panel').hide();
 		}
 
-		// PG 모듈이 1개만 있을 경우 자동으로 입력 필드로 포커스
-		var pgModuleCount = $('.pg-module-item').length;
-		if(pgModuleCount === 1) {
-			setTimeout(function() {
-				$('#pay_product').focus();
-				// 결제 폼으로 스크롤
-				$('html, body').animate({
-					scrollTop: $('.payment-form-area').offset().top - 50
-				}, 300);
-			}, 100);
-		}
+		// 한도 정보 표시 업데이트
+		updateLimitDisplay(limitOnce, limitDaily, limitMonthly, maxInstallment);
 	}
 }
 
