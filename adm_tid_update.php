@@ -1,6 +1,6 @@
 <?php
 	if(!$is_admin) { alert("관리자만 접속 가능합니다."); }
-
+  
 	$cf_1_subj = trim($_POST['cf_1_subj']);
 	$cf_2_subj = trim($_POST['cf_2_subj']);
 	$cf_3_subj = trim($_POST['cf_3_subj']);
