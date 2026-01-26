@@ -2,6 +2,10 @@
 /**
  * MetaPOS API - 결제 유형별 매출 조회
  * URL: https://webapi.metapos.co.kr/webapi/sales_search/api/storePayType.asp
+ * "pay_auth_number": "023224458",
+* "pay_cash_id": "010****0877"
+* 현금영수증 승인받은것은 소득공제
+* 이거 2개값이 필수로 존재한다고 합니다!
  */
 
 // API 설정
@@ -13,7 +17,7 @@ $params = array(
     "cmd"     => "SPT",           // 조회 구분 (고정값)
     "br_uid"  => "B19052200002",  // 브랜드 고유 id
     "st_uid"  => "I26011400007",  // 매장 고유 id
-    "sal_ymd" => "20260121"       // 매출일자 (오늘 날짜)
+    "sal_ymd" => "20260126"       // 매출일자 (오늘 날짜)
 );
 
 // GET 파라미터로 조건 변경 가능
