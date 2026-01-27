@@ -525,6 +525,14 @@ jQuery(function($) {
 					<a href="/store?level=1" target="_self" class="gnb_1da <?php if($p == "member") { if($level == "1") { echo "on"; } } ?>"><span>삭제회원 관리</span></a>
 				</li>
 				<?php } ?>
+				<?php if($is_admin) { ?>
+				<li class="gnb_1dli">
+					<a href="/?p=metapos_store_list" target="_self" class="gnb_1da <?php if($p == "metapos_store_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 매장정보</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 결제정보</span></a>
+				</li>
+				<?php } ?>
 			</ul>
 		</div>
 		<?php } ?>
