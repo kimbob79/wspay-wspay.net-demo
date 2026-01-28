@@ -707,7 +707,7 @@ tr.row-cancel td {
 		</div>
 		<div style="display:flex; align-items:center; gap:6px;">
 			<button type="button" class="btn-sync" id="btnSync" onclick="syncPayments()">
-				<i class="fa fa-refresh"></i> 결제 동기화
+				<i class="fa fa-refresh"></i> 수동 결제 동기화
 			</button>
 			<span style="font-size:10px; color:rgba(255,255,255,0.7);">(시작일 기준)</span>
 		</div>
