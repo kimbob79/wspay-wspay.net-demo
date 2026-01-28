@@ -65,13 +65,13 @@ function sql_insert_id() {
 
 // API 설정
 $api_url = "https://webapi.metapos.co.kr/webapi/sales_search/api/storeInfo.asp";
-// $api_key = "5f0efb7dbe66de52458d2ef550f24090";  # 운영키: 5f0efb7dbe66de52458d2ef550f24090, 테스트키: 0675a2779cd8f3cdfa5eafaa3f408121
-$api_key = "0675a2779cd8f3cdfa5eafaa3f408121";
+$api_key = "5f0efb7dbe66de52458d2ef550f24090";  # 운영키: 5f0efb7dbe66de52458d2ef550f24090, 테스트키: 0675a2779cd8f3cdfa5eafaa3f408121
+// $api_key = "0675a2779cd8f3cdfa5eafaa3f408121";
 
 // 요청 파라미터 설정
 $params = array(
     "cmd"    => "SL",            // 조회 구분 (고정값)
-    "br_uid" => "B19052200002",  // 브랜드 고유 id > 운영모드: B26010900001, 테스트모드: B19052200002
+    "br_uid" => "B26010900001",  // 브랜드 고유 id > 운영모드: B26010900001, 테스트모드: B19052200002
     "st_use" => "all"            // 매장 조회 조건 (all:전체, open:개점, close:폐점)
 );
 

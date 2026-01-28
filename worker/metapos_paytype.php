@@ -30,12 +30,12 @@ $mysqli->set_charset('utf8mb4');
 // API 설정
 $api_url = "https://webapi.metapos.co.kr/webapi/sales_search/api/storePayType.asp";
 // 운영키: 5f0efb7dbe66de52458d2ef550f24090, 테스트키: 0675a2779cd8f3cdfa5eafaa3f408121
-// $api_key = "5f0efb7dbe66de52458d2ef550f24090";  
-$api_key = "0675a2779cd8f3cdfa5eafaa3f408121";
+$api_key = "5f0efb7dbe66de52458d2ef550f24090";  
+// $api_key = "0675a2779cd8f3cdfa5eafaa3f408121";
 
 // 오늘 날짜
 $today = date('Ymd');
-$today = "20260126";    // 임시 테스트
+// $today = "20260126";    // 임시 테스트
 
 // GET 파라미터로 날짜 변경 가능
 if (isset($_GET['sal_ymd']) && preg_match('/^\d{8}$/', $_GET['sal_ymd'])) {
@@ -47,8 +47,8 @@ if (isset($_GET['sal_ymd']) && preg_match('/^\d{8}$/', $_GET['sal_ymd'])) {
 // [운영] br_uid='B26010900001' 고정
 $sql = "SELECT br_uid, st_uid, st_name
         FROM metapos_store
-        WHERE br_uid = 'B19052200002'
-        AND st_uid = 'I26011400007'
+        WHERE br_uid = 'B26010900001'
+        AND st_uid = 'I26010900010'
         AND st_use = 'Y'";
 $store_result = $mysqli->query($sql);
 
