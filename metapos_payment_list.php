@@ -109,10 +109,19 @@ $sql = "SELECT
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
 	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_sale_amount,
-	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_cancel_amount,
-	SUM(IF(bill_status = 'S', bill_vat, 0)) as total_sale_vat
+	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_cancel_amount
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
+
+// 부가세는 bill_no 단위로 중복 없이 계산 (영수증당 1번만, 현금영수증 제외)
+$vat_sql = "SELECT COALESCE(SUM(vat), 0) as total_vat FROM (
+	SELECT bill_no, MAX(bill_vat) as vat
+	FROM {$table_name} {$sql_where} AND bill_status = 'S'
+	AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != '')
+	GROUP BY bill_no
+) vat_sub";
+$vat_result = sql_fetch($vat_sql);
+$stat['total_sale_vat'] = $vat_result['total_vat'];
 
 $total_count = $stat['total_cnt'];
 $page_count = 20;
@@ -122,13 +131,25 @@ $total_page = ceil($total_count / $rows);
 if($page < 1) $page = 1;
 $from_record = ($page - 1) * $rows;
 
-// 가맹점별 합계 조회 (현금영수증 제외)
+// 가맹점별 합계 조회 (현금영수증 제외, 부가세는 bill_no 단위로 계산)
+// 먼저 가맹점별 부가세 조회 (bill_no 단위로 중복 제거, 현금영수증 제외)
+$store_vat_map = array();
+$vat_store_sql = "SELECT st_uid, SUM(vat) as sale_vat FROM (
+	SELECT st_uid, bill_no, MAX(bill_vat) as vat
+	FROM {$table_name} {$sql_where} AND bill_status = 'S'
+	AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != '')
+	GROUP BY st_uid, bill_no
+) vat_sub GROUP BY st_uid";
+$vat_store_result = sql_query($vat_store_sql);
+while($vat_row = sql_fetch_array($vat_store_result)) {
+	$store_vat_map[$vat_row['st_uid']] = $vat_row['sale_vat'];
+}
+
 $sql = "SELECT
 	st_uid, st_name,
 	COUNT(DISTINCT bill_no) as pay_cnt,
 	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as sale_amount,
 	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as cancel_amount,
-	SUM(IF(bill_status = 'S', bill_vat, 0)) as sale_vat,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt
 	FROM {$table_name} {$sql_where}
@@ -843,6 +864,7 @@ tr.row-cancel td {
 		if(!$is_merchant_view) {
 			sql_data_seek($store_summary, 0);
 			while($sum = sql_fetch_array($store_summary)) {
+				$store_vat = isset($store_vat_map[$sum['st_uid']]) ? $store_vat_map[$sum['st_uid']] : 0;
 		?>
 		<div class="summary-card">
 			<div class="summary-card-header">
@@ -856,7 +878,7 @@ tr.row-cancel td {
 				</div>
 				<div class="summary-card-item">
 					<div class="summary-card-label">부가세</div>
-					<div class="summary-card-value" style="color:#ff9800;"><?php echo number_format($sum['sale_vat']); ?></div>
+					<div class="summary-card-value" style="color:#ff9800;"><?php echo number_format($store_vat); ?></div>
 				</div>
 			</div>
 		</div>
