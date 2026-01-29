@@ -36,7 +36,7 @@ ini_set( "display_errors", 0);
 		// 밴피 회원 페이지 접근 제한
 		// mb_van_fee가 설정된 회원은 payment, settlement 페이지만 접근 가능
 		if($member['mb_van_fee'] > 0) {
-			$allowed_pages = array('main', 'payment', 'settlement');
+			$allowed_pages = array('main', 'payment', 'settlement', 'metapos_payment_list');
 			if(!in_array($p, $allowed_pages)) {
 				$p = 'payment'; // 허용되지 않은 페이지 접근 시 실시간 결제내역으로 리다이렉트
 			}
