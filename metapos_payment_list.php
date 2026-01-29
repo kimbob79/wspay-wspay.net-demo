@@ -2,18 +2,35 @@
 /**
  * 스시이안앤 결제정보 목록 페이지
  * - metapos_payment 테이블 조회
- * - 관리자 전용
+ * - 관리자 또는 스시이안앤 매장ID가 등록된 가맹점 접근 가능
  * - 가맹점별 결제내역 + 총합계
  */
 
 $title1 = "스시이안앤";
 $title2 = "결제정보";
 
-include_once('./_common.php');
+// 특정 허용 아이디 목록 (본사처럼 전체 조회 가능)
+$sushian_allowed_ids = array('1766037474', '1765765095', '1757467304');
+$is_sushian_allowed = in_array(strval($member['mb_id']), $sushian_allowed_ids);
 
-// 관리자 권한 체크
+// 허용 아이디는 관리자처럼 취급
+if($is_sushian_allowed) {
+	$is_admin = true;
+}
+
+// 권한 체크: 관리자 또는 mb_sushian_id가 있는 가맹점(level=3)
+$is_merchant_view = false; // 가맹점 뷰 모드
+$merchant_store_uid = ''; // 가맹점의 매장 UID
+
 if(!$is_admin) {
-	alert("관리자만 접근 가능합니다.");
+	// 가맹점(level=3)이고 mb_sushian_id가 있는 경우
+	if($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) {
+		$is_merchant_view = true;
+		$merchant_store_uid = $member['mb_sushian_id'];
+	}
+	else {
+		alert("접근 권한이 없습니다.");
+	}
 }
 
 // 테이블명
@@ -38,8 +55,13 @@ $sql_where = " WHERE 1 ";
 // 날짜 필터 (sal_ymd 컬럼)
 $sql_where .= " AND sal_ymd BETWEEN '{$fr_date}' AND '{$to_date}' ";
 
-// 매장 필터
-if($st_uid_filter) {
+// 가맹점 뷰일 경우 자기 매장만 조회 (강제 필터)
+if($is_merchant_view) {
+	$sql_where .= " AND st_uid = '{$merchant_store_uid}'";
+	$st_uid_filter = $merchant_store_uid; // 필터값도 고정
+}
+// 매장 필터 (관리자용)
+else if($st_uid_filter) {
 	$sql_where .= " AND st_uid = '{$st_uid_filter}'";
 }
 
@@ -80,12 +102,14 @@ while($row = sql_fetch_array($store_result)) {
 }
 
 // 전체 통계 조회 (필터 적용) - bill_no 기준으로 카운트
+// 취소(C)는 '이전 매출이 취소됨'을 의미하므로 순매출 = 매출(S)만 계산
 $sql = "SELECT
 	COUNT(DISTINCT bill_no) as total_cnt,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
 	SUM(IF(bill_status = 'S', pay_amount, 0)) as total_sale_amount,
-	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount
+	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount,
+	SUM(IF(bill_status = 'S', bill_vat, 0)) as total_sale_vat
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
 
@@ -103,6 +127,7 @@ $sql = "SELECT
 	COUNT(DISTINCT bill_no) as pay_cnt,
 	SUM(IF(bill_status = 'S', pay_amount, 0)) as sale_amount,
 	SUM(IF(bill_status = 'C', pay_amount, 0)) as cancel_amount,
+	SUM(IF(bill_status = 'S', bill_vat, 0)) as sale_vat,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt
 	FROM {$table_name} {$sql_where}
@@ -658,9 +683,21 @@ tr.row-cancel td {
 	.summary-card-item {
 		min-width: 80px;
 	}
+	/* 테이블 가로 스크롤 */
+	.m_board_scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	.table_list {
+		min-width: 600px;
+	}
+	.td_name {
+		white-space: nowrap;
+	}
 }
 </style>
 
+<?php if($member['mb_level'] >= 10) { ?>
 <!-- 로딩 스피너 -->
 <div class="loading-overlay" id="loadingOverlay">
 	<div class="spinner"></div>
@@ -698,6 +735,7 @@ tr.row-cancel td {
 		<div class="sync-result-footer"><button type="button" class="btn" onclick="closeSyncResult()">확인</button></div>
 	</div>
 </div>
+<?php } ?>
 
 <div class="metapos-pay-header">
 	<div class="metapos-pay-header-top">
@@ -705,23 +743,25 @@ tr.row-cancel td {
 			<i class="fa fa-money"></i>
 			스시이안앤 결제정보
 		</div>
+		<?php if($member['mb_level'] >= 10) { ?>
 		<div style="display:flex; align-items:center; gap:6px;">
 			<button type="button" class="btn-sync" id="btnSync" onclick="syncPayments()">
 				<i class="fa fa-refresh"></i> 수동 결제 동기화
 			</button>
 			<span style="font-size:10px; color:rgba(255,255,255,0.7);">(시작일 기준)</span>
 		</div>
+		<?php } ?>
 	</div>
 	<div class="metapos-pay-header-bottom">
 		<div class="metapos-pay-stats">
+			<div class="metapos-pay-stat">
+				전체 <span><?php echo number_format($stat['total_cnt']); ?>건</span>
+			</div>
 			<div class="metapos-pay-stat sale">
-				매출 <span><?php echo number_format($stat['sale_cnt']); ?>건</span> / <span><?php echo number_format($stat['total_sale_amount']); ?>원</span>
+				순매출 <span><?php echo number_format($stat['total_sale_amount']); ?>원</span>
 			</div>
-			<div class="metapos-pay-stat cancel">
-				취소 <span><?php echo number_format($stat['cancel_cnt']); ?>건</span> / <span><?php echo number_format($stat['total_cancel_amount']); ?>원</span>
-			</div>
-			<div class="metapos-pay-stat total">
-				순매출 <span><?php echo number_format($stat['total_sale_amount'] - $stat['total_cancel_amount']); ?>원</span>
+			<div class="metapos-pay-stat" style="background: rgba(255,193,7,0.3);">
+				부가세 <span><?php echo number_format($stat['total_sale_vat']); ?>원</span>
 			</div>
 		</div>
 	</div>
@@ -736,6 +776,7 @@ tr.row-cancel td {
 			<span>~</span>
 			<input type="text" name="to_date" class="date-input" value="<?php echo $to_date; ?>" placeholder="종료일" maxlength="8">
 		</div>
+		<?php if(!$is_merchant_view) { ?>
 		<div class="search-divider"></div>
 		<div class="metapos-pay-search-group">
 			<select name="st_uid">
@@ -745,6 +786,9 @@ tr.row-cancel td {
 				<?php } ?>
 			</select>
 		</div>
+		<?php } else { ?>
+		<input type="hidden" name="st_uid" value="<?php echo htmlspecialchars($merchant_store_uid); ?>">
+		<?php } ?>
 		<div class="metapos-pay-search-group">
 			<select name="bill_status">
 				<option value="">상태 전체</option>
@@ -765,35 +809,31 @@ tr.row-cancel td {
 <?php if(sql_num_rows($store_summary) > 0) { ?>
 <div class="summary-section">
 	<div class="summary-title">
-		<i class="fa fa-bar-chart"></i> 가맹점별 매출 현황
+		<i class="fa fa-bar-chart"></i> <?php echo $is_merchant_view ? '내 매장 매출 현황' : '가맹점별 매출 현황'; ?>
 	</div>
 	<div class="summary-cards">
 		<!-- 전체 합계 카드 -->
 		<div class="summary-card total-summary-card">
 			<div class="summary-card-header">
-				<span class="summary-card-name"><i class="fa fa-calculator"></i> 전체 합계</span>
-				<span class="summary-card-count"><?php echo number_format($total_count); ?>건</span>
+				<span class="summary-card-name"><i class="fa fa-calculator"></i> <?php echo $is_merchant_view ? '매출 합계' : '전체 합계'; ?></span>
+				<span class="summary-card-count"><?php echo number_format($stat['total_cnt']); ?>건</span>
 			</div>
 			<div class="summary-card-body">
 				<div class="summary-card-item">
-					<div class="summary-card-label">매출</div>
-					<div class="summary-card-value sale"><?php echo number_format($stat['total_sale_amount']); ?></div>
-				</div>
-				<div class="summary-card-item">
-					<div class="summary-card-label">취소</div>
-					<div class="summary-card-value cancel"><?php echo number_format($stat['total_cancel_amount']); ?></div>
-				</div>
-				<div class="summary-card-item">
 					<div class="summary-card-label">순매출</div>
-					<div class="summary-card-value"><?php echo number_format($stat['total_sale_amount'] - $stat['total_cancel_amount']); ?></div>
+					<div class="summary-card-value"><?php echo number_format($stat['total_sale_amount']); ?></div>
+				</div>
+				<div class="summary-card-item">
+					<div class="summary-card-label">부가세</div>
+					<div class="summary-card-value" style="color:#ffeb3b;"><?php echo number_format($stat['total_sale_vat']); ?></div>
 				</div>
 			</div>
 		</div>
 		<?php
-		// 가맹점별 카드
-		sql_data_seek($store_summary, 0);
-		while($sum = sql_fetch_array($store_summary)) {
-			$net_amount = $sum['sale_amount'] - $sum['cancel_amount'];
+		// 가맹점별 카드 (관리자만 표시)
+		if(!$is_merchant_view) {
+			sql_data_seek($store_summary, 0);
+			while($sum = sql_fetch_array($store_summary)) {
 		?>
 		<div class="summary-card">
 			<div class="summary-card-header">
@@ -802,20 +842,19 @@ tr.row-cancel td {
 			</div>
 			<div class="summary-card-body">
 				<div class="summary-card-item">
-					<div class="summary-card-label">매출 (<?php echo $sum['sale_cnt']; ?>)</div>
+					<div class="summary-card-label">순매출</div>
 					<div class="summary-card-value sale"><?php echo number_format($sum['sale_amount']); ?></div>
 				</div>
 				<div class="summary-card-item">
-					<div class="summary-card-label">취소 (<?php echo $sum['cancel_cnt']; ?>)</div>
-					<div class="summary-card-value cancel"><?php echo number_format($sum['cancel_amount']); ?></div>
-				</div>
-				<div class="summary-card-item">
-					<div class="summary-card-label">순매출</div>
-					<div class="summary-card-value net"><?php echo number_format($net_amount); ?></div>
+					<div class="summary-card-label">부가세</div>
+					<div class="summary-card-value" style="color:#ff9800;"><?php echo number_format($sum['sale_vat']); ?></div>
 				</div>
 			</div>
 		</div>
-		<?php } ?>
+		<?php
+			}
+		}
+		?>
 	</div>
 </div>
 <?php } ?>
@@ -884,7 +923,7 @@ tr.row-cancel td {
 				?>
 				<tr class="<?php echo $row_class; ?>">
 					<td class="center"><?php echo $num; ?></td>
-					<td class="td_name" style="max-width:100px;"><?php echo htmlspecialchars($row['st_name']); ?></td>
+					<td class="td_name"><?php echo htmlspecialchars($row['st_name']); ?></td>
 					<td class="center" style="font-size:11px;"><?php echo $row['bill_paid_at']; ?></td>
 					<td class="center" style="font-size:11px;"><?php echo htmlspecialchars($row['bill_no']); ?></td>
 					<td class="center">
@@ -965,6 +1004,7 @@ $(function() {
 	});
 });
 
+<?php if($member['mb_level'] >= 10) { ?>
 // 결제 데이터 동기화
 function syncPayments() {
 	var syncDate = '<?php echo substr($fr_date, 0, 4) . "-" . substr($fr_date, 4, 2) . "-" . substr($fr_date, 6, 2); ?>';
@@ -1018,6 +1058,7 @@ $('#syncResultOverlay').click(function(e) {
 		closeSyncResult();
 	}
 });
+<?php } ?>
 </script>
 
 <?php

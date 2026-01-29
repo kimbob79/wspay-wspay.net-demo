@@ -98,11 +98,13 @@
 	$mb_8        = isset($_POST['mb_8']) ? trim($_POST['mb_8']) : ''; // 은행명
 	$mb_9        = isset($_POST['mb_9']) ? trim($_POST['mb_9']) : ''; // 계좌번호
 	$mb_10        = isset($_POST['mb_10']) ? trim($_POST['mb_10']) : ''; // 예금주명
+	$mb_sushian_id = isset($_POST['mb_sushian_id']) ? trim($_POST['mb_sushian_id']) : ''; // 스시이안앤 매장ID
 
 
 	$mb_name        = clean_xss_tags($mb_name);
 	$mb_email       = get_email_address($mb_email);
 	$mb_homepage    = clean_xss_tags($mb_homepage);
+	$mb_sushian_id  = clean_xss_tags($mb_sushian_id);
 	$mb_van_fee     = preg_replace('/[^0-9]/', '', $mb_van_fee); // 숫자만
 	$mb_tel         = clean_xss_tags($mb_tel);
 	$mb_hp         = clean_xss_tags($mb_hp);
@@ -378,7 +380,8 @@
 						mb_7 = '{$mb_7}',
 						mb_8 = '{$mb_8}',
 						mb_9 = '{$mb_9}',
-						mb_10 = '{$mb_10}'
+						mb_10 = '{$mb_10}',
+						mb_sushian_id = '{$mb_sushian_id}'
 						{$sql_password}";
 
 	if($w == "u") {

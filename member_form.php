@@ -423,6 +423,12 @@
 					<input type="text" autocomplete="on" name="mb_10" value="<?php echo $mb['mb_10']; ?>" class="frm_input" style="max-width:100px" placeholder="예금주명">
 				</td>
 			</tr>
+			<tr>
+				<th><label for="mb_sushian_id">스시이안앤 매장ID</label></th>
+				<td>
+					<input type="text" autocomplete="on" name="mb_sushian_id" value="<?php echo $mb['mb_sushian_id']; ?>" id="mb_sushian_id" class="frm_input" style="max-width:300px" maxlength="30" placeholder="스시이안앤 매장ID (선택사항)">
+				</td>
+			</tr>
 
 			<?php
 				
