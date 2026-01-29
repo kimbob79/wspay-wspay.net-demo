@@ -103,12 +103,13 @@ while($row = sql_fetch_array($store_result)) {
 
 // 전체 통계 조회 (필터 적용) - bill_no 기준으로 카운트
 // 취소(C)는 '이전 매출이 취소됨'을 의미하므로 순매출 = 매출(S)만 계산
+// 현금영수증(현금+핸드폰번호)은 결제금액에서 제외
 $sql = "SELECT
 	COUNT(DISTINCT bill_no) as total_cnt,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
-	SUM(IF(bill_status = 'S', pay_amount, 0)) as total_sale_amount,
-	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount,
+	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_sale_amount,
+	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_cancel_amount,
 	SUM(IF(bill_status = 'S', bill_vat, 0)) as total_sale_vat
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
@@ -121,12 +122,12 @@ $total_page = ceil($total_count / $rows);
 if($page < 1) $page = 1;
 $from_record = ($page - 1) * $rows;
 
-// 가맹점별 합계 조회
+// 가맹점별 합계 조회 (현금영수증 제외)
 $sql = "SELECT
 	st_uid, st_name,
 	COUNT(DISTINCT bill_no) as pay_cnt,
-	SUM(IF(bill_status = 'S', pay_amount, 0)) as sale_amount,
-	SUM(IF(bill_status = 'C', pay_amount, 0)) as cancel_amount,
+	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as sale_amount,
+	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as cancel_amount,
 	SUM(IF(bill_status = 'S', bill_vat, 0)) as sale_vat,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt
@@ -135,11 +136,11 @@ $sql = "SELECT
 	ORDER BY sale_amount DESC";
 $store_summary = sql_query($sql);
 
-// bill_no 기준 그룹핑하여 목록 조회 (g5_payment 매칭 정보 포함)
+// bill_no 기준 그룹핑하여 목록 조회 (g5_payment 매칭 정보 포함, 현금영수증 금액 제외)
 $sql = "SELECT mp.bill_no, mp.st_uid, mp.st_name, mp.sal_ymd, mp.bill_table_no, mp.bill_status, mp.bill_amount, mp.bill_vat, mp.bill_discount, mp.bill_ordered_at, mp.bill_paid_at,
 	GROUP_CONCAT(DISTINCT mp.pay_method SEPARATOR '||') as pay_methods,
 	GROUP_CONCAT(CONCAT_WS(':', IFNULL(mp.pay_method,''), IFNULL(mp.pay_issuer,''), IFNULL(mp.pay_card_no,''), IFNULL(mp.pay_auth_number,''), IFNULL(mp.pay_cash_id,''), mp.pay_amount, IFNULL(mp.g5_pay_id,'')) SEPARATOR '||') as pay_details,
-	SUM(mp.pay_amount) as total_pay_amount,
+	SUM(IF(NOT ((mp.pay_method LIKE '%현금%' OR LOWER(mp.pay_method) LIKE '%cash%') AND mp.pay_cash_id IS NOT NULL AND mp.pay_cash_id != ''), mp.pay_amount, 0)) as total_pay_amount,
 	GROUP_CONCAT(DISTINCT mp.g5_pay_id SEPARATOR ',') as g5_pay_ids
 	FROM {$table_name} mp
 	{$sql_where_mp}
@@ -433,6 +434,10 @@ include_once('./_head.php');
 	background: #e8f5e9;
 	color: #2e7d32;
 }
+.pay-method-badge.cash-receipt {
+	background: #fff3e0;
+	color: #e65100;
+}
 
 /* 금액 셀 */
 td.amount {
@@ -497,6 +502,10 @@ tr.row-cancel td {
 }
 .pay-detail-amount.negative {
 	color: #c62828;
+}
+.pay-detail-amount.cash-receipt {
+	color: #9e9e9e;
+	text-decoration: line-through;
 }
 /* PG 매칭 배지 */
 .pg-match-badge {
@@ -934,7 +943,21 @@ tr.row-cancel td {
 						<?php
 						if(count($pay_details_arr) > 0) {
 							foreach($pay_details_arr as $pd) {
-								$method_class = (strpos(strtolower($pd['method']), '현금') !== false || strpos(strtolower($pd['method']), 'cash') !== false) ? 'cash' : '';
+								$is_cash = (strpos(strtolower($pd['method']), '현금') !== false || strpos(strtolower($pd['method']), 'cash') !== false);
+								$has_cash_id = !empty($pd['cash_id']); // 핸드폰번호 있으면 현금영수증
+								$is_cash_receipt = ($is_cash && $has_cash_id);
+
+								if($is_cash_receipt) {
+									$method_class = 'cash-receipt';
+									$method_display = '현금영수증';
+								} else if($is_cash) {
+									$method_class = 'cash';
+									$method_display = $pd['method'];
+								} else {
+									$method_class = '';
+									$method_display = $pd['method'];
+								}
+
 								$card_info = $pd['card_no'] ?: $pd['cash_id'];
 								if($pd['issuer'] && $card_info) {
 									$card_info = $pd['issuer'] . ' ' . $card_info;
@@ -946,7 +969,7 @@ tr.row-cancel td {
 						?>
 							<div class="pay-detail-item">
 								<span class="pay-detail-method">
-									<span class="pay-method-badge <?php echo $method_class; ?>"><?php echo htmlspecialchars($pd['method']); ?></span>
+									<span class="pay-method-badge <?php echo $method_class; ?>"><?php echo htmlspecialchars($method_display); ?></span>
 									<?php if($has_pg_match) { ?>
 									<span class="pg-match-badge" title="PG결제 매칭됨 (pay_id: <?php echo $pd['g5_pay_id']; ?>)"><i class="fa fa-link"></i>PG</span>
 									<?php } ?>
@@ -957,7 +980,7 @@ tr.row-cancel td {
 								<?php if($pd['auth_no']) { ?>
 								<span class="pay-detail-auth"><?php echo htmlspecialchars($pd['auth_no']); ?></span>
 								<?php } ?>
-								<span class="pay-detail-amount <?php echo $amount_class; ?>">
+								<span class="pay-detail-amount <?php echo $is_cash_receipt ? 'cash-receipt' : $amount_class; ?>" <?php if($is_cash_receipt) echo 'title="현금영수증 (결제금액 미포함)"'; ?>>
 									<?php echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($pd['amount']); ?>
 								</span>
 							</div>
