@@ -20,7 +20,8 @@
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\n기능 개선: 정산조회 구분 컬럼, 수수료관리 윈글로벌, 툴팁 스타일\n\n- 실시간 정산조회: 구분\\(OX\\) 컬럼 영업점 이상 레벨에서 표시\n- 정산조회 엑셀: 구분 컬럼 추가, 접근 권한 mb_level >= 4로 변경\n- 수수료 관리: 윈글로벌 PG 추가 \\(다우, 코페이, 다날 통합 검색\\)\n- 실시간 결제내역: paysis_keyin PG명 ''페이시스''로 표시\n- 툴팁: min-height 추가로 단일 항목 표시 개선\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\n스시이안앤 결제정보에서 현금영수증 금액 제외\n\n- 현금+핸드폰번호 있으면 현금영수증으로 판별\n- 통계/합계에서 현금영수증 금액 제외\n- UI에서 현금영수증 별도 표시 \\(오렌지 배지, 취소선\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []
