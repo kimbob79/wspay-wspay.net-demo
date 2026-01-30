@@ -85,6 +85,9 @@ RewriteRule ^pay/cancel/?$ index.php?p=manual_payment_cancel [QSA,L]
 RewriteRule ^pay/config/?$ index.php?p=manual_payment_config [QSA,L]
 RewriteRule ^pay/merchant/?$ index.php?p=member_keyin_config [QSA,L]
 
+# URL결제 (공개 결제 페이지 - 9자리 영숫자 코드)
+RewriteRule ^pay/([A-Za-z0-9]{9})$ url_payment_public.php?code=$1 [QSA,L]
+
 # 결제 관련
 RewriteRule ^txn/merchant/?$ index.php?p=payment_member [QSA,L]
 RewriteRule ^txn/missing/?$ index.php?p=payment_loss [QSA,L]
@@ -119,3 +122,14 @@ RewriteRule ^board/?$ index.php?p=bbs [QSA,L]
 
 # 로그아웃
 RewriteRule ^logout/?$ index.php?p=logout [QSA,L]
+
+# ========================================
+# API v1 Endpoints
+# ========================================
+# URL결제 API
+RewriteRule ^api/v1/url-payment/create/?$ api/v1/url_payment_create.php [QSA,L]
+RewriteRule ^api/v1/url-payment/list/?$ api/v1/url_payment_list.php [QSA,L]
+RewriteRule ^api/v1/url-payment/detail/?$ api/v1/url_payment_detail.php [QSA,L]
+RewriteRule ^api/v1/url-payment/cancel/?$ api/v1/url_payment_cancel.php [QSA,L]
+RewriteRule ^api/v1/url-payment/resend-sms/?$ api/v1/url_payment_resend_sms.php [QSA,L]
+RewriteRule ^api/v1/url-payment/pg-list/?$ api/v1/url_payment_pg_list.php [QSA,L]

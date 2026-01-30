@@ -346,6 +346,11 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/pay" target="_self" class="gnb_1da <?php if($p == "manual_payment") { echo "on"; } ?>"><i class="fa fa-credit-card"></i> <span>수기결제</span></a>
 				</li>
+				<?php if($is_admin) { ?>
+				<li class="gnb_1dli">
+					<a href="/?p=url_payment" target="_self" class="gnb_1da <?php if($p == "url_payment" || $p == "url_payment_form") { echo "on"; } ?>"><i class="fa fa-link"></i> <span>URL결제</span></a>
+				</li>
+				<?php } ?>
 			</ul>
 		</div>
 		<?php } ?>
