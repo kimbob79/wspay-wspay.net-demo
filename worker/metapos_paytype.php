@@ -150,7 +150,8 @@ function savePaymentData($mysqli, $api_data, $store) {
         'inserted' => 0,
         'skipped'  => 0,
         'matched'  => 0,
-        'updated'  => 0,  // 기존 데이터 매칭 업데이트 카운트
+        'updated'  => 0,  // 기존 데이터 업데이트 카운트
+        'status_changed' => 0,  // bill_status 변경 카운트 (S→C 취소 등)
         'errors'   => array()
     );
 
@@ -181,7 +182,7 @@ function savePaymentData($mysqli, $api_data, $store) {
         $g5_pay_id = findG5PaymentMatch($mysqli, $sal_ymd, $pay_auth_number, $pay_amount);
 
         // 중복 체크 (unique key: st_uid, sal_ymd, sal_seq, bill_sal_seq)
-        $check_sql = "SELECT mp_id, g5_pay_id FROM metapos_payment
+        $check_sql = "SELECT mp_id, g5_pay_id, bill_status FROM metapos_payment
                       WHERE st_uid = '" . $mysqli->real_escape_string($st_uid) . "'
                       AND sal_ymd = '" . $mysqli->real_escape_string($sal_ymd) . "'
                       AND sal_seq = " . (int)$sal_seq . "
@@ -192,13 +193,29 @@ function savePaymentData($mysqli, $api_data, $store) {
         if ($check_result && $check_result->num_rows > 0) {
             // 이미 존재하는 데이터
             $existing = $check_result->fetch_assoc();
+            $need_update = false;
+            $update_fields = array();
 
-            // 기존에 미매칭이었는데 이번에 매칭된 경우 UPDATE
+            // 1. bill_status 변경 체크 (S→C 취소 처리 등)
+            $new_bill_status = $payment['bill_status'] ?? 'S';
+            if ($existing['bill_status'] != $new_bill_status) {
+                $update_fields[] = "bill_status = '" . $mysqli->real_escape_string($new_bill_status) . "'";
+                $need_update = true;
+                $result['status_changed']++;
+            }
+
+            // 2. 기존에 미매칭이었는데 이번에 매칭된 경우
             if (empty($existing['g5_pay_id']) && $g5_pay_id) {
-                $update_sql = "UPDATE metapos_payment SET g5_pay_id = {$g5_pay_id} WHERE mp_id = " . (int)$existing['mp_id'];
+                $update_fields[] = "g5_pay_id = {$g5_pay_id}";
+                $need_update = true;
+                $result['matched']++;
+            }
+
+            // 업데이트 실행
+            if ($need_update && count($update_fields) > 0) {
+                $update_sql = "UPDATE metapos_payment SET " . implode(', ', $update_fields) . " WHERE mp_id = " . (int)$existing['mp_id'];
                 if ($mysqli->query($update_sql)) {
                     $result['updated']++;
-                    $result['matched']++;
                 }
             }
 
@@ -264,7 +281,7 @@ function savePaymentData($mysqli, $api_data, $store) {
 
 // 결과 배열
 $results = [];
-$total_sync = array('inserted' => 0, 'skipped' => 0, 'matched' => 0, 'updated' => 0, 'errors' => array());
+$total_sync = array('inserted' => 0, 'skipped' => 0, 'matched' => 0, 'updated' => 0, 'status_changed' => 0, 'errors' => array());
 
 // 각 매장별로 API 호출
 while ($store = $store_result->fetch_assoc()) {
@@ -278,13 +295,14 @@ while ($store = $store_result->fetch_assoc()) {
     $api_result = callMetaposApi($api_url, $api_key, $params);
 
     // API 호출 성공 시 DB 저장
-    $sync_result = array('inserted' => 0, 'skipped' => 0, 'matched' => 0, 'updated' => 0, 'errors' => array());
+    $sync_result = array('inserted' => 0, 'skipped' => 0, 'matched' => 0, 'updated' => 0, 'status_changed' => 0, 'errors' => array());
     if ($api_result['success'] && isset($api_result['data']['RtnResult']) && $api_result['data']['RtnResult'] === '000') {
         $sync_result = savePaymentData($mysqli, $api_result['data'], $store);
         $total_sync['inserted'] += $sync_result['inserted'];
         $total_sync['skipped'] += $sync_result['skipped'];
         $total_sync['matched'] += $sync_result['matched'];
         $total_sync['updated'] += $sync_result['updated'];
+        $total_sync['status_changed'] += $sync_result['status_changed'];
         $total_sync['errors'] = array_merge($total_sync['errors'], $sync_result['errors']);
     }
 
@@ -316,6 +334,7 @@ echo json_encode(array(
         'skipped'  => $total_sync['skipped'],
         'matched'  => $total_sync['matched'],
         'updated'  => $total_sync['updated'],
+        'status_changed' => $total_sync['status_changed'],
         'errors'   => $total_sync['errors']
     ),
     'results'     => $results

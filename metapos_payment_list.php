@@ -755,9 +755,9 @@ tr.row-cancel td {
 					<div class="stat-value" id="syncMatched">0</div>
 					<div class="stat-label">PG매칭</div>
 				</div>
-				<div class="stat-item" style="color:#ff9800;">
-					<div class="stat-value" id="syncUpdated">0</div>
-					<div class="stat-label">재매칭</div>
+				<div class="stat-item" style="color:#e65100;">
+					<div class="stat-value" id="syncStatusChanged">0</div>
+					<div class="stat-label">취소변경</div>
 				</div>
 			</div>
 			<div id="syncMessage" style="font-size:13px; color:#666;"></div>
@@ -1015,7 +1015,7 @@ tr.row-cancel td {
 						</div>
 					</td>
 					<td class="right amount <?php echo ($row['bill_status'] == 'S') ? 'positive' : 'negative'; ?>" style="font-size:13px;">
-						<?php echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($row['total_pay_amount']); ?>
+						<?php if($row['total_pay_amount'] > 0) { echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($row['total_pay_amount']); } ?>
 					</td>
 				</tr>
 				<?php
@@ -1070,7 +1070,7 @@ function syncPayments() {
 				$('#syncInserted').text(response.sync_total.inserted);
 				$('#syncSkipped').text(response.sync_total.skipped);
 				$('#syncMatched').text(response.sync_total.matched);
-				$('#syncUpdated').text(response.sync_total.updated || 0);
+				$('#syncStatusChanged').text(response.sync_total.status_changed || 0);
 				$('#syncMessage').text('총 ' + response.store_count + '개 매장 처리 완료');
 				$('#syncResultOverlay').addClass('show');
 			} else {
