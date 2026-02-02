@@ -136,6 +136,13 @@ include_once('./_head.php');
     box-shadow: 0 2px 8px rgba(0, 150, 136, 0.3);
 }
 
+.url-payment-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
 .url-payment-title {
     color: #fff;
     font-size: 16px;
@@ -149,42 +156,48 @@ include_once('./_head.php');
     font-size: 18px;
 }
 
-.stats-card {
-    background: #fff;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #e0e0e0;
+.url-payment-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    background: #f8f9fa;
-}
-
-.stat-item.active { background: #e3f2fd; }
-.stat-item.used { background: #e8f5e9; }
-.stat-item.expired { background: #fff3e0; }
-.stat-item.cancelled { background: #ffebee; }
-
-.stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #333;
-}
-
-.stat-label {
+.url-payment-stat {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 4px 10px;
     font-size: 12px;
-    color: #666;
-    margin-top: 4px;
+    color: rgba(255,255,255,0.85);
+    gap: 6px;
+}
+
+.url-payment-stat.active {
+    background: rgba(33,150,243,0.3);
+}
+
+.url-payment-stat.used {
+    background: rgba(76,175,80,0.3);
+}
+
+.url-payment-stat.expired {
+    background: rgba(255,152,0,0.3);
+}
+
+.url-payment-stat.cancelled {
+    background: rgba(244,67,54,0.3);
+}
+
+.url-payment-stat.total {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    font-weight: 600;
+}
+
+.url-payment-stat span {
+    color: #fff;
+    font-weight: 600;
 }
 
 .url-payment-search {
@@ -325,9 +338,6 @@ include_once('./_head.php');
     width: 100%;
     background: #fff;
     border-collapse: collapse;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    overflow: hidden;
     font-size: 13px;
 }
 
@@ -408,10 +418,40 @@ include_once('./_head.php');
 .pagination a:hover { background: #f5f5f5; }
 .pagination .current { background: #009688; color: #fff; border-color: #009688; }
 
+/* 테이블 스크롤 컨테이너 */
+.url-table-scroll {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.url-table-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.url-table-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.url-table-scroll::-webkit-scrollbar-thumb {
+    background: #009688;
+    border-radius: 3px;
+}
+
+.url-payment-table {
+    min-width: 900px;
+}
+
 @media (max-width: 768px) {
-    .url-payment-table { font-size: 11px; }
-    .url-payment-table th, .url-payment-table td { padding: 8px 4px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .url-payment-container { padding: 10px; }
+    .url-payment-header { padding: 10px 12px; margin-bottom: 8px; }
+    .url-payment-header-top { margin-bottom: 8px; }
+    .url-payment-title { font-size: 14px; }
+    .url-payment-stats { gap: 4px; }
+    .url-payment-stat { font-size: 10px; padding: 3px 6px; }
     .url-payment-search { padding: 8px; }
     .search-row {
         flex-direction: column;
@@ -456,42 +496,39 @@ include_once('./_head.php');
     .btn-search, .btn-create {
         padding: 6px 16px;
     }
+    .url-table-scroll {
+        margin: 0 -10px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    .url-payment-table { font-size: 12px; }
+    .url-payment-table th, .url-payment-table td { padding: 10px 8px; white-space: nowrap; }
 }
 </style>
 
 <div class="url-payment-container">
     <div class="url-payment-header">
-        <div class="url-payment-title">
-            <i class="fa fa-link"></i> URL결제 관리
+        <div class="url-payment-header-top">
+            <div class="url-payment-title">
+                <i class="fa fa-link"></i> URL결제 관리
+            </div>
         </div>
-    </div>
-
-    <!-- 통계 카드 -->
-    <div class="stats-card">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-value"><?php echo number_format($stats['total_count']); ?></div>
-                <div class="stat-label">전체</div>
+        <div class="url-payment-stats">
+            <div class="url-payment-stat active">
+                활성 <span><?php echo number_format($stats['active_count']); ?>건</span>
             </div>
-            <div class="stat-item active">
-                <div class="stat-value"><?php echo number_format($stats['active_count']); ?></div>
-                <div class="stat-label">활성</div>
+            <div class="url-payment-stat used">
+                결제완료 <span><?php echo number_format($stats['used_count']); ?>건</span> / <span><?php echo number_format($stats['paid_amount']); ?>원</span>
             </div>
-            <div class="stat-item used">
-                <div class="stat-value"><?php echo number_format($stats['used_count']); ?></div>
-                <div class="stat-label">결제완료</div>
+            <div class="url-payment-stat expired">
+                만료 <span><?php echo number_format($stats['expired_count']); ?>건</span>
             </div>
-            <div class="stat-item expired">
-                <div class="stat-value"><?php echo number_format($stats['expired_count']); ?></div>
-                <div class="stat-label">만료</div>
+            <div class="url-payment-stat cancelled">
+                취소 <span><?php echo number_format($stats['cancelled_count']); ?>건</span>
             </div>
-            <div class="stat-item cancelled">
-                <div class="stat-value"><?php echo number_format($stats['cancelled_count']); ?></div>
-                <div class="stat-label">취소</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value"><?php echo number_format($stats['paid_amount']); ?></div>
-                <div class="stat-label">결제금액(원)</div>
+            <div class="url-payment-stat total">
+                전체 <span><?php echo number_format($stats['total_count']); ?>건</span>
             </div>
         </div>
     </div>
@@ -544,6 +581,7 @@ include_once('./_head.php');
     </div>
 
     <!-- 데이터 테이블 -->
+    <div class="url-table-scroll">
     <table class="url-payment-table">
         <thead>
             <tr>
@@ -610,6 +648,7 @@ include_once('./_head.php');
             <?php } ?>
         </tbody>
     </table>
+    </div>
 
     <!-- 페이지네이션 -->
     <?php if($total_page > 1) { ?>
