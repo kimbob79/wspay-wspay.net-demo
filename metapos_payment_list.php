@@ -103,21 +103,19 @@ while($row = sql_fetch_array($store_result)) {
 
 // 전체 통계 조회 (필터 적용) - bill_no 기준으로 카운트
 // 취소(C)는 '이전 매출이 취소됨'을 의미하므로 순매출 = 매출(S)만 계산
-// 현금영수증(현금+핸드폰번호)은 결제금액에서 제외
 $sql = "SELECT
 	COUNT(DISTINCT bill_no) as total_cnt,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
-	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_sale_amount,
-	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as total_cancel_amount
+	SUM(IF(bill_status = 'S', pay_amount, 0)) as total_sale_amount,
+	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
 
-// 부가세는 bill_no 단위로 중복 없이 계산 (영수증당 1번만, 현금영수증 제외)
+// 부가세는 bill_no 단위로 중복 없이 계산 (영수증당 1번만)
 $vat_sql = "SELECT COALESCE(SUM(vat), 0) as total_vat FROM (
 	SELECT bill_no, MAX(bill_vat) as vat
 	FROM {$table_name} {$sql_where} AND bill_status = 'S'
-	AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != '')
 	GROUP BY bill_no
 ) vat_sub";
 $vat_result = sql_fetch($vat_sql);
@@ -131,13 +129,12 @@ $total_page = ceil($total_count / $rows);
 if($page < 1) $page = 1;
 $from_record = ($page - 1) * $rows;
 
-// 가맹점별 합계 조회 (현금영수증 제외, 부가세는 bill_no 단위로 계산)
-// 먼저 가맹점별 부가세 조회 (bill_no 단위로 중복 제거, 현금영수증 제외)
+// 가맹점별 합계 조회 (부가세는 bill_no 단위로 계산)
+// 먼저 가맹점별 부가세 조회 (bill_no 단위로 중복 제거)
 $store_vat_map = array();
 $vat_store_sql = "SELECT st_uid, SUM(vat) as sale_vat FROM (
 	SELECT st_uid, bill_no, MAX(bill_vat) as vat
 	FROM {$table_name} {$sql_where} AND bill_status = 'S'
-	AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != '')
 	GROUP BY st_uid, bill_no
 ) vat_sub GROUP BY st_uid";
 $vat_store_result = sql_query($vat_store_sql);
@@ -148,8 +145,8 @@ while($vat_row = sql_fetch_array($vat_store_result)) {
 $sql = "SELECT
 	st_uid, st_name,
 	COUNT(DISTINCT bill_no) as pay_cnt,
-	SUM(IF(bill_status = 'S' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as sale_amount,
-	SUM(IF(bill_status = 'C' AND NOT ((pay_method LIKE '%현금%' OR LOWER(pay_method) LIKE '%cash%') AND pay_cash_id IS NOT NULL AND pay_cash_id != ''), pay_amount, 0)) as cancel_amount,
+	SUM(IF(bill_status = 'S', pay_amount, 0)) as sale_amount,
+	SUM(IF(bill_status = 'C', pay_amount, 0)) as cancel_amount,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt
 	FROM {$table_name} {$sql_where}
@@ -157,11 +154,11 @@ $sql = "SELECT
 	ORDER BY sale_amount DESC";
 $store_summary = sql_query($sql);
 
-// bill_no 기준 그룹핑하여 목록 조회 (g5_payment 매칭 정보 포함, 현금영수증 금액 제외)
+// bill_no 기준 그룹핑하여 목록 조회 (g5_payment 매칭 정보 포함)
 $sql = "SELECT mp.bill_no, mp.st_uid, mp.st_name, mp.sal_ymd, mp.bill_table_no, mp.bill_status, mp.bill_amount, mp.bill_vat, mp.bill_discount, mp.bill_ordered_at, mp.bill_paid_at,
 	GROUP_CONCAT(DISTINCT mp.pay_method SEPARATOR '||') as pay_methods,
 	GROUP_CONCAT(CONCAT_WS(':', IFNULL(mp.pay_method,''), IFNULL(mp.pay_issuer,''), IFNULL(mp.pay_card_no,''), IFNULL(mp.pay_auth_number,''), IFNULL(mp.pay_cash_id,''), mp.pay_amount, IFNULL(mp.g5_pay_id,'')) SEPARATOR '||') as pay_details,
-	SUM(IF(NOT ((mp.pay_method LIKE '%현금%' OR LOWER(mp.pay_method) LIKE '%cash%') AND mp.pay_cash_id IS NOT NULL AND mp.pay_cash_id != ''), mp.pay_amount, 0)) as total_pay_amount,
+	SUM(mp.pay_amount) as total_pay_amount,
 	GROUP_CONCAT(DISTINCT mp.g5_pay_id SEPARATOR ',') as g5_pay_ids
 	FROM {$table_name} mp
 	{$sql_where_mp}
@@ -525,8 +522,7 @@ tr.row-cancel td {
 	color: #c62828;
 }
 .pay-detail-amount.cash-receipt {
-	color: #9e9e9e;
-	text-decoration: line-through;
+	color: #ff9800;
 }
 /* PG 매칭 배지 */
 .pg-match-badge {
@@ -1002,7 +998,7 @@ tr.row-cancel td {
 								<?php if($pd['auth_no']) { ?>
 								<span class="pay-detail-auth"><?php echo htmlspecialchars($pd['auth_no']); ?></span>
 								<?php } ?>
-								<span class="pay-detail-amount <?php echo $is_cash_receipt ? 'cash-receipt' : $amount_class; ?>" <?php if($is_cash_receipt) echo 'title="현금영수증 (결제금액 미포함)"'; ?>>
+								<span class="pay-detail-amount <?php echo $amount_class; ?>">
 									<?php echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($pd['amount']); ?>
 								</span>
 							</div>
@@ -1015,7 +1011,7 @@ tr.row-cancel td {
 						</div>
 					</td>
 					<td class="right amount <?php echo ($row['bill_status'] == 'S') ? 'positive' : 'negative'; ?>" style="font-size:13px;">
-						<?php if($row['total_pay_amount'] > 0) { echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($row['total_pay_amount']); } ?>
+						<?php echo ($row['bill_status'] != 'S' ? '-' : '') . number_format($row['total_pay_amount']); ?>
 					</td>
 				</tr>
 				<?php
