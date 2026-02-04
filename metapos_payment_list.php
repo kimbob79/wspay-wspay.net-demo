@@ -41,9 +41,23 @@ $store_table = "metapos_store";
 $stx = isset($_GET['stx']) ? sql_escape_string($_GET['stx']) : '';
 $st_uid_filter = isset($_GET['st_uid']) ? sql_escape_string($_GET['st_uid']) : '';
 
-// 날짜 필터 (기본: 최근 30일)
-$fr_date = isset($_GET['fr_date']) ? $_GET['fr_date'] : date('Ymd', strtotime('-30 days'));
-$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : date('Ymd');
+// 검색 타입 (daily: 일별, monthly: 월별)
+$date_type = isset($_GET['date_type']) ? $_GET['date_type'] : 'daily';
+
+// 날짜 필터 (기본: 오늘)
+if($date_type == 'monthly') {
+	// 월별 검색
+	$search_year = isset($_GET['search_year']) ? intval($_GET['search_year']) : date('Y');
+	$search_month = isset($_GET['search_month']) ? intval($_GET['search_month']) : date('m');
+	$fr_date = sprintf('%04d%02d01', $search_year, $search_month);
+	$to_date = date('Ymt', strtotime($fr_date)); // 해당월 마지막날
+} else {
+	// 일별 검색 (기본: 오늘)
+	$fr_date = isset($_GET['fr_date']) ? $_GET['fr_date'] : date('Ymd');
+	$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : date('Ymd');
+	$search_year = date('Y');
+	$search_month = date('m');
+}
 
 // 날짜 포맷 변환
 $fr_dates = substr($fr_date, 0, 4) . '-' . substr($fr_date, 4, 2) . '-' . substr($fr_date, 6, 2);
@@ -291,6 +305,82 @@ include_once('./_head.php');
 }
 .btn-search:hover {
 	background: #1976d2;
+}
+
+/* 검색 타입 탭 */
+.search-type-tabs {
+	display: flex;
+	gap: 0;
+	margin-bottom: 10px;
+	border-bottom: 2px solid #e0e0e0;
+}
+.search-type-tab {
+	padding: 8px 16px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #666;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	position: relative;
+	transition: color 0.2s;
+}
+.search-type-tab:hover {
+	color: #1565c0;
+}
+.search-type-tab.active {
+	color: #1565c0;
+	font-weight: 600;
+}
+.search-type-tab.active::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -2px;
+	height: 2px;
+	background: #1565c0;
+}
+
+/* 퀵버튼 */
+.quick-btns {
+	display: flex;
+	gap: 4px;
+	margin-left: 8px;
+}
+.quick-btn {
+	padding: 5px 10px;
+	font-size: 11px;
+	background: #f5f5f5;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.15s;
+	white-space: nowrap;
+}
+.quick-btn:hover {
+	background: #e3f2fd;
+	border-color: #1976d2;
+	color: #1565c0;
+}
+.quick-btn.active {
+	background: #1565c0;
+	border-color: #1565c0;
+	color: #fff;
+}
+
+/* 월별 검색 */
+.monthly-search {
+	display: none;
+}
+.monthly-search.active {
+	display: flex;
+}
+.daily-search {
+	display: flex;
+}
+.daily-search.hidden {
+	display: none;
 }
 .btn-sync {
 	padding: 6px 12px;
@@ -684,6 +774,13 @@ tr.row-cancel td {
 	.metapos-pay-search {
 		padding: 8px;
 	}
+	.search-type-tabs {
+		margin-bottom: 8px;
+	}
+	.search-type-tab {
+		padding: 6px 12px;
+		font-size: 12px;
+	}
 	.metapos-pay-search-row {
 		flex-direction: column;
 		align-items: stretch;
@@ -699,6 +796,18 @@ tr.row-cancel td {
 	}
 	.search-divider {
 		display: none;
+	}
+	.quick-btns {
+		width: 100%;
+		margin-left: 0;
+		margin-top: 6px;
+	}
+	.quick-btn {
+		flex: 1;
+		text-align: center;
+	}
+	.daily-search, .monthly-search.active {
+		flex-wrap: wrap;
 	}
 	.summary-cards {
 		grid-template-columns: 1fr;
@@ -795,13 +904,46 @@ tr.row-cancel td {
 
 <form id="fsearch" name="fsearch" method="get">
 <input type="hidden" name="p" value="<?php echo $p; ?>">
+<input type="hidden" name="date_type" id="date_type" value="<?php echo $date_type; ?>">
 <div class="metapos-pay-search">
+	<!-- 검색 타입 탭 -->
+	<div class="search-type-tabs">
+		<button type="button" class="search-type-tab <?php echo $date_type == 'daily' ? 'active' : ''; ?>" onclick="setDateType('daily')">일별</button>
+		<button type="button" class="search-type-tab <?php echo $date_type == 'monthly' ? 'active' : ''; ?>" onclick="setDateType('monthly')">월별</button>
+	</div>
+
 	<div class="metapos-pay-search-row">
-		<div class="metapos-pay-search-group">
-			<input type="text" name="fr_date" class="date-input" value="<?php echo $fr_date; ?>" placeholder="시작일" maxlength="8">
+		<!-- 일별 검색 -->
+		<div class="metapos-pay-search-group daily-search <?php echo $date_type == 'monthly' ? 'hidden' : ''; ?>">
+			<input type="text" name="fr_date" id="fr_date" class="date-input" value="<?php echo $fr_date; ?>" placeholder="시작일" maxlength="8">
 			<span>~</span>
-			<input type="text" name="to_date" class="date-input" value="<?php echo $to_date; ?>" placeholder="종료일" maxlength="8">
+			<input type="text" name="to_date" id="to_date" class="date-input" value="<?php echo $to_date; ?>" placeholder="종료일" maxlength="8">
+			<div class="quick-btns">
+				<button type="button" class="quick-btn" onclick="setQuickDate('today')">오늘</button>
+				<button type="button" class="quick-btn" onclick="setQuickDate('yesterday')">어제</button>
+				<button type="button" class="quick-btn" onclick="setQuickDate('thisMonth')">이번달</button>
+				<button type="button" class="quick-btn" onclick="setQuickDate('lastMonth')">저번달</button>
+			</div>
 		</div>
+
+		<!-- 월별 검색 -->
+		<div class="metapos-pay-search-group monthly-search <?php echo $date_type == 'monthly' ? 'active' : ''; ?>">
+			<select name="search_year" id="search_year" style="width:90px;">
+				<?php for($y = date('Y'); $y >= date('Y') - 3; $y--) { ?>
+				<option value="<?php echo $y; ?>" <?php if($search_year == $y) echo 'selected'; ?>><?php echo $y; ?>년</option>
+				<?php } ?>
+			</select>
+			<select name="search_month" id="search_month" style="width:70px;">
+				<?php for($m = 1; $m <= 12; $m++) { ?>
+				<option value="<?php echo $m; ?>" <?php if($search_month == $m) echo 'selected'; ?>><?php echo $m; ?>월</option>
+				<?php } ?>
+			</select>
+			<div class="quick-btns">
+				<button type="button" class="quick-btn" onclick="setQuickMonth('thisMonth')">이번달</button>
+				<button type="button" class="quick-btn" onclick="setQuickMonth('lastMonth')">저번달</button>
+			</div>
+		</div>
+
 		<?php if(!$is_merchant_view) { ?>
 		<div class="search-divider"></div>
 		<div class="metapos-pay-search-group">
@@ -1044,6 +1186,83 @@ $(function() {
 		showButtonPanel: true
 	});
 });
+
+// 검색 타입 변경
+function setDateType(type) {
+	$('#date_type').val(type);
+	$('.search-type-tab').removeClass('active');
+	$('.search-type-tab').each(function() {
+		if($(this).text().trim() == (type == 'daily' ? '일별' : '월별')) {
+			$(this).addClass('active');
+		}
+	});
+
+	if(type == 'daily') {
+		$('.daily-search').removeClass('hidden');
+		$('.monthly-search').removeClass('active');
+	} else {
+		$('.daily-search').addClass('hidden');
+		$('.monthly-search').addClass('active');
+	}
+}
+
+// 퀵 날짜 설정 (일별)
+function setQuickDate(type) {
+	var today = new Date();
+	var fr, to;
+
+	switch(type) {
+		case 'today':
+			fr = to = formatDate(today);
+			break;
+		case 'yesterday':
+			var yesterday = new Date(today);
+			yesterday.setDate(yesterday.getDate() - 1);
+			fr = to = formatDate(yesterday);
+			break;
+		case 'thisMonth':
+			fr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + '01';
+			to = formatDate(today);
+			break;
+		case 'lastMonth':
+			var lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+			var lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
+			fr = formatDate(lastMonth);
+			to = formatDate(lastDay);
+			break;
+	}
+
+	$('#fr_date').val(fr);
+	$('#to_date').val(to);
+	$('#fsearch').submit();
+}
+
+// 퀵 월 설정 (월별)
+function setQuickMonth(type) {
+	var today = new Date();
+	var year, month;
+
+	if(type == 'thisMonth') {
+		year = today.getFullYear();
+		month = today.getMonth() + 1;
+	} else {
+		var lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+		year = lastMonth.getFullYear();
+		month = lastMonth.getMonth() + 1;
+	}
+
+	$('#search_year').val(year);
+	$('#search_month').val(month);
+	$('#fsearch').submit();
+}
+
+// 날짜 포맷
+function formatDate(date) {
+	var y = date.getFullYear();
+	var m = String(date.getMonth() + 1).padStart(2, '0');
+	var d = String(date.getDate()).padStart(2, '0');
+	return y + m + d;
+}
 
 <?php if($member['mb_level'] >= 10) { ?>
 // 결제 데이터 동기화
