@@ -374,6 +374,7 @@
 						<option value="064" <? if($mb_tel1 == "064") echo "selected"; ?>>064</option>
 						<option value="070" title="인터넷전화 (070)" <? if($mb_tel1 == "070") echo "selected"; ?>>070</option>
 						<option value="050" title="평생전화 (050)" <? if($mb_tel1 == "050") echo "selected"; ?>>050</option>
+						<option value="0507" <? if($mb_tel1 == "0507") echo "selected"; ?>>0507</option>
 					</select>
 					<input type="text" autocomplete="on" name="mb_tel2" value="<?php echo $mb_tel2; ?>" <?php if($basic['mb_tel']) { ?>required<?php } ?> class="frm_input" size="4" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="max-width:60px">
 					<input type="text" autocomplete="on" name="mb_tel3" value="<?php echo $mb_tel3; ?>" <?php if($basic['mb_tel']) { ?>required<?php } ?> class="frm_input" size="4" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="max-width:60px">
