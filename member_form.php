@@ -271,12 +271,19 @@
 			*/ ?>
 
 			<tr>
-				<th><label for="mb_id">수기결제</label></th>
+				<th style="color:#1565c0;"><label for="mb_id">수기결제</label></th>
 				<td>
 					<label><input type="checkbox" name="mb_mailling" value="1" id="mb_mailling" class="frm_input" <?php if($mb['mb_mailling'] == 1) { echo "checked"; } ?>> 수기결제를 허용할경우 체크해주세요</label>
 				</td>
 			</tr>
-			
+			<tr>
+				<th style="color:#1565c0;"><label for="mb_keyin_popup">수기결제창<br>사용여부</label></th>
+				<td>
+					<label><input type="radio" name="mb_keyin_popup" value="1" id="mb_keyin_popup_y" class="frm_input" <?php if($mb['mb_keyin_popup'] != '0') { echo "checked"; } ?>> 사용</label>
+					<label style="margin-left:10px;"><input type="radio" name="mb_keyin_popup" value="0" id="mb_keyin_popup_n" class="frm_input" <?php if($mb['mb_keyin_popup'] == '0') { echo "checked"; } ?>> 미사용</label>
+				</td>
+			</tr>
+
 			<tr>
 				<th style="color:red;"><label for="mb_id">아이디<?php echo $sound_only ?></label></th>
 				<td>

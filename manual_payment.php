@@ -1695,13 +1695,15 @@ function openReceipt(pk_id) {
 </script>
 <?php } ?>
 
-<!-- 플로팅 신규결제 버튼 -->
+<!-- 플로팅 신규결제 버튼 (관리자 또는 수기결제창 사용 회원만 표시) -->
+<?php if($is_admin || $member['mb_keyin_popup'] == '1') { ?>
 <div class="floating-new-payment">
 	<a href="/?p=manual_payment_module">
 		<i class="fa fa-credit-card"></i>
 		신규결제
 	</a>
 </div>
+<?php } ?>
 
 <?php
 include_once('./_tail.php');

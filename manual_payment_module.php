@@ -6,6 +6,11 @@ if(!$is_admin && $member['mb_mailling'] != '1') {
 	alert("수기결제 권한이 없습니다.");
 }
 
+// 수기결제창 사용 권한 체크 (관리자는 항상 허용)
+if(!$is_admin && $member['mb_keyin_popup'] != '1') {
+	alert("수기결제창 사용 권한이 없습니다.");
+}
+
 $title1 = "수기결제";
 $title2 = "수기결제";
 
