@@ -511,6 +511,44 @@ if($payMethod) {
 		sql_query("UPDATE g5_payment_paysis SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$paysis_insert_id}'");
 	}
 
+	// ========================================
+	// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
+	// ========================================
+	if($sync_status == 'success' && $row2['mb_6']) {
+		$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
+		if(file_exists($webhook_lib)) {
+			@include_once($webhook_lib);
+			if(function_exists('webhook_send_notification')) {
+				// PG 데이터 수집
+				$pg_data = [
+					'tid' => $tid,
+					'ordNo' => $ordNo,
+					'appNo' => $appNo,
+					'amt' => $amt,
+					'appDtm' => $appDtm,
+					'ccDnt' => $ccDnt,
+					'cancelYN' => $cancelYN,
+					'appCardCd' => $appCardCd,
+					'cardNo' => $cardNo,
+					'quota' => $quota,
+					'fnNm' => $fnNm,
+					'goodsName' => $goodsName,
+					'ordNm' => $ordNm
+				];
+
+				// 결제 데이터
+				$payment_data = [
+					'pay_id' => sql_insert_id(),
+					'pay_type' => $pay_type
+				];
+
+				// 웹훅 발송
+				@webhook_send_notification($row2['mb_6'], ($connCd == '0005') ? 'paysis_keyin' : 'paysis', $pg_data, $row2, $payment_data);
+			}
+		}
+	}
+	// ========================================
+
 	if($noError == false) {
 		echo 'OK';
 	} else {

@@ -305,6 +305,38 @@ if($payMethod) {
 	if(!$pay['pay_id']) {
 		$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
 		sql_query($sql);
+
+		// ========================================
+		// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
+		// ========================================
+		if($row2['mb_6']) {
+			$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
+			if(file_exists($webhook_lib)) {
+				@include_once($webhook_lib);
+				if(function_exists('webhook_send_notification')) {
+					$pg_data = [
+						'tid' => $tid,
+						'ordNo' => $ordNo,
+						'appNo' => $appNo,
+						'amt' => $amt,
+						'appDtm' => $appDtm,
+						'ccDnt' => $ccDnt,
+						'cancelYN' => $cancelYN,
+						'appCardCd' => $appCardCd,
+						'cardNo' => $cardNo,
+						'quota' => $quota,
+						'goodsName' => $goodsName,
+						'ordNm' => $ordNm
+					];
+					$payment_data = [
+						'pay_id' => sql_insert_id(),
+						'pay_type' => $pay_type
+					];
+					@webhook_send_notification($row2['mb_6'], 'korpay', $pg_data, $row2, $payment_data);
+				}
+			}
+		}
+		// ========================================
 	}
 
 	if($noError == false) {

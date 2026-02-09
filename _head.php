@@ -590,6 +590,12 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/?p=manual_payment_config" target="_self" class="gnb_1da <?php if($p == "manual_payment_config") { echo "on"; } ?>"><span>수기 대표가맹점 설정</span></a>
 				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=webhook_config" target="_self" class="gnb_1da <?php if($p == "webhook_config" || $p == "webhook_config_form") { echo "on"; } ?>"><span>결제통보 설정</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=webhook_history" target="_self" class="gnb_1da <?php if($p == "webhook_history") { echo "on"; } ?>"><span>결제통보 이력</span></a>
+				</li>
 			</ul>
 		</div>
 		<?php } ?>

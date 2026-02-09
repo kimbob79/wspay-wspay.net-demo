@@ -263,5 +263,38 @@ if($catId) {
 		sql_query("UPDATE g5_payment_daou SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$daou_insert_id}'");
 	}
 
+	// ========================================
+	// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
+	// ========================================
+	if($sync_status == 'success' && $row2['mb_6']) {
+		$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
+		if(file_exists($webhook_lib)) {
+			@include_once($webhook_lib);
+			if(function_exists('webhook_send_notification')) {
+				$pg_data = [
+					'tid' => $tid,
+					'ordNo' => $ediNo,
+					'appNo' => $appNo,
+					'amt' => $amt,
+					'appDtm' => $appDtm,
+					'ccDnt' => $ccDnt,
+					'cancelYN' => $cancelYN,
+					'appCardCd' => '',
+					'cardNo' => $cardNo,
+					'quota' => $quota,
+					'fnNm' => $cardNm,
+					'goodsName' => $goodsName,
+					'ordNm' => $ordNm
+				];
+				$payment_data = [
+					'pay_id' => sql_insert_id(),
+					'pay_type' => $pay_type
+				];
+				@webhook_send_notification($row2['mb_6'], 'daou', $pg_data, $row2, $payment_data);
+			}
+		}
+	}
+	// ========================================
+
 	echo 'OK';
 }

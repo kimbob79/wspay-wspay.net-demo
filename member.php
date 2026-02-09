@@ -506,6 +506,15 @@ select { width:100px; }
 							<a href="./?p=member_delete&mb_id=<?php echo $row['mb_id']; ?>&level=<?php echo $level; ?>&sfl=<?php echo $sfl; ?>&stx=<?php echo $stx; ?>&page=<?php echo $page; ?>" class="btn_b btn_b06" onclick="return confirm('정말 <?php echo $row['mb_nick']; ?>님을 <?php if($level == "1") { echo "복구"; } else { echo "삭제"; } ?> 하시겠습니까');"><?php if($level == "1") { echo "복구"; } else { echo "삭제"; } ?></a>
 							<?php } ?>
 							<a href="./?p=login_user&mb_id=<?php echo $row['mb_id']; ?>" class="btn_b btn_b03">로그인</a>
+							<?php if($level == '3') {
+								// 결제통보 설정 여부 확인
+								$wh_check = sql_fetch("SELECT wh_id, wh_status FROM g5_member_webhook WHERE mb_id = '{$row['mb_id']}'");
+								$return_url = urlencode("?p=member&level={$level}&mb_nick={$mb_nick}&dv_tid={$dv_tid}&keyin_filter={$keyin_filter}&page={$page}");
+							?>
+							<a href="./?p=webhook_config_form&mb_id=<?php echo $row['mb_id']; ?>&return=<?php echo $return_url; ?>" class="btn_b <?php echo $wh_check['wh_id'] ? ($wh_check['wh_status'] == 'active' ? 'btn_b01' : 'btn_b06') : 'btn_b04'; ?>">
+								통보<?php if($wh_check['wh_id']) echo ($wh_check['wh_status'] == 'active' ? ' ●' : ' ○'); ?>
+							</a>
+							<?php } ?>
 							<?php
 								//if($level == "3") {
 								//$mb_7 = preg_replace('/[^0-9]*/s', '', $row['mb_7']);

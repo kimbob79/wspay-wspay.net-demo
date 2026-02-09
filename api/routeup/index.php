@@ -438,6 +438,38 @@ if($trx_id) {
 		sql_query("UPDATE g5_payment_routeup SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$routeup_insert_id}'");
 	}
 
+	// ========================================
+	// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
+	// ========================================
+	if($sync_status == 'success' && $row2['mb_6']) {
+		$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
+		if(file_exists($webhook_lib)) {
+			@include_once($webhook_lib);
+			if(function_exists('webhook_send_notification')) {
+				$pg_data = [
+					'tid' => $trx_id_for_payment,
+					'ordNo' => $ord_num,
+					'appNo' => $appr_num,
+					'amt' => $amount,
+					'appDtm' => $trx_dttm,
+					'cancelYN' => ($trx_type == 'CANCEL') ? 'Y' : 'N',
+					'appCardCd' => '',
+					'cardNo' => $card_num,
+					'quota' => $installment,
+					'fnNm' => $issuer,
+					'goodsName' => '',
+					'ordNm' => ''
+				];
+				$payment_data = [
+					'pay_id' => sql_insert_id(),
+					'pay_type' => $pay_type
+				];
+				@webhook_send_notification($row2['mb_6'], 'routeup', $pg_data, $row2, $payment_data);
+			}
+		}
+	}
+	// ========================================
+
 	// 성공 응답 (routeup 규격: HTTP 200, body: {})
 	echo json_encode(new stdClass());
 
