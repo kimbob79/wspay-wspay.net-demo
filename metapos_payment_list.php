@@ -122,7 +122,9 @@ $sql = "SELECT
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
 	SUM(IF(bill_status = 'S', pay_amount, 0)) as total_sale_amount,
-	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount
+	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%', pay_amount, 0)) as card_sale_amount,
+	SUM(IF(bill_status = 'S' AND (pay_method LIKE '%현금%' OR pay_method LIKE '%cash%'), pay_amount, 0)) as cash_sale_amount
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
 
@@ -162,7 +164,9 @@ $sql = "SELECT
 	SUM(IF(bill_status = 'S', pay_amount, 0)) as sale_amount,
 	SUM(IF(bill_status = 'C', pay_amount, 0)) as cancel_amount,
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
-	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt
+	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%', pay_amount, 0)) as card_sale_amount,
+	SUM(IF(bill_status = 'S' AND (pay_method LIKE '%현금%' OR pay_method LIKE '%cash%'), pay_amount, 0)) as cash_sale_amount
 	FROM {$table_name} {$sql_where}
 	GROUP BY st_uid, st_name
 	ORDER BY sale_amount DESC";
@@ -895,6 +899,12 @@ tr.row-cancel td {
 			<div class="metapos-pay-stat sale">
 				순매출 <span><?php echo number_format($stat['total_sale_amount']); ?>원</span>
 			</div>
+			<div class="metapos-pay-stat" style="background: rgba(100,181,246,0.3);">
+				카드 <span><?php echo number_format($stat['card_sale_amount']); ?>원</span>
+			</div>
+			<div class="metapos-pay-stat" style="background: rgba(129,199,132,0.3);">
+				현금 <span><?php echo number_format($stat['cash_sale_amount']); ?>원</span>
+			</div>
 			<div class="metapos-pay-stat" style="background: rgba(255,193,7,0.3);">
 				부가세 <span><?php echo number_format($stat['total_sale_vat']); ?>원</span>
 			</div>
@@ -996,6 +1006,16 @@ tr.row-cancel td {
 					<div class="summary-card-value" style="color:#ffeb3b;"><?php echo number_format($stat['total_sale_vat']); ?></div>
 				</div>
 			</div>
+			<div class="summary-card-body" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.15);">
+				<div class="summary-card-item">
+					<div class="summary-card-label">카드</div>
+					<div class="summary-card-value" style="color:#90caf9;"><?php echo number_format($stat['card_sale_amount']); ?></div>
+				</div>
+				<div class="summary-card-item">
+					<div class="summary-card-label">현금</div>
+					<div class="summary-card-value" style="color:#a5d6a7;"><?php echo number_format($stat['cash_sale_amount']); ?></div>
+				</div>
+			</div>
 		</div>
 		<?php
 		// 가맹점별 카드 (관리자만 표시)
@@ -1017,6 +1037,16 @@ tr.row-cancel td {
 				<div class="summary-card-item">
 					<div class="summary-card-label">부가세</div>
 					<div class="summary-card-value" style="color:#ff9800;"><?php echo number_format($store_vat); ?></div>
+				</div>
+			</div>
+			<div class="summary-card-body" style="margin-top:6px; padding-top:6px; border-top:1px solid #eee;">
+				<div class="summary-card-item">
+					<div class="summary-card-label">카드</div>
+					<div class="summary-card-value" style="color:#1565c0;"><?php echo number_format($sum['card_sale_amount']); ?></div>
+				</div>
+				<div class="summary-card-item">
+					<div class="summary-card-label">현금</div>
+					<div class="summary-card-value" style="color:#2e7d32;"><?php echo number_format($sum['cash_sale_amount']); ?></div>
 				</div>
 			</div>
 		</div>
