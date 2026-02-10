@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제통보 연동 가이드 - 원성페이먼츠</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', sans-serif; font-size: 14px; line-height: 1.6; color: #333; background: #fff; }
+        a { color: #5a2d82; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { font-family: Consolas, 'Courier New', monospace; background: #f5f5f5; padding: 2px 5px; font-size: 13px; }
+        pre { background: #282c34; border: none; padding: 15px; overflow-x: auto; font-size: 13px; line-height: 1.5; font-family: Consolas, 'Courier New', monospace; }
+        pre code { background: none; padding: 0; color: #abb2bf; }
+        pre code.hljs { padding: 15px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; vertical-align: top; }
+        th { background: #f9f9f9; font-weight: 600; }
+
+        /* Layout */
+        .wrap { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 240px; border-right: 1px solid #ddd; background: #fafafa; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-header { height: 90px; padding: 0 20px; border-bottom: 1px solid #ddd; background: #5a2d82; color: #fff; display: flex; flex-direction: column; justify-content: center; }
+        .sidebar-header h1 { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+        .sidebar-header p { font-size: 12px; opacity: 0.9; }
+        .sidebar-nav { padding: 15px 0; }
+        .sidebar-nav a { display: block; padding: 8px 20px; color: #333; font-size: 13px; border-left: 3px solid transparent; }
+        .sidebar-nav a:hover { background: #f0f0f0; text-decoration: none; }
+        .sidebar-nav a.active { border-left-color: #5a2d82; background: #fff; font-weight: 600; }
+        .sidebar-footer { padding: 15px 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        .sidebar-footer strong { display: block; color: #333; }
+
+        /* Main */
+        .main { flex: 1; margin-left: 240px; }
+        .header { height: 90px; background: #5a2d82; color: #fff; padding: 0 40px; display: flex; flex-direction: column; justify-content: center; }
+        .header h2 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+        .header p { font-size: 13px; opacity: 0.9; }
+        .content { padding: 30px 40px; max-width: 900px; }
+
+        /* Section */
+        .section { margin-bottom: 40px; }
+        .section h3 { font-size: 18px; font-weight: 600; color: #5a2d82; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #5a2d82; }
+        .section h4 { font-size: 15px; font-weight: 600; margin: 20px 0 10px; }
+        .section p { margin-bottom: 12px; }
+        .section ul, .section ol { margin: 10px 0 10px 25px; }
+        .section li { margin-bottom: 5px; }
+
+        /* Note */
+        .note { background: #f9f9f9; border: 1px solid #ddd; padding: 12px 15px; margin: 15px 0; font-size: 13px; }
+        .note strong { color: #5a2d82; }
+
+        /* Flow */
+        .flow-table td { text-align: center; background: #fff; }
+        .flow-table .arrow { background: #f9f9f9; font-size: 18px; color: #999; padding: 5px; }
+
+        /* Mobile */
+        .mobile-header { display: none; background: #5a2d82; color: #fff; padding: 12px 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .mobile-header h1 { font-size: 15px; display: inline; }
+        .mobile-header button { float: right; background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 99; }
+
+        @media (max-width: 800px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.2s; z-index: 100; }
+            .sidebar.open { transform: translateX(0); }
+            .overlay.open { display: block; }
+            .mobile-header { display: block; }
+            .main { margin-left: 0; padding-top: 50px; }
+            .header, .content { padding: 20px; }
+            .header h2 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-header">
+    <h1>원성페이먼츠</h1>
+    <button onclick="toggleMenu()">☰</button>
+</div>
+<div class="overlay" onclick="toggleMenu()"></div>
+
+<div class="wrap">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>원성페이먼츠</h1>
+            <p>결제통보 연동 가이드</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#overview">1. 개요</a>
+            <a href="#setup">2. 설정 방법</a>
+            <a href="#events">3. 이벤트 타입</a>
+            <a href="#payload">4. 데이터 형식</a>
+            <a href="#response">5. 응답 처리</a>
+            <a href="#retry">6. 재시도 정책</a>
+            <a href="#example">7. 예제 코드</a>
+            <a href="#test">8. 테스트</a>
+            <a href="#faq">9. FAQ</a>
+        </nav>
+        <div class="sidebar-footer">
+            <strong>고객센터 1555-0985</strong>
+            © 2026 원성페이먼츠
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h2>결제통보 연동 가이드</h2>
+            <p>결제 승인/취소 시 가맹점 서버로 실시간 알림을 수신하는 방법</p>
+        </div>
+
+        <div class="content">
+
+            <section class="section" id="overview">
+                <h3>1. 개요</h3>
+                <p>결제통보는 결제 승인 또는 취소가 발생했을 때 가맹점 서버로 실시간 HTTP POST 요청을 전송하는 기능입니다.</p>
+
+                <h4>처리 흐름</h4>
+                <table class="flow-table">
+                    <tr>
+                        <td>결제 발생</td>
+                        <td class="arrow">→</td>
+                        <td>원성페이먼츠</td>
+                        <td class="arrow">→</td>
+                        <td>결제통보 발송</td>
+                        <td class="arrow">→</td>
+                        <td>가맹점 서버</td>
+                    </tr>
+                </table>
+
+                <div class="note">
+                    <strong>참고:</strong> 결제통보는 이벤트 발생 시 즉시 알림을 받는 방식으로, 주기적 API 호출(폴링) 방식보다 효율적입니다.
+                </div>
+            </section>
+
+            <section class="section" id="setup">
+                <h3>2. 설정 방법</h3>
+                <p>결제통보를 사용하려면 담당자에게 아래 정보를 전달해 주세요.</p>
+
+                <table>
+                    <tr>
+                        <th style="width:120px;">항목</th>
+                        <th>설명</th>
+                        <th>예시</th>
+                    </tr>
+                    <tr>
+                        <td>수신 URL</td>
+                        <td>알림을 수신할 URL (HTTPS 권장)</td>
+                        <td><code>https://yoursite.com/payment-notify</code></td>
+                    </tr>
+                    <tr>
+                        <td>수신 이벤트</td>
+                        <td>수신할 이벤트 타입 선택</td>
+                        <td>승인, 취소</td>
+                    </tr>
+                </table>
+
+                <div class="note">
+                    <strong>보안:</strong> 수신 URL은 외부에 노출되지 않도록 주의하고, HTTPS를 사용해 주세요.
+                </div>
+            </section>
+
+            <section class="section" id="events">
+                <h3>3. 이벤트 타입</h3>
+                <table>
+                    <tr>
+                        <th style="width:100px;">이벤트</th>
+                        <th style="width:180px;">event 값</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td>승인</td>
+                        <td><code>payment.approved</code></td>
+                        <td>결제가 정상적으로 승인되었을 때</td>
+                    </tr>
+                    <tr>
+                        <td>취소</td>
+                        <td><code>payment.cancelled</code></td>
+                        <td>결제가 취소되었을 때</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="section" id="payload">
+                <h3>4. 데이터 형식</h3>
+                <p>결제통보는 <code>POST</code> 방식으로 JSON 데이터를 전송합니다.</p>
+
+                <h4>HTTP Headers</h4>
+                <table>
+                    <tr>
+                        <th style="width:180px;">Header</th>
+                        <th>값</th>
+                    </tr>
+                    <tr>
+                        <td>Content-Type</td>
+                        <td><code>application/json; charset=utf-8</code></td>
+                    </tr>
+                    <tr>
+                        <td>X-Webhook-Event</td>
+                        <td><code>approval</code> 또는 <code>cancel</code></td>
+                    </tr>
+                    <tr>
+                        <td>User-Agent</td>
+                        <td><code>WsPay-Webhook/1.0</code></td>
+                    </tr>
+                </table>
+
+                <h4>JSON 페이로드 (승인 예시)</h4>
+<pre><code class="language-json">{
+  "event": "payment.approved",
+  "version": "1.0",
+  "timestamp": "2026-02-05 14:30:52",
+  "merchant": {
+    "mb_id": "merchant001",
+    "mb_name": "테스트가맹점"
+  },
+  "transaction": {
+    "trx_id": "TXN20260205143052",
+    "order_number": "ORD-2026-0001",
+    "amount": 50000,
+    "approval_number": "12345678",
+    "approval_datetime": "2026-02-05 14:30:00",
+    "cancel_datetime": "",
+    "installment": "00",
+    "device_type": "terminal"
+  },
+  "card": {
+    "card_name": "신한",
+    "card_number": "1234****5678"
+  }
+}</code></pre>
+
+                <h4>필드 설명</h4>
+                <table>
+                    <tr>
+                        <th style="width:220px;">필드</th>
+                        <th style="width:80px;">타입</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr><td><code>event</code></td><td>string</td><td>이벤트 타입</td></tr>
+                    <tr><td><code>version</code></td><td>string</td><td>API 버전</td></tr>
+                    <tr><td><code>timestamp</code></td><td>string</td><td>발송 시간 (YYYY-MM-DD HH:mm:ss)</td></tr>
+                    <tr><td><code>merchant.mb_id</code></td><td>string</td><td>가맹점 ID</td></tr>
+                    <tr><td><code>merchant.mb_name</code></td><td>string</td><td>가맹점명</td></tr>
+                    <tr><td><code>transaction.trx_id</code></td><td>string</td><td>거래 고유번호</td></tr>
+                    <tr><td><code>transaction.order_number</code></td><td>string</td><td>주문번호</td></tr>
+                    <tr><td><code>transaction.amount</code></td><td>number</td><td>결제 금액 (원)</td></tr>
+                    <tr><td><code>transaction.approval_number</code></td><td>string</td><td>승인번호</td></tr>
+                    <tr><td><code>transaction.approval_datetime</code></td><td>string</td><td>승인 일시</td></tr>
+                    <tr><td><code>transaction.cancel_datetime</code></td><td>string</td><td>취소 일시 (취소 시에만, 없으면 빈값)</td></tr>
+                    <tr><td><code>transaction.installment</code></td><td>string</td><td>할부개월 (00: 일시불)</td></tr>
+                    <tr><td><code>transaction.device_type</code></td><td>string</td><td>결제 방식 (terminal/keyin)</td></tr>
+                    <tr><td><code>card.card_name</code></td><td>string</td><td>카드사명</td></tr>
+                    <tr><td><code>card.card_number</code></td><td>string</td><td>카드번호 (마스킹)</td></tr>
+                </table>
+            </section>
+
+            <section class="section" id="response">
+                <h3>5. 응답 처리</h3>
+                <p>결제통보 수신 후 HTTP 2xx 응답을 반환해야 합니다.</p>
+
+                <table>
+                    <tr>
+                        <th style="width:120px;">응답 코드</th>
+                        <th style="width:80px;">결과</th>
+                        <th>비고</th>
+                    </tr>
+                    <tr>
+                        <td>200~299</td>
+                        <td>성공</td>
+                        <td>재시도 없음</td>
+                    </tr>
+                    <tr>
+                        <td>400~599</td>
+                        <td>실패</td>
+                        <td>재시도 진행</td>
+                    </tr>
+                    <tr>
+                        <td>Timeout</td>
+                        <td>실패</td>
+                        <td>3초 내 응답 필요</td>
+                    </tr>
+                </table>
+
+                <div class="note">
+                    <strong>권장:</strong> HTTP 200과 함께 <code>{"status": "ok"}</code> 또는 빈 응답을 반환하세요.<br>
+                    <strong>주의:</strong> 응답 지연 시 결제 처리에 영향을 줄 수 있으므로, 복잡한 처리는 비동기로 수행하세요.
+                </div>
+            </section>
+
+            <section class="section" id="retry">
+                <h3>6. 재시도 정책</h3>
+                <p>결제통보 발송이 실패한 경우 자동으로 재시도합니다.</p>
+
+                <table>
+                    <tr>
+                        <th style="width:150px;">항목</th>
+                        <th>값</th>
+                    </tr>
+                    <tr>
+                        <td>최대 재시도 횟수</td>
+                        <td>3회 (설정에 따라 변경 가능)</td>
+                    </tr>
+                    <tr>
+                        <td>재시도 간격</td>
+                        <td>약 1분</td>
+                    </tr>
+                    <tr>
+                        <td>타임아웃</td>
+                        <td>즉시 발송 3초 / 재시도 10초</td>
+                    </tr>
+                </table>
+
+                <h4>재시도 흐름</h4>
+                <table class="flow-table">
+                    <tr>
+                        <td>즉시 발송<br><small>(3초)</small></td>
+                        <td class="arrow">→</td>
+                        <td>실패 시<br><small>pending 저장</small></td>
+                        <td class="arrow">→</td>
+                        <td>크론 재시도<br><small>(1분 간격)</small></td>
+                        <td class="arrow">→</td>
+                        <td>최대 3회<br><small>초과 시 종료</small></td>
+                    </tr>
+                </table>
+            </section>
+
+            <section class="section" id="example">
+                <h3>7. 예제 코드</h3>
+
+                <h4>PHP</h4>
+<pre><code class="language-php">&lt;?php
+// 결제통보 수신 처리
+
+// 1. JSON 데이터 수신
+$payload = file_get_contents('php://input');
+$data = json_decode($payload, true);
+
+// 2. 데이터 검증
+if (!$data || !isset($data['transaction'])) {
+    http_response_code(400);
+    exit('Invalid payload');
+}
+
+// 3. 이벤트 처리
+$transaction = $data['transaction'];
+$order_number = $transaction['order_number'];
+$amount = $transaction['amount'];
+
+if ($data['event'] === 'payment.approved') {
+    // 승인 처리
+    update_order_status($order_number, 'paid');
+} elseif ($data['event'] === 'payment.cancelled') {
+    // 취소 처리
+    update_order_status($order_number, 'cancelled');
+}
+
+// 4. 성공 응답
+http_response_code(200);
+echo json_encode(['status' => 'ok']);
+?&gt;</code></pre>
+
+                <h4>Node.js (Express)</h4>
+<pre><code class="language-javascript">const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+app.post('/payment-notify', (req, res) => {
+    const data = req.body;
+
+    // 데이터 검증
+    if (!data || !data.transaction) {
+        return res.status(400).json({ error: 'Invalid payload' });
+    }
+
+    const { order_number, amount } = data.transaction;
+
+    // 이벤트 처리
+    if (data.event === 'payment.approved') {
+        console.log(`승인: ${order_number}, ${amount}원`);
+    } else if (data.event === 'payment.cancelled') {
+        console.log(`취소: ${order_number}`);
+    }
+
+    // 성공 응답
+    res.status(200).json({ status: 'ok' });
+});
+
+app.listen(3000);</code></pre>
+
+                <h4>Python (Flask)</h4>
+<pre><code class="language-python">from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/payment-notify', methods=['POST'])
+def payment_notify():
+    data = request.get_json()
+
+    # 데이터 검증
+    if not data or 'transaction' not in data:
+        return jsonify({'error': 'Invalid payload'}), 400
+
+    transaction = data['transaction']
+    order_number = transaction['order_number']
+    amount = transaction['amount']
+
+    # 이벤트 처리
+    if data['event'] == 'payment.approved':
+        print(f'승인: {order_number}, {amount}원')
+    elif data['event'] == 'payment.cancelled':
+        print(f'취소: {order_number}')
+
+    # 성공 응답
+    return jsonify({'status': 'ok'}), 200</code></pre>
+
+                <h4>Java (Spring Boot)</h4>
+<pre><code class="language-java">import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
+
+@RestController
+public class PaymentNotifyController {
+
+    @PostMapping("/payment-notify")
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; handleNotify(
+            @RequestBody Map&lt;String, Object&gt; data,
+            @RequestHeader("X-Webhook-Event") String eventType) {
+
+        // 데이터 검증
+        if (data == null || !data.containsKey("transaction")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid payload"));
+        }
+
+        @SuppressWarnings("unchecked")
+        Map&lt;String, Object&gt; transaction = (Map&lt;String, Object&gt;) data.get("transaction");
+        String orderNumber = (String) transaction.get("order_number");
+        Number amount = (Number) transaction.get("amount");
+
+        // 이벤트 처리
+        String event = (String) data.get("event");
+        if ("payment.approved".equals(event)) {
+            System.out.println("승인: " + orderNumber + ", " + amount + "원");
+            // updateOrderStatus(orderNumber, "paid");
+        } else if ("payment.cancelled".equals(event)) {
+            System.out.println("취소: " + orderNumber);
+            // updateOrderStatus(orderNumber, "cancelled");
+        }
+
+        // 성공 응답
+        return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+}</code></pre>
+            </section>
+
+            <section class="section" id="test">
+                <h3>8. 테스트</h3>
+                <p>아래 curl 명령어로 결제통보 수신을 테스트할 수 있습니다.</p>
+
+<pre><code class="language-bash">curl -X POST https://yoursite.com/payment-notify \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Event: approval" \
+  -d '{
+    "event": "payment.approved",
+    "version": "1.0",
+    "timestamp": "2026-02-05 14:30:52",
+    "merchant": {"mb_id": "test001", "mb_name": "테스트가맹점"},
+    "transaction": {
+      "trx_id": "TEST20260205143052",
+      "order_number": "TEST-ORDER-001",
+      "amount": 10000,
+      "approval_number": "99999999",
+      "approval_datetime": "2026-02-05 14:30:00",
+      "cancel_datetime": "",
+      "installment": "00",
+      "device_type": "terminal"
+    },
+    "card": {"card_name": "테스트", "card_number": "1234****5678"}
+  }'</code></pre>
+
+                <div class="note">
+                    <strong>팁:</strong> <a href="https://webhook.site" target="_blank">webhook.site</a>를 사용하면 결제통보 요청을 쉽게 확인할 수 있습니다.
+                </div>
+            </section>
+
+            <section class="section" id="faq">
+                <h3>9. FAQ</h3>
+
+                <h4>Q. 결제통보가 오지 않아요.</h4>
+                <p>아래 사항을 확인해 주세요.</p>
+                <ul>
+                    <li>수신 URL이 외부에서 접근 가능한지 확인</li>
+                    <li>방화벽에서 원성페이먼츠 서버 IP 허용 여부</li>
+                    <li>HTTPS 인증서가 유효한지 확인</li>
+                    <li>관리자 페이지에서 결제통보 설정이 '활성' 상태인지 확인</li>
+                </ul>
+
+                <h4>Q. 중복 알림이 올 수 있나요?</h4>
+                <p>네, 네트워크 문제로 인해 드물게 중복 발송될 수 있습니다. <code>transaction.trx_id</code> 또는 <code>transaction.approval_number</code>를 키로 사용하여 중복 처리를 방지해 주세요.</p>
+
+                <h4>Q. 발송 이력을 확인할 수 있나요?</h4>
+                <p>판매자센터 > 결제통보 이력 메뉴에서 발송 이력과 상태를 확인할 수 있습니다.</p>
+
+                <h4>Q. 테스트 모드가 있나요?</h4>
+                <p>담당자에게 요청하시면 테스트 발송을 진행해 드립니다.</p>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+// highlight.js 초기화
+hljs.highlightAll();
+
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.querySelector('.overlay').classList.toggle('open');
+}
+
+// Active nav
+document.addEventListener('scroll', function() {
+    var sections = document.querySelectorAll('.section');
+    var links = document.querySelectorAll('.sidebar-nav a');
+    var current = '';
+
+    sections.forEach(function(section) {
+        if (window.scrollY >= section.offsetTop - 100) {
+            current = section.id;
+        }
+    });
+
+    links.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+        }
+    });
+});
+
+// Mobile nav close
+document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+    link.addEventListener('click', function() {
+        if (window.innerWidth <= 800) {
+            toggleMenu();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

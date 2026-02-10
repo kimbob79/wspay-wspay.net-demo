@@ -220,9 +220,9 @@ if($paymethod) {
 	$sync_message = '';
 
 	// ========================================
-	// 수기결제 (payType = 'K')
+	// 수기결제 (requestFlag = 'K')
 	// ========================================
-	if($payType == 'K') {
+	if($requestFlag == 'K') {
 		// 1. mbrRefNo(주문번호) 앞 4자리(mkc_oid)로 Keyin 설정 조회
 		// 대표가맹점/개별설정 상관없이 mkc_oid로 구분
 		$mkc_oid = substr($mbrRefNo, 0, 4);
@@ -449,6 +449,38 @@ if($paymethod) {
 		$sync_message_escaped = sql_escape_string($sync_message);
 		sql_query("UPDATE g5_payment_stn SET sync_status = '{$sync_status}', sync_message = '{$sync_message_escaped}' WHERE pg_id = '{$stn_insert_id}'");
 	}
+
+	// ========================================
+	// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
+	// ========================================
+	if($sync_status == 'success' && $row2['mb_6']) {
+		$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
+		if(file_exists($webhook_lib)) {
+			@include_once($webhook_lib);
+			if(function_exists('webhook_send_notification')) {
+				$pg_data = [
+					'refNo' => $refNo,
+					'mbrRefNo' => $mbrRefNo,
+					'applNo' => $applNo,
+					'amount' => $amount,
+					'tranDate' => $tranDate,
+					'tranTime' => $tranTime,
+					'cmd' => $cmd,
+					'issueCompanyNo' => $issueCompanyNo,
+					'cardNo' => $cardNo,
+					'installNo' => $installNo,
+					'goodsName' => $goodsName,
+					'customerName' => $customerName
+				];
+				$payment_data = [
+					'pay_id' => sql_insert_id(),
+					'pay_type' => $pay_type
+				];
+				@webhook_send_notification($row2['mb_6'], ($requestFlag == 'K') ? 'stn_k' : 'stn', $pg_data, $row2, $payment_data);
+			}
+		}
+	}
+	// ========================================
 
 	$data = [
 		"resultCode" => "0000",

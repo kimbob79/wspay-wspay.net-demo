@@ -62,9 +62,9 @@
 			$sync_message = '';
 
 			// ========================================
-			// 수기결제 (payType = 'K')
+			// 수기결제 (requestFlag = 'K')
 			// ========================================
-			if($payType == 'K') {
+			if($requestFlag == 'K') {
 				// mbrRefNo(주문번호) 앞 4자리(mkc_oid)로 Keyin 설정 조회
 				$mkc_oid = substr($mbrRefNo, 0, 4);
 				$keyin_config = sql_fetch("SELECT * FROM g5_member_keyin_config
