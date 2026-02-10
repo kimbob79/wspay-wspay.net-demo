@@ -48,7 +48,6 @@ if (isset($_GET['sal_ymd']) && preg_match('/^\d{8}$/', $_GET['sal_ymd'])) {
 $sql = "SELECT br_uid, st_uid, st_name
         FROM metapos_store
         WHERE br_uid = 'B26010900001'
-        AND st_uid = 'I26010900010'
         AND st_use = 'Y'";
 $store_result = $mysqli->query($sql);
 
