@@ -88,6 +88,14 @@
 		$sql_search .= " and a.mb_mailling = '1' and a.mb_id NOT IN (SELECT DISTINCT mb_id FROM g5_member_keyin_config WHERE mkc_use = 'Y' AND mkc_status = 'active') ";
 	}
 
+	// 매장ID 설정 필터
+	$metapos_filter = isset($_GET['metapos_filter']) ? $_GET['metapos_filter'] : '';
+	if($metapos_filter == 'Y') {
+		$sql_search .= " and a.mb_sushian_id != '' and a.mb_sushian_id IS NOT NULL ";
+	} else if($metapos_filter == 'N') {
+		$sql_search .= " and (a.mb_sushian_id = '' OR a.mb_sushian_id IS NULL) ";
+	}
+
 	$sql = " select count(*) as cnt {$sql_common} {$sql_search} order by mb_no desc ";
 	$row = sql_fetch($sql);
 
@@ -263,6 +271,11 @@ select { width:100px; }
 				<option value="Y" <?php if($keyin_filter == 'Y') echo 'selected'; ?>>수기허용+설정있음</option>
 				<option value="N" <?php if($keyin_filter == 'N') echo 'selected'; ?>>수기허용+설정없음</option>
 			</select>
+			<select name="metapos_filter" class="keyin-filter-select">
+				<option value="">매장ID 전체</option>
+				<option value="Y" <?php if($metapos_filter == 'Y') echo 'selected'; ?>>설정있음</option>
+				<option value="N" <?php if($metapos_filter == 'N') echo 'selected'; ?>>미설정</option>
+			</select>
 			<?php } ?>
 			<?php } ?>
 			<button type="submit" class="btn-search">검색</button>
@@ -295,6 +308,7 @@ select { width:100px; }
 					<th>TID등록</th>
 					<th style="text-align:center;">관리</th>
 					<th>Keyin설정</th>
+					<th>매장ID</th>
 					<?php } ?>
 					<?php } ?>
 					<th>그룹</th>
@@ -416,6 +430,15 @@ select { width:100px; }
 						<span style="color:#999; font-size:11px;">-</span>
 						<?php } ?>
 					</td>
+					<td>
+					<?php if($row['mb_sushian_id']) { ?>
+						<a href="./?p=member_form&mb_id=<?php echo $row['mb_id']; ?>&mb_level=3&w=u" class="btn_b btn_b01">
+							<?php echo htmlspecialchars($row['mb_sushian_id']); ?>
+						</a>
+					<?php } else { ?>
+						<span style="color:#999; font-size:11px;">-</span>
+					<?php } ?>
+					</td>
 					<?php } ?>
 					<td><?php echo $title_s; ?></td>
 					<?php if($is_admin && $level == '3') { ?>
@@ -509,7 +532,7 @@ select { width:100px; }
 							<?php if($level == '3') {
 								// 결제통보 설정 여부 확인
 								$wh_check = sql_fetch("SELECT wh_id, wh_status FROM g5_member_webhook WHERE mb_id = '{$row['mb_id']}'");
-								$return_url = urlencode("?p=member&level={$level}&mb_nick={$mb_nick}&dv_tid={$dv_tid}&keyin_filter={$keyin_filter}&page={$page}");
+								$return_url = urlencode("?p=member&level={$level}&mb_nick={$mb_nick}&dv_tid={$dv_tid}&keyin_filter={$keyin_filter}&metapos_filter={$metapos_filter}&page={$page}");
 							?>
 							<a href="./?p=webhook_config_form&mb_id=<?php echo $row['mb_id']; ?>&return=<?php echo $return_url; ?>" class="btn_b <?php echo $wh_check['wh_id'] ? ($wh_check['wh_status'] == 'active' ? 'btn_b01' : 'btn_b06') : 'btn_b04'; ?>">
 								통보<?php if($wh_check['wh_id']) echo ($wh_check['wh_status'] == 'active' ? ' ●' : ' ○'); ?>
@@ -567,6 +590,7 @@ if($member['mb_level'] >= 7 && ($is_admin || $member['mb_level'] > $level)) {
 	$qstr .= "&mb_nick=".$mb_nick;
 	$qstr .= "&dv_tid=".$dv_tid;
 	$qstr .= "&keyin_filter=".$keyin_filter;
+	$qstr .= "&metapos_filter=".$metapos_filter;
 	echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
 
