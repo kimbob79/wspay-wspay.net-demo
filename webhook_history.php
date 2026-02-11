@@ -449,7 +449,9 @@ $result = sql_query($sql);
         <tr>
             <th>ID</th>
             <th>발송시간</th>
+            <th>가맹점ID</th>
             <th>가맹점</th>
+            <th>TID</th>
             <th>이벤트</th>
             <th>승인번호</th>
             <th>결제금액</th>
@@ -462,25 +464,37 @@ $result = sql_query($sql);
     <tbody>
         <?php
         if ($total_count == 0) {
-            echo '<tr><td colspan="10" style="padding:30px; color:#999;">이력이 없습니다.</td></tr>';
+            echo '<tr><td colspan="12" style="padding:30px; color:#999;">이력이 없습니다.</td></tr>';
         }
         while ($row = sql_fetch_array($result)) {
             $status_class = 'status-' . $row['whh_status'];
             $event_class = 'event-' . $row['whh_event_type'];
+
+            // 페이로드에서 승인번호/금액/TID 추출 (JOIN 데이터를 fallback으로)
+            $wh_payload = json_decode($row['whh_payload'], true);
+            $disp_pay_num = $wh_payload['transaction']['approval_number']
+                ?? $row['payment_pay_num'] ?? '';
+            $disp_amount = $wh_payload['transaction']['amount']
+                ?? $row['pay'] ?? 0;
+            $disp_tid = $wh_payload['transaction']['tid']
+                ?? $row['dv_tid'] ?? '';
+            $disp_mb_id = $row['mb_id'] ?? '';
         ?>
         <tr>
             <td><?php echo $row['whh_id']; ?></td>
             <td><?php echo substr($row['whh_sent_datetime'], 5, 14); ?></td>
+            <td><?php echo htmlspecialchars($disp_mb_id); ?></td>
             <td>
                 <?php echo $row['mb_nick'] ?: $row['mb_name'] ?: $row['mb_id']; ?>
             </td>
+            <td><?php echo htmlspecialchars($disp_tid); ?></td>
             <td>
                 <span class="<?php echo $event_class; ?>">
                     <?php echo $row['whh_event_type'] == 'approval' ? '승인' : '취소'; ?>
                 </span>
             </td>
-            <td><?php echo $row['payment_pay_num'] ?: '-'; ?></td>
-            <td><?php echo $row['pay'] ? number_format($row['pay']) : '-'; ?></td>
+            <td><?php echo $disp_pay_num ?: '-'; ?></td>
+            <td><?php echo $disp_amount ? number_format($disp_amount) : '-'; ?></td>
             <td><?php echo $row['whh_http_status'] ?: '-'; ?></td>
             <td><?php echo $row['whh_response_time'] ? number_format($row['whh_response_time'] / 1000, 2).'초' : '-'; ?></td>
             <td>
