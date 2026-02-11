@@ -159,6 +159,7 @@ function webhook_normalize_default($payload, $pg_data, $device_data, $payment_da
 
     $payload['transaction'] = [
         'trx_id' => $pg_data['tid'] ?? '',
+        'tid' => $device_data['dv_tid'] ?? '',
         'order_number' => $pg_data['ordNo'] ?? $pg_data['mbrRefNo'] ?? '',
         'amount' => $amt,
         'approval_number' => $pg_data['appNo'] ?? $pg_data['applNo'] ?? '',
@@ -207,6 +208,7 @@ function webhook_normalize_stn($payload, $pg_data, $device_data, $payment_data) 
 
     $payload['transaction'] = [
         'trx_id' => $pg_data['refNo'] ?? '',
+        'tid' => $device_data['dv_tid'] ?? '',
         'order_number' => $pg_data['mbrRefNo'] ?? '',
         'amount' => $amt,
         'approval_number' => $pg_data['applNo'] ?? '',

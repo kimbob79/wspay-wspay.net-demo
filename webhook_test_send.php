@@ -37,6 +37,7 @@ $test_payload = [
     ],
     'transaction' => [
         'trx_id' => 'TEST' . date('YmdHis') . rand(1000, 9999),
+        'tid' => 'TEST-TID-001',
         'order_number' => 'TEST-ORDER-' . date('YmdHis'),
         'amount' => 10000,
         'approval_number' => '99999999',

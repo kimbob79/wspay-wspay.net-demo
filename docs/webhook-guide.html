@@ -219,6 +219,7 @@
   },
   "transaction": {
     "trx_id": "TXN20260205143052",
+    "tid": "CATID001",
     "order_number": "ORD-2026-0001",
     "amount": 50000,
     "approval_number": "12345678",
@@ -246,6 +247,7 @@
                     <tr><td><code>merchant.mb_id</code></td><td>string</td><td>가맹점 ID</td></tr>
                     <tr><td><code>merchant.mb_name</code></td><td>string</td><td>가맹점명</td></tr>
                     <tr><td><code>transaction.trx_id</code></td><td>string</td><td>거래 고유번호</td></tr>
+                    <tr><td><code>transaction.tid</code></td><td>string</td><td>단말기 ID (TID)</td></tr>
                     <tr><td><code>transaction.order_number</code></td><td>string</td><td>주문번호</td></tr>
                     <tr><td><code>transaction.amount</code></td><td>number</td><td>결제 금액 (원)</td></tr>
                     <tr><td><code>transaction.approval_number</code></td><td>string</td><td>승인번호</td></tr>
@@ -471,6 +473,7 @@ public class PaymentNotifyController {
     "merchant": {"mb_id": "test001", "mb_name": "테스트가맹점"},
     "transaction": {
       "trx_id": "TEST20260205143052",
+      "tid": "CATID001",
       "order_number": "TEST-ORDER-001",
       "amount": 10000,
       "approval_number": "99999999",
