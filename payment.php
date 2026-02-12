@@ -6,6 +6,17 @@
 	if(!$fr_date) { $fr_date = date("Ymd"); }
 	if(!$to_date) { $to_date = date("Ymd"); }
 
+	if(!isset($fr_time) || $fr_time === '') { $fr_time = '0000'; }
+	if(!isset($to_time) || $to_time === '') { $to_time = '2359'; }
+	$fr_time = preg_replace('/[^0-9]/', '', $fr_time);
+	$to_time = preg_replace('/[^0-9]/', '', $to_time);
+	if(strlen($fr_time) != 4) $fr_time = '0000';
+	if(strlen($to_time) != 4) $to_time = '2359';
+	$fr_hour = substr($fr_time, 0, 2);
+	$fr_min  = substr($fr_time, 2, 2);
+	$to_hour = substr($to_time, 0, 2);
+	$to_min  = substr($to_time, 2, 2);
+
 	$fr_dates = date("Y-m-d", strtotime($fr_date));
 	$to_dates = date("Y-m-d", strtotime($to_date));
 
@@ -36,7 +47,7 @@
 	if ($fr_date == "all" && $to_date == "all") {
 		$sql_search = " where ".$adm_sql." and mb_6_name != '' ";
 	} else {
-		$sql_search = " where ".$adm_sql." and (pay_datetime BETWEEN '{$fr_dates} 00:00:00' and '{$to_dates} 23:59:59')  and mb_6_name != '' ";
+		$sql_search = " where ".$adm_sql." and (pay_datetime BETWEEN '{$fr_dates} {$fr_hour}:{$fr_min}:00' and '{$to_dates} {$to_hour}:{$to_min}:59')  and mb_6_name != '' ";
 	}
 
 	if($pay_num) {
@@ -126,7 +137,9 @@
 //	echo $sql;
 ?>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
+/* --- 헤더 --- */
 .payment-header {
 	background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
 	border-radius: 8px;
@@ -149,10 +162,7 @@
 	align-items: center;
 	gap: 8px;
 }
-.payment-title i {
-	font-size: 14px;
-	opacity: 0.8;
-}
+.payment-title i { font-size: 14px; opacity: 0.8; }
 .payment-stats {
 	display: flex;
 	flex-wrap: wrap;
@@ -168,60 +178,124 @@
 	color: rgba(255,255,255,0.85);
 	gap: 6px;
 }
-.payment-stat.cancel {
-	background: rgba(239,83,80,0.25);
-}
-.payment-stat.total {
-	background: rgba(255,193,7,0.3);
-	color: #fff;
-	font-weight: 600;
-}
-.payment-stat span {
-	color: #fff;
-	font-weight: 600;
-}
-.payment-search {
+.payment-stat.cancel { background: rgba(239,83,80,0.25); }
+.payment-stat.total { background: rgba(255,193,7,0.3); color: #fff; font-weight: 600; }
+.payment-stat span { color: #fff; font-weight: 600; }
+
+/* --- 검색 테이블 레이아웃 --- */
+.ps-box {
 	background: #fff;
 	border: 1px solid #e0e0e0;
 	border-radius: 8px;
-	padding: 10px 12px;
 	margin-bottom: 10px;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+	overflow: hidden;
 }
-.payment-search-row {
+.ps-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.ps-table th,
+.ps-table td {
+	padding: 8px 10px;
+	vertical-align: middle;
+	text-align: left;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 13px;
+	overflow: visible !important;
+}
+.ps-table tr:last-child th,
+.ps-table tr:last-child td {
+	border-bottom: none;
+}
+.ps-table th {
+	background: #f5f6fa;
+	color: #1a237e;
+	font-weight: 700;
+	font-size: 12px;
+	white-space: nowrap;
+	width: 52px;
+	min-width: 52px;
+	text-align: center;
+	border-right: 2px solid #1a237e;
+}
+.ps-table td { background: #fff; }
+.ps-cell {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 8px;
 }
-.payment-search-group {
+/* 날짜 입력 */
+.ps-date-group {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 }
-.payment-search-group input[type="text"] {
-	width: 90px;
-	padding: 6px 8px;
+.ps-date-group input[type="text"] {
+	width: 88px;
+	padding: 5px 8px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	font-size: 13px;
 	background: #f8f9fa;
+	text-align: center;
 }
-.payment-search-group input[type="text"]:focus {
+.ps-date-group input[type="text"]:focus {
 	outline: none;
 	border-color: #1a237e;
 	background: #fff;
 }
-.payment-search-group span {
-	color: #999;
-	font-size: 12px;
+.ps-date-group .sep { color: #bbb; font-size: 12px; }
+/* 날짜+시간 래퍼 (데스크탑: inline flex) */
+.ps-datetime-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
-.date-btns {
+/* 시간 입력 */
+.ps-time-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.ps-time-group input[type="text"] {
+	width: 54px;
+	padding: 5px 6px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 13px;
+	background: #f8f9fa;
+	text-align: center;
+	cursor: pointer;
+}
+.ps-time-group input[type="text"]:focus {
+	outline: none;
+	border-color: #1a237e;
+	background: #fff;
+}
+.ps-time-group .sep { color: #bbb; font-size: 12px; }
+.flatpickr-time input:hover,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:focus { background: #e8eaf6; }
+.flatpickr-time .numInputWrapper span.arrowUp:after { border-bottom-color: #1a237e; }
+.flatpickr-time .numInputWrapper span.arrowDown:after { border-top-color: #1a237e; }
+/* 세로 구분선 */
+.ps-vdiv {
+	width: 1px;
+	height: 22px;
+	background: #e0e0e0;
+	margin: 0 2px;
+	flex-shrink: 0;
+}
+/* 날짜 빠른버튼 */
+.ps-date-btns {
 	display: flex;
 	gap: 3px;
 }
-.date-btns button {
-	padding: 5px 8px;
+.ps-date-btns button {
+	padding: 4px 8px;
 	font-size: 11px;
 	border: 1px solid #ddd;
 	background: #f8f9fa;
@@ -229,53 +303,48 @@
 	cursor: pointer;
 	color: #555;
 	transition: all 0.15s;
+	white-space: nowrap;
 }
-.date-btns button:hover {
+.ps-date-btns button:hover {
 	background: #1a237e;
 	border-color: #1a237e;
 	color: #fff;
 }
-.search-divider {
-	width: 1px;
-	height: 24px;
-	background: #e0e0e0;
-	margin: 0 6px;
-}
-.radio-group {
+/* 라디오 */
+.ps-radio-group {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
 }
-.radio-group label {
+.ps-radio-group label {
 	display: flex;
 	align-items: center;
 	gap: 3px;
 	font-size: 12px;
 	color: #555;
 	cursor: pointer;
+	white-space: nowrap;
 }
-.radio-group input[type="radio"] {
-	margin: 0;
-	accent-color: #1a237e;
-}
-.search-input-group {
+.ps-radio-group input[type="radio"] { margin: 0; accent-color: #1a237e; }
+/* 검색 입력 + 버튼 */
+.ps-search-input {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 }
-.search-input-group input[type="text"] {
+.ps-search-input input[type="text"] {
 	width: 120px;
-	padding: 6px 10px;
+	padding: 5px 10px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	font-size: 13px;
 }
-.search-input-group input[type="text"]:focus {
+.ps-search-input input[type="text"]:focus {
 	outline: none;
 	border-color: #1a237e;
 }
 .btn-search {
-	padding: 6px 12px;
+	padding: 5px 14px;
 	background: #1a237e;
 	color: #fff;
 	border: none;
@@ -284,11 +353,9 @@
 	cursor: pointer;
 	transition: background 0.15s;
 }
-.btn-search:hover {
-	background: #283593;
-}
+.btn-search:hover { background: #283593; }
 .btn-excel {
-	padding: 6px 10px;
+	padding: 5px 10px;
 	background: #2e7d32;
 	color: #fff;
 	border: none;
@@ -297,40 +364,182 @@
 	cursor: pointer;
 	transition: background 0.15s;
 }
-.btn-excel:hover {
-	background: #388e3c;
-}
-.checkbox-opt {
+.btn-excel:hover { background: #388e3c; }
+.ps-checkbox {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 	font-size: 12px;
 	color: #555;
+	white-space: nowrap;
 }
-.checkbox-opt input {
-	accent-color: #1a237e;
-}
+.ps-checkbox input { accent-color: #1a237e; }
+/* 반응형 */
 @media (max-width: 768px) {
-	.payment-header-top {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-	.payment-stats {
+	/* --- 헤더 모바일 --- */
+	.payment-header { padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; }
+	.payment-header-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+	.payment-title { font-size: 15px; }
+	.payment-stats { width: 100%; gap: 4px; }
+	.payment-stat { padding: 3px 7px; font-size: 11px; }
+
+	/* --- 검색박스 모바일 --- */
+	.ps-box { border-radius: 6px; margin-bottom: 8px; }
+	.ps-table, .ps-table thead, .ps-table tbody, .ps-table tr, .ps-table th, .ps-table td {
+		display: block;
 		width: 100%;
 	}
-	.payment-search-row {
+	.ps-table th {
+		border-right: none;
+		border-bottom: none;
+		background: #1a237e;
+		color: #fff;
+		font-size: 11px;
+		font-weight: 600;
+		padding: 6px 12px;
+		text-align: left;
+		letter-spacing: 0.5px;
+	}
+	.ps-table th i { margin-right: 4px; }
+	.ps-table td {
+		padding: 8px 12px 10px;
+		border-bottom: 1px solid #eee;
+	}
+	.ps-table tr:last-child td { border-bottom: none; }
+
+	/* ps-cell: 모바일에서 세로 배치 + 각 그룹 간격 */
+	.ps-cell {
 		flex-direction: column;
-		align-items: flex-start;
+		align-items: stretch;
+		gap: 8px;
 	}
-	.search-divider {
-		display: none;
+	.ps-vdiv { display: none; }
+
+	/* 날짜 + 시간: 한 줄에 나란히 */
+	.ps-datetime-row {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		width: 100%;
 	}
-	.radio-group {
-		flex-wrap: wrap;
+	.ps-datetime-row .ps-vdiv {
+		display: block;
+		height: 20px;
+		margin: 0;
+	}
+	.ps-date-group {
+		flex: 0 1 auto;
+		min-width: 0;
+	}
+	.ps-date-group input[type="text"] {
+		width: 72px;
+		min-width: 0;
+		font-size: 13px;
+		padding: 7px 2px;
+	}
+	.ps-time-group {
+		flex-shrink: 0;
+	}
+	.ps-time-group input[type="text"] {
+		width: 46px;
+		font-size: 13px;
+		padding: 7px 4px;
+	}
+
+	/* 빠른 날짜버튼: 가로 스크롤 */
+	.ps-date-btns {
+		display: flex;
+		gap: 4px;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		padding-bottom: 2px;
+	}
+	.ps-date-btns::-webkit-scrollbar { display: none; }
+	.ps-date-btns button {
+		flex-shrink: 0;
+		padding: 6px 12px;
+		font-size: 12px;
+		border-radius: 16px;
+		border: 1px solid #c5cae9;
+		background: #e8eaf6;
+		color: #1a237e;
+		font-weight: 500;
+	}
+	.ps-date-btns button:hover,
+	.ps-date-btns button:active {
+		background: #1a237e;
+		border-color: #1a237e;
+		color: #fff;
+	}
+
+	/* 라디오 그룹: 가로 스크롤 칩 */
+	.ps-radio-group {
+		display: flex;
+		gap: 2px;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		padding-bottom: 2px;
+	}
+	.ps-radio-group::-webkit-scrollbar { display: none; }
+	.ps-radio-group label {
+		flex-shrink: 0;
+		padding: 5px 10px;
+		font-size: 12px;
+		border: 1px solid #ddd;
+		border-radius: 16px;
+		background: #f8f9fa;
+		transition: all 0.15s;
+		gap: 3px;
+	}
+	.ps-radio-group label:has(input:checked) {
+		background: #1a237e;
+		border-color: #1a237e;
+		color: #fff;
+	}
+	.ps-radio-group input[type="radio"] {
+		width: 0;
+		height: 0;
+		margin: 0;
+		opacity: 0;
+		position: absolute;
+	}
+
+	/* 검색 입력: 전체 너비 */
+	.ps-search-input {
+		display: flex;
+		width: 100%;
+		gap: 6px;
+	}
+	.ps-search-input input[type="text"] {
+		flex: 1;
+		min-width: 0;
+		width: auto;
+		padding: 8px 12px;
+		font-size: 14px;
+		border-radius: 6px;
+	}
+	.btn-search {
+		padding: 8px 16px;
+		font-size: 13px;
+		border-radius: 6px;
+		flex-shrink: 0;
+	}
+	.btn-excel {
+		padding: 8px 12px;
+		font-size: 13px;
+		border-radius: 6px;
+		flex-shrink: 0;
+	}
+
+	/* 체크박스 */
+	.ps-checkbox {
+		font-size: 12px;
+		padding: 4px 0;
 	}
 }
-
-/* 툴팁 최소 높이 보장 */
+/* 툴팁 */
 [data-tooltip].simptip-multiline:after,
 .simptip-position-bottom.simptip-multiline:after {
 	min-height: 100px !important;
@@ -339,15 +548,9 @@
 	padding: 11px !important;
 	white-space: pre-line !important;
 }
-.m_table_wrap {
-	overflow: visible !important;
-}
-.td_name {
-	overflow: visible !important;
-}
-table, tbody, tr, td {
-	overflow: visible !important;
-}
+.m_table_wrap { overflow: visible !important; }
+.td_name { overflow: visible !important; }
+table, tbody, tr, td { overflow: visible !important; }
 </style>
 
 <div class="payment-header">
@@ -371,49 +574,75 @@ table, tbody, tr, td {
 
 <form id="fsearch" name="fsearch" method="get">
 <input type="hidden" name="p" value="<?php echo $p; ?>">
-<div class="payment-search">
-	<div class="payment-search-row">
-		<div class="payment-search-group">
-			<input type="text" name="fr_date" value="<?php echo $fr_date ?>" id="fr_date" placeholder="시작일">
-			<span>~</span>
-			<input type="text" name="to_date" value="<?php echo $to_date ?>" id="to_date" placeholder="종료일">
-		</div>
-		<div class="date-btns">
-			<button type="submit" onclick="javascript:set_date('오늘');">오늘</button>
-			<button type="submit" onclick="javascript:set_date('어제');">어제</button>
-			<button type="submit" onclick="javascript:set_date('이번달');">이번달</button>
-			<button type="submit" onclick="javascript:set_date('지난주');">지난주</button>
-			<button type="submit" onclick="javascript:set_date('지난달');">지난달</button>
-			<button type="submit" onclick="javascript:set_date('전체');">전체</button>
-		</div>
-		<div class="search-divider"></div>
-		<div class="radio-group">
-			<label><input type="radio" name="sfl" value="pay_num" <?php echo get_checked($sfl, "pay_num"); ?> checked>승번</label>
-			<label><input type="radio" name="sfl" value="mb_6_name" <?php echo get_checked($sfl, "mb_6_name"); ?>>가맹</label>
-			<label><input type="radio" name="sfl" value="dv_tid" <?php echo get_checked($sfl, "dv_tid"); ?>>TID</label>
-			<label><input type="radio" name="sfl" value="dv_tid_ori" <?php echo get_checked($sfl, "dv_tid_ori"); ?>>MID</label>
-			<label><input type="radio" name="sfl" value="pay" <?php echo get_checked($sfl, "pay"); ?>>금액</label>
-			<label><input type="radio" name="sfl" value="pay_card_name" <?php echo get_checked($sfl, "pay_card_name"); ?>>카드</label>
-			<label><input type="radio" name="sfl" value="pay_card_num" <?php echo get_checked($sfl, "pay_card_num"); ?>>카번</label>
-		</div>
-		<div class="search-divider"></div>
-		<div class="search-input-group">
-			<input type="text" name="stx" value="<?php echo $stx ?>" id="stx" placeholder="검색어">
-			<button type="submit" class="btn-search">검색</button>
-			<button type="button" class="btn-excel" id="xlsx"><i class="fa fa-file-excel-o"></i> 엑셀</button>
-		</div>
-		<div class="search-divider"></div>
-		<label class="checkbox-opt">
-			<input type="checkbox" name="expansion" id="expansion" value="y" <?php echo get_checked($expansion, "y"); ?>>
-			정산금 확장
-		</label>
-	</div>
+<input type="hidden" name="fr_time" id="fr_time" value="<?php echo $fr_time; ?>">
+<input type="hidden" name="to_time" id="to_time" value="<?php echo $to_time; ?>">
+<div class="ps-box">
+	<table class="ps-table">
+		<tr>
+			<th><i class="fa fa-calendar"></i> 기간</th>
+			<td>
+				<div class="ps-cell">
+					<div class="ps-datetime-row">
+						<div class="ps-date-group">
+							<input type="text" name="fr_date" value="<?php echo $fr_date ?>" id="fr_date" placeholder="시작일">
+							<span class="sep">~</span>
+							<input type="text" name="to_date" value="<?php echo $to_date ?>" id="to_date" placeholder="종료일">
+						</div>
+						<div class="ps-vdiv"></div>
+						<div class="ps-time-group">
+							<input type="text" id="fp_fr_time" value="<?php echo $fr_hour; ?>:<?php echo $fr_min; ?>" readonly>
+							<span class="sep">~</span>
+							<input type="text" id="fp_to_time" value="<?php echo $to_hour; ?>:<?php echo $to_min; ?>" readonly>
+						</div>
+					</div>
+					<div class="ps-vdiv"></div>
+					<div class="ps-date-btns">
+						<button type="submit" onclick="javascript:set_date('오늘');">오늘</button>
+						<button type="submit" onclick="javascript:set_date('어제');">어제</button>
+						<button type="submit" onclick="javascript:set_date('이번달');">이번달</button>
+						<button type="submit" onclick="javascript:set_date('지난주');">지난주</button>
+						<button type="submit" onclick="javascript:set_date('지난달');">지난달</button>
+						<button type="submit" onclick="javascript:set_date('전체');">전체</button>
+					</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<th><i class="fa fa-search"></i> 검색</th>
+			<td>
+				<div class="ps-cell">
+					<div class="ps-radio-group">
+						<label><input type="radio" name="sfl" value="pay_num" <?php echo get_checked($sfl, "pay_num"); ?> checked>승번</label>
+						<label><input type="radio" name="sfl" value="mb_6_name" <?php echo get_checked($sfl, "mb_6_name"); ?>>가맹</label>
+						<label><input type="radio" name="sfl" value="dv_tid" <?php echo get_checked($sfl, "dv_tid"); ?>>TID</label>
+						<label><input type="radio" name="sfl" value="dv_tid_ori" <?php echo get_checked($sfl, "dv_tid_ori"); ?>>MID</label>
+						<label><input type="radio" name="sfl" value="pay" <?php echo get_checked($sfl, "pay"); ?>>금액</label>
+						<label><input type="radio" name="sfl" value="pay_card_name" <?php echo get_checked($sfl, "pay_card_name"); ?>>카드</label>
+						<label><input type="radio" name="sfl" value="pay_card_num" <?php echo get_checked($sfl, "pay_card_num"); ?>>카번</label>
+					</div>
+					<div class="ps-vdiv"></div>
+					<div class="ps-search-input">
+						<input type="text" name="stx" value="<?php echo $stx ?>" id="stx" placeholder="검색어">
+						<button type="submit" class="btn-search">검색</button>
+						<button type="button" class="btn-excel" id="xlsx"><i class="fa fa-file-excel-o"></i> 엑셀</button>
+					</div>
+					<div class="ps-vdiv"></div>
+					<label class="ps-checkbox">
+						<input type="checkbox" name="expansion" id="expansion" value="y" <?php echo get_checked($expansion, "y"); ?>>
+						정산금 확장
+					</label>
+				</div>
+			</td>
+		</tr>
+	</table>
 </div>
 </form>
 
 <form action="./xlsx/payment.php" id="frm_xlsx" method="post">
 <input type="hidden" name="fr_date" value="<?php echo $fr_date; ?>">
 <input type="hidden" name="to_date" value="<?php echo $to_date; ?>">
+<input type="hidden" name="fr_time" value="<?php echo $fr_time; ?>">
+<input type="hidden" name="to_time" value="<?php echo $to_time; ?>">
 <input type="hidden" name="sfl" value="<?php echo $sfl; ?>">
 <input type="hidden" name="stx" value="<?php echo $stx; ?>">
 <input type="hidden" name="pay_num" value="<?php echo $pay_num; ?>">
@@ -630,9 +859,61 @@ table, tbody, tr, td {
 	$qstr = "p=".$p;
 	$qstr .= "&fr_date=".$fr_date;
 	$qstr .= "&to_date=".$to_date;
+	$qstr .= "&fr_time=".$fr_time;
+	$qstr .= "&to_time=".$to_time;
 	$qstr .= "&expansion=".$expansion;
 	$qstr .= "&sfl=".$sfl;
 	$qstr .= "&stx=".$stx;
 	echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
 ?>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+(function(){
+	var frHidden = document.getElementById('fr_time');
+	var toHidden = document.getElementById('to_time');
+
+	function syncHidden(sel, val) {
+		var hhmm = val.replace(':', '');
+		if (sel === 'fr') frHidden.value = hhmm;
+		else toHidden.value = hhmm;
+	}
+
+	var fpFr = flatpickr('#fp_fr_time', {
+		enableTime: true,
+		noCalendar: true,
+		dateFormat: 'H:i',
+		time_24hr: true,
+		minuteIncrement: 10,
+		disableMobile: true,
+		defaultDate: '<?php echo $fr_hour; ?>:<?php echo $fr_min; ?>',
+		onChange: function(selDates, dateStr) {
+			syncHidden('fr', dateStr);
+		}
+	});
+
+	var fpTo = flatpickr('#fp_to_time', {
+		enableTime: true,
+		noCalendar: true,
+		dateFormat: 'H:i',
+		time_24hr: true,
+		minuteIncrement: 10,
+		disableMobile: true,
+		defaultDate: '<?php echo $to_hour; ?>:<?php echo $to_min; ?>',
+		onChange: function(selDates, dateStr) {
+			syncHidden('to', dateStr);
+		}
+	});
+
+	// 날짜 버튼 클릭 시 시간 초기화
+	var origSetDate = window.set_date;
+	window.set_date = function(v){
+		fpFr.setDate('00:00', true);
+		fpTo.setDate('23:50', true);
+		frHidden.value = '0000';
+		toHidden.value = '2350';
+		if(typeof origSetDate === 'function') origSetDate(v);
+	};
+})();
+</script>
 
