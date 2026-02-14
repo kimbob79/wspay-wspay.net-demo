@@ -1,65 +1,8 @@
 <?php
-$logDir = '/mpchosting/www/api/logs';
-$today = date('Y-m-d');
-$logFile = $logDir . '/error_' . $today . '.log';
-
-ini_set('error_log', $logFile);
-
 	error_reporting( E_ALL );
 	ini_set( "display_errors", 1 );
-	date_default_timezone_set('Asia/Seoul');
-
-	// ========================================
-	// 요청 로깅 - /logs/trans/api/korpay
-	// ========================================
-	$log_dir = dirname(__FILE__) . '/../../logs/trans/api/korpay';
-	if(!is_dir($log_dir)) {
-		@mkdir($log_dir, 0755, true);
-	}
-
-	$log_file = $log_dir . '/' . date('Y-m-d') . '.log';
-	$log_time = date('Y-m-d H:i:s');
-	$log_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-	$log_method = $_SERVER['REQUEST_METHOD'] ?? 'unknown';
-
-	// 요청 데이터 수집
-	$log_data = [
-		'timestamp' => $log_time,
-		'ip' => $log_ip,
-		'method' => $log_method,
-		'GET' => $_GET,
-		'POST' => $_POST,
-		'REQUEST' => $_REQUEST,
-		'raw_input' => file_get_contents('php://input')
-	];
-
-	// 로그 기록
-	$log_entry = "[{$log_time}] [{$log_ip}] [{$log_method}]\n";
-	$log_entry .= json_encode($log_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
-	$log_entry .= str_repeat('-', 80) . "\n";
-
-	@file_put_contents($log_file, $log_entry, FILE_APPEND | LOCK_EX);
-	// ========================================
 
 	include('./_common.php');
-
-	/*
-	$mchtId = isset($_REQUEST['mchtId']) ? trim($_REQUEST['mchtId']) : ''; // 가맹점 ID
-	$trxId = isset($_REQUEST['trxId']) ? trim($_REQUEST['trxId']) : ''; // 광원 거래번호
-	$tmnId = isset($_REQUEST['tmnId']) ? trim($_REQUEST['tmnId']) : ''; // 터미널ID
-	$trxDate = isset($_REQUEST['trxDate']) ? trim($_REQUEST['trxDate']) : ''; // 승인일시
-	$trxType = isset($_REQUEST['trxType']) ? trim($_REQUEST['trxType']) : ''; // 거래구분
-	$trackId = isset($_REQUEST['trackId']) ? trim($_REQUEST['trackId']) : ''; // 주문번호
-	$authCd = isset($_REQUEST['authCd']) ? trim($_REQUEST['authCd']) : ''; // 승인번호
-	$issuer = isset($_REQUEST['issuer']) ? trim($_REQUEST['issuer']) : ''; // 발행사
-	$acquirer = isset($_REQUEST['acquirer']) ? trim($_REQUEST['acquirer']) : ''; // 매입사
-	$cardType = isset($_REQUEST['cardType']) ? trim($_REQUEST['cardType']) : ''; // 카드종류
-	$bin = isset($_REQUEST['bin']) ? trim($_REQUEST['bin']) : ''; // 카드번호(bin)
-	$last4 = isset($_REQUEST['last4']) ? trim($_REQUEST['last4']) : ''; // 카드번호(last4)
-	$installment = isset($_REQUEST['installment']) ? trim($_REQUEST['installment']) : ''; // 할부기간
-	$amount = isset($_REQUEST['amount']) ? trim($_REQUEST['amount']) : ''; // 거래금액
-	$rootTrxId = isset($_REQUEST['rootTrxId']) ? trim($_REQUEST['rootTrxId']) : ''; // 원거래번호
-	*/
 
 $gid = isset($_REQUEST['gid']) ? trim($_REQUEST['gid']) : '';							// 그룹 ID
 $vid = isset($_REQUEST['vid']) ? trim($_REQUEST['vid']) : '';							// VAN ID
@@ -83,22 +26,69 @@ $notiDnt  = isset($_REQUEST['notiDnt']) ? trim($_REQUEST['notiDnt']) : '';			// 
 $cardNo = isset($_REQUEST['cardNo']) ? trim($_REQUEST['cardNo']) : '';					// 카드번호
 $catId = isset($_REQUEST['catId']) ? trim($_REQUEST['catId']) : '';						// 단말기 CAT_ID
 $tPhone = isset($_REQUEST['tPhone']) ? trim($_REQUEST['tPhone']) : '';					// phone 번호 입력 사항
-$canAmt = isset($_REQUEST['canAmt']) ? trim($_REQUEST['canAmt']) : '';					// 취소금액
-$partCanFlg = isset($_REQUEST['partCanFlg']) ? trim($_REQUEST['partCanFlg']) : '';		// 부분취소여부
 $connCD = isset($_REQUEST['connCD']) ? trim($_REQUEST['connCD']) : '';					// 단말기/수기결제 구분
-$usePointAmt = isset($_REQUEST['usePointAmt']) ? trim($_REQUEST['usePointAmt']) : '';	// 카드사 사용포인트
-$vacntNo = isset($_REQUEST['vacntNo']) ? trim($_REQUEST['vacntNo']) : '';				// 가상계좌 번호
-$socHpNo = isset($_REQUEST['socHpNo']) ? trim($_REQUEST['socHpNo']) : '';				// 휴대폰번호
-
-
-
 
 
 
 if($payMethod) {
 
 
-	/******** 외부 전송 코드 삭제됨 - API_EXTERNAL_TRANSMISSION_REMOVED.md 참고 ************/
+
+	$urls = [
+		'http://redpay.kr/api/paysis/index.php',
+		'https://pay.wnapay.net/paysis.do'
+	];
+
+	
+	$data = array('gid' => $gid, 'vid' => $vid, 'mid' => $mid, 'payMethod' => $payMethod, 'appCardCd' => $appCardCd, 'cancelYN' => $cancelYN, 'tid' => $tid, 'ediNo' => $ediNo, 'appDtm' => $appDtm, 'ccDnt' => $ccDnt, 'amt' => $amt, 'remainAmt' => $remainAmt, 'buyerId' => $buyerId, 'ordNm' => $ordNm, 'ordNo' => $ordNo, 'goodsName' => $goodsName, 'appNo' => $appNo, 'quota' => $quota, 'notiDnt' => $notiDnt, 'cardNo' => $cardNo, 'catId' => $catId, 'tPhone' => $tPhone, 'connCD' => $connCD);
+
+	$mh = curl_multi_init();
+	$handles = [];
+
+	foreach ($urls as $url) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_multi_add_handle($mh, $ch);
+		$handles[] = $ch;
+	}
+	do {
+		$status = curl_multi_exec($mh, $active);
+		if ($active) {
+			curl_multi_select($mh);
+		}
+	} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
+	$results = [];
+	foreach ($handles as $ch) {
+		$results[] = curl_multi_getcontent($ch);
+	}
+	foreach ($handles as $ch) {
+		curl_multi_remove_handle($mh, $ch);
+		curl_close($ch);
+	}
+	curl_multi_close($mh);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/******** 카정으로 전송 ************/
 
 	$pay_type = "Y";
 	$pay_cdatetime = "";
@@ -112,7 +102,7 @@ if($payMethod) {
 		$tid = "c".$tid;
 
 		// 원거래
-		$cancel = sql_fetch("select * from g5_payment_korpay where tid = '{$tid2}'");
+		$cancel = sql_fetch("select * from g5_payment_paysis where tid = '{$tid2}'");
 
 		// 취소일때 데이터 원거래에서 가져오기
 		$pay_cdatetime =  date("Y-m-d H:i:s", strtotime($ccDnt));
@@ -151,48 +141,28 @@ if($payMethod) {
 					cardNo ='{$cardNo}',
 					catId ='{$catId}',
 					tPhone ='{$tPhone}',
-					canAmt ='{$canAmt}',
-					partCanFlg ='{$partCanFlg}',
-					connCD ='{$connCD}',
-					usePointAmt ='{$usePointAmt}',
-					vacntNo ='{$vacntNo}',
-					socHpNo ='{$socHpNo}', ";
+					connCD ='{$connCD}', ";
 
-	$sql = "insert into g5_payment_korpay set ".$sql_common." datetime = '".G5_TIME_YMDHIS."'";
+	$sql = "insert into g5_payment_paysis set ".$sql_common." datetime = '".G5_TIME_YMDHIS."'";
 	sql_query($sql);
 
-	// ========================================
-	// FDS 이상거래 탐지
-	// ========================================
-	if($cancelYN != "Y") {
-		// 300만원 이상 결제 여부
-		if((int)$amt >= 3000000) {
-			$pp_limit_3m = 'Y';
-		}
 
-		// 동일카드 1일 500만원 초과 여부
-		$today_date = date("Y-m-d", strtotime($appDtm));
-		$sum_row = sql_fetch("SELECT IFNULL(SUM(ABS(pay)),0) as total_pay
-			FROM g5_payment
-			WHERE pay_card_num = '{$cardNo}'
-			AND pay_type = 'Y'
-			AND pay_datetime >= '{$today_date} 00:00:00'
-			AND pay_datetime <= '{$today_date} 23:59:59'");
+	$arraydata = explode(PHP_EOL, trim($config['cf_2']));
+	$arraydata = array_map('trim', $arraydata);
 
-		$daily_total = (int)$sum_row['total_pay'] + (int)$amt;
-
-		if($daily_total > 5000000) {
-			$pp_limit_5m = 'Y';
-
-			// 이전 건들도 전부 Y로 업데이트
-			sql_query("UPDATE g5_payment
-				SET pp_limit_5m = 'Y'
-				WHERE pay_card_num = '{$cardNo}'
-				AND pay_type = 'Y'
-				AND pay_datetime >= '{$today_date} 00:00:00'
-				AND pay_datetime <= '{$today_date} 23:59:59'");
-		}
+	if(in_array($catId, $arraydata)) {
+		$catId = substr($ordNo, 0, -10);
+		$dv_tid_ori = $catId;
 	}
+
+	/*
+	// tid 쪼개기
+	if($catId == $config['cf_7']) {
+		$catId = substr($ordNo, 0, -10);
+		$dv_tid_ori = $config['cf_7'];
+	}
+	*/
+
 
 	$row2 = sql_fetch("select * from g5_device where dv_tid = '{$catId}'");
 
@@ -285,7 +255,35 @@ if($payMethod) {
 	} else if($appCardCd == "46") { $appCardCd = "카카오";
 	} else if($appCardCd == "47") { $appCardCd = "강원"; }
 
+	if($cancelYN != "Y") {
+		// 300만원 이상 결제 여부
+		if((int)$amt >= 3000000) {
+			$pp_limit_3m = 'Y';
+		}
 
+		// 동일카드 1일 500만원 초과 여부
+		$today_date = date("Y-m-d", strtotime($appDtm));
+		$sum_row = sql_fetch("SELECT IFNULL(SUM(ABS(pay)),0) as total_pay
+			FROM g5_payment
+			WHERE pay_card_num = '{$cardNo}'
+			AND pay_type = 'Y'
+			AND pay_datetime >= '{$today_date} 00:00:00'
+			AND pay_datetime <= '{$today_date} 23:59:59'");
+
+		$daily_total = (int)$sum_row['total_pay'] + (int)$amt;
+
+		if($daily_total > 5000000) {
+			$pp_limit_5m = 'Y';
+
+			// 이전 건들도 전부 Y로 업데이트
+			sql_query("UPDATE g5_payment
+				SET pp_limit_5m = 'Y'
+				WHERE pay_card_num = '{$cardNo}'
+				AND pay_type = 'Y'
+				AND pay_datetime >= '{$today_date} 00:00:00'
+				AND pay_datetime <= '{$today_date} 23:59:59'");
+		}
+	}
 
 	$sql_common = " pay_type = '{$pay_type}',
 					pay = '{$amt}',
@@ -331,9 +329,10 @@ if($payMethod) {
 					dv_type = '{$row2['dv_type']}',
 					dv_certi = '{$row2['dv_certi']}',
 					dv_tid = '{$catId}',
+					dv_tid_ori = '{$dv_tid_ori}',
 					pp_limit_3m = '{$pp_limit_3m}',
 					pp_limit_5m = '{$pp_limit_5m}',
-					pg_name = 'korpay' ";
+					pg_name = 'paysis' ";
 
 
 //	$pay = sql_fetch("select * from g5_payment where trxid = '{$tid}' and pay_num = '{$appNo}'");
@@ -341,38 +340,6 @@ if($payMethod) {
 	if(!$pay['pay_id']) {
 		$sql = " insert into g5_payment set ".$sql_common.", datetime = '".G5_TIME_YMDHIS."'";
 		sql_query($sql);
-
-		// ========================================
-		// 웹훅 발송 (하이브리드: 즉시 1회 시도, 실패시 크론이 재시도)
-		// ========================================
-		if($row2['mb_6']) {
-			$webhook_lib = dirname(__FILE__) . '/../../lib/webhook.lib.php';
-			if(file_exists($webhook_lib)) {
-				@include_once($webhook_lib);
-				if(function_exists('webhook_send_notification')) {
-					$pg_data = [
-						'tid' => $tid,
-						'ordNo' => $ordNo,
-						'appNo' => $appNo,
-						'amt' => $amt,
-						'appDtm' => $appDtm,
-						'ccDnt' => $ccDnt,
-						'cancelYN' => $cancelYN,
-						'appCardCd' => $appCardCd,
-						'cardNo' => $cardNo,
-						'quota' => $quota,
-						'goodsName' => $goodsName,
-						'ordNm' => $ordNm
-					];
-					$payment_data = [
-						'pay_id' => sql_insert_id(),
-						'pay_type' => $pay_type
-					];
-					@webhook_send_notification($row2['mb_6'], 'korpay', $pg_data, $row2, $payment_data);
-				}
-			}
-		}
-		// ========================================
 	}
 
 	if($noError == false) {
@@ -381,12 +348,10 @@ if($payMethod) {
 		echo 'ERROR';
 	}
 	
-	
-	
 	// 추가 API 호출
 	/*
-	$notification_url = 'https://api.wannapayments.kr/api/v1/payment/notification/korpay';
-	
+	$notification_url = 'https://api.wannapayments.kr/api/v1/payment/notification/mainpay';
+
 	$notification_data = array(
 		'gid' => $gid,
 		'vid' => $vid,
@@ -410,12 +375,7 @@ if($payMethod) {
 		'cardNo' => $cardNo,
 		'catId' => $catId,
 		'tPhone' => $tPhone,
-		'canAmt' => $canAmt,
-		'partCanFlg' => $partCanFlg,
-		'connCD' => $connCD,
-		'usePointAmt' => $usePointAmt,
-		'vacntNo' => $vacntNo,
-		'socHpNo' => $socHpNo
+		'connCD' => $connCD	
 	);
 
 	try {
@@ -438,22 +398,22 @@ if($payMethod) {
 			$error = curl_error($ch);
 			$errno = curl_errno($ch);
 			curl_close($ch);
-			error_log("[Wanna API Error] errno: {$errno}, error: {$error}, data: " . json_encode($notification_data));
+			error_log("[paysis API Error] errno: {$errno}, error: {$error}, data: " . json_encode($notification_data));
 		} else {
 			$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			if ($http_code >= 400) {
-				error_log("[Wanna API Error] HTTP Code: {$http_code}, Response: {$notification_result}, data: " . json_encode($notification_data));
+				error_log("[paysis API Error] HTTP Code: {$http_code}, Response: {$notification_result}, data: " . json_encode($notification_data));
 			}else{
-				error_log("korpay>>".$notification_result);
+				error_log("paysis>>".$notification_result);
 			}
 			curl_close($ch);
 		}
 	} catch (Exception $e) {
-		error_log("[Wanna API Exception] " . $e->getMessage() . ", data: " . json_encode($notification_data));
+		error_log("[paysis API Exception] " . $e->getMessage() . ", data: " . json_encode($notification_data));
 		if (isset($ch) && is_resource($ch)) {
 			curl_close($ch);
 		}
 	}
 	*/
+
 }
-?>

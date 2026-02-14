@@ -381,6 +381,9 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/txn/memo" target="_self" class="gnb_1da <?php if($p == "payment_memo") { echo "on"; } ?>"><i class="fa fa-sticky-note-o"></i> <span>결제내역 메모</span></a>
 				</li>
+				<li class="gnb_1dli">
+					<a href="/txn/fds" target="_self" class="gnb_1da <?php if($p == "payment_fds") { echo "on"; } ?>"><i class="fa fa-exclamation-triangle"></i> <span>결제이상건(FDS)</span></a>
+				</li>
 				<?php } ?>
 				<?php } ?>
 			</ul>

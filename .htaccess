@@ -94,6 +94,7 @@ RewriteRule ^txn/missing/?$ index.php?p=payment_loss [QSA,L]
 RewriteRule ^txn/daily/?$ index.php?p=payment_day [QSA,L]
 RewriteRule ^txn/cancel/?$ index.php?p=cancel_payment [QSA,L]
 RewriteRule ^txn/memo/?$ index.php?p=payment_memo [QSA,L]
+RewriteRule ^txn/fds/?$ index.php?p=payment_fds [QSA,L]
 RewriteRule ^txn/?$ index.php?p=payment [QSA,L]
 
 # 정산 관련

@@ -133,6 +133,8 @@ if($CPID) {
 
 	$pay_type = "Y";
 	$pay_cdatetime = "";
+	$pp_limit_3m = '';
+	$pp_limit_5m = '';
 
 	// 취소
 	if($TXTYPE == "CANCEL") {
@@ -177,6 +179,39 @@ if($CPID) {
 
 	$sql = "insert into g5_payment_danal set ".$sql_common." datetime = '".G5_TIME_YMDHIS."'";
 	sql_query($sql);
+
+	// ========================================
+	// FDS 이상거래 탐지
+	// ========================================
+	if($TXTYPE != "CANCEL") {
+		// 300만원 이상 결제 여부
+		if((int)$AMOUNT >= 3000000) {
+			$pp_limit_3m = 'Y';
+		}
+
+		// 동일카드 1일 500만원 초과 여부
+		$today_date = date("Y-m-d", strtotime($appDtm));
+		$sum_row = sql_fetch("SELECT IFNULL(SUM(ABS(pay)),0) as total_pay
+			FROM g5_payment
+			WHERE pay_card_num = '{$CARDNO}'
+			AND pay_type = 'Y'
+			AND pay_datetime >= '{$today_date} 00:00:00'
+			AND pay_datetime <= '{$today_date} 23:59:59'");
+
+		$daily_total = (int)$sum_row['total_pay'] + (int)$AMOUNT;
+
+		if($daily_total > 5000000) {
+			$pp_limit_5m = 'Y';
+
+			// 이전 건들도 전부 Y로 업데이트
+			sql_query("UPDATE g5_payment
+				SET pp_limit_5m = 'Y'
+				WHERE pay_card_num = '{$CARDNO}'
+				AND pay_type = 'Y'
+				AND pay_datetime >= '{$today_date} 00:00:00'
+				AND pay_datetime <= '{$today_date} 23:59:59'");
+		}
+	}
 
 	$row2 = sql_fetch("select * from g5_device where dv_tid = '{$CATID}'");
 
@@ -275,6 +310,8 @@ if($CPID) {
 					dv_type = '{$row2['dv_type']}',
 					dv_certi = '{$row2['dv_certi']}',
 					dv_tid = '{$CATID}',
+					pp_limit_3m = '{$pp_limit_3m}',
+					pp_limit_5m = '{$pp_limit_5m}',
 					pg_name = 'danal' ";
 
 
