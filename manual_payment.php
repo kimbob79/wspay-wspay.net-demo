@@ -1209,7 +1209,7 @@ function downloadCsv() {
 					<td class="center">
 						<?php if($row['pk_status'] == 'approved') { ?>
 						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
-						<?php if($row['mkc_cancel_yn'] == 'Y') { ?>
+						<?php if($is_admin || $row['mkc_cancel_yn'] == 'Y') { ?>
 						<button type="button" class="btn-cancel" onclick="openCancelModal(<?php echo $row['pk_id']; ?>, '<?php echo $row['pk_app_no']; ?>', '<?php echo addslashes($row['pk_goods_name']); ?>', <?php echo $row['pk_amount']; ?>)">취소</button>
 						<?php } ?>
 						<?php } else if($row['pk_status'] == 'cancelled') { ?>
@@ -1560,7 +1560,7 @@ function downloadCsv() {
 					<td class="center">
 						<?php if($row['pk_status'] == 'approved') { ?>
 						<button type="button" class="btn-receipt" onclick="openReceipt(<?php echo $row['pk_id']; ?>)">영수증</button>
-						<?php if($row['mkc_cancel_yn'] == 'Y') { ?>
+						<?php if($is_admin || $row['mkc_cancel_yn'] == 'Y') { ?>
 						<button type="button" class="btn-cancel" onclick="openCancelModal(<?php echo $row['pk_id']; ?>, '<?php echo $row['pk_app_no']; ?>', '<?php echo addslashes($row['pk_goods_name']); ?>', <?php echo $row['pk_amount']; ?>)">취소</button>
 						<?php } ?>
 						<?php } else if($row['pk_status'] == 'cancelled') { ?>
