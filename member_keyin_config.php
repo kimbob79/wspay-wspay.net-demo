@@ -43,6 +43,7 @@ if(sql_num_rows($check_table) == 0) {
         `mkc_memo` text COMMENT '메모',
         `mkc_cancel_yn` char(1) NOT NULL DEFAULT 'Y' COMMENT '취소가능여부',
         `mkc_duplicate_yn` char(1) NOT NULL DEFAULT 'N' COMMENT '중복결제가능여부',
+        `mkc_duplicate_limit` int(11) NOT NULL DEFAULT 0 COMMENT '중복결제 허용횟수 (0=바로차단, N=일N회까지)',
         `mkc_weekend_yn` char(1) NOT NULL DEFAULT 'Y' COMMENT '주말/공휴일결제가능여부',
         `mkc_limit_once` int(11) NOT NULL DEFAULT 0 COMMENT '1회결제한도 (0=무제한)',
         `mkc_limit_daily` int(11) NOT NULL DEFAULT 0 COMMENT '일일결제한도 (0=무제한)',
@@ -99,6 +100,12 @@ $check_status_column = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mkc_st
 if(sql_num_rows($check_status_column) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mkc_status` enum('active','deleted') DEFAULT 'active' COMMENT '상태 (active/deleted)' AFTER `mkc_oid`");
     sql_query("ALTER TABLE `{$table_name}` ADD KEY `idx_status` (`mkc_status`)");
+}
+
+// mkc_duplicate_limit 컬럼 추가 (마이그레이션)
+$check_dup_limit = sql_query("SHOW COLUMNS FROM `{$table_name}` LIKE 'mkc_duplicate_limit'");
+if(sql_num_rows($check_dup_limit) == 0) {
+    sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mkc_duplicate_limit` int(11) NOT NULL DEFAULT 0 COMMENT '중복결제 허용횟수 (0=바로차단, N=일N회까지)' AFTER `mkc_duplicate_yn`");
 }
 
 // OID가 NULL인 기존 레코드에 OID 자동 부여 (마이그레이션)
@@ -174,6 +181,7 @@ if($mode == 'save') {
     // 새 필드들
     $mkc_cancel_yn = isset($_POST['mkc_cancel_yn']) ? sql_escape_string($_POST['mkc_cancel_yn']) : 'Y';
     $mkc_duplicate_yn = isset($_POST['mkc_duplicate_yn']) ? sql_escape_string($_POST['mkc_duplicate_yn']) : 'N';
+    $mkc_duplicate_limit = isset($_POST['mkc_duplicate_limit']) ? (int)$_POST['mkc_duplicate_limit'] : 0;
     $mkc_weekend_yn = isset($_POST['mkc_weekend_yn']) ? sql_escape_string($_POST['mkc_weekend_yn']) : 'Y';
     $mkc_limit_once = isset($_POST['mkc_limit_once']) ? (int)$_POST['mkc_limit_once'] : 0;
     $mkc_limit_daily = isset($_POST['mkc_limit_daily']) ? (int)$_POST['mkc_limit_daily'] : 0;
@@ -241,6 +249,7 @@ if($mode == 'save') {
                 mkc_memo = '{$mkc_memo}',
                 mkc_cancel_yn = '{$mkc_cancel_yn}',
                 mkc_duplicate_yn = '{$mkc_duplicate_yn}',
+                mkc_duplicate_limit = '{$mkc_duplicate_limit}',
                 mkc_weekend_yn = '{$mkc_weekend_yn}',
                 mkc_limit_once = '{$mkc_limit_once}',
                 mkc_limit_daily = '{$mkc_limit_daily}',
@@ -265,6 +274,7 @@ if($mode == 'save') {
                 mkc_memo = '{$mkc_memo}',
                 mkc_cancel_yn = '{$mkc_cancel_yn}',
                 mkc_duplicate_yn = '{$mkc_duplicate_yn}',
+                mkc_duplicate_limit = '{$mkc_duplicate_limit}',
                 mkc_weekend_yn = '{$mkc_weekend_yn}',
                 mkc_limit_once = '{$mkc_limit_once}',
                 mkc_limit_daily = '{$mkc_limit_daily}',
@@ -281,11 +291,11 @@ if($mode == 'save') {
         $mkc_oid = generate_merchant_oid($table_name);
 
         if($config_type == 'master') {
-            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
-                VALUES ('{$mb_id}', '{$mpc_id}', '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', NULL, NULL, NULL, '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
+            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_duplicate_limit, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
+                VALUES ('{$mb_id}', '{$mpc_id}', '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', NULL, NULL, NULL, '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_duplicate_limit}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
         } else {
-            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
-                VALUES ('{$mb_id}', NULL, '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', '{$mkc_api_key}', '{$mkc_mid}', '{$mkc_mkey}', '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
+            $sql = "INSERT INTO {$table_name} (mb_id, mpc_id, mkc_pg_code, mkc_pg_name, mkc_type, mkc_api_key, mkc_mid, mkc_mkey, mkc_use, mkc_memo, mkc_cancel_yn, mkc_duplicate_yn, mkc_duplicate_limit, mkc_weekend_yn, mkc_limit_once, mkc_limit_daily, mkc_limit_monthly, mkc_max_installment, mkc_time_start, mkc_time_end, mkc_oid, mkc_datetime)
+                VALUES ('{$mb_id}', NULL, '{$mkc_pg_code}', '{$mkc_pg_name}', '{$mkc_type}', '{$mkc_api_key}', '{$mkc_mid}', '{$mkc_mkey}', '{$mkc_use}', '{$mkc_memo}', '{$mkc_cancel_yn}', '{$mkc_duplicate_yn}', '{$mkc_duplicate_limit}', '{$mkc_weekend_yn}', '{$mkc_limit_once}', '{$mkc_limit_daily}', '{$mkc_limit_monthly}', '{$mkc_max_installment}', '{$mkc_time_start}', '{$mkc_time_end}', '{$mkc_oid}', '{$now}')";
         }
     }
     sql_query($sql);
@@ -1016,10 +1026,20 @@ textarea.form-control {
                                         </select>
                                     </td>
                                     <th>중복결제</th>
-                                    <td>
-                                        <select name="mkc_duplicate_yn" class="form-control form-control-inline">
+                                    <td style="display:flex; align-items:center; gap:6px;">
+                                        <select name="mkc_duplicate_yn" class="form-control form-control-inline" id="mkc_duplicate_yn" onchange="toggleDupLimit(this)" style="min-width:80px;">
                                             <option value="Y" <?php if($edit_data && $edit_data['mkc_duplicate_yn'] == 'Y') echo 'selected'; ?>>허용</option>
                                             <option value="N" <?php if(!$edit_data || $edit_data['mkc_duplicate_yn'] == 'N') echo 'selected'; ?>>차단</option>
+                                        </select>
+                                        <select name="mkc_duplicate_limit" class="form-control form-control-inline" id="mkc_duplicate_limit" style="min-width:110px; <?php echo ($edit_data && $edit_data['mkc_duplicate_yn'] == 'Y') ? 'display:none;' : ''; ?>">
+                                            <?php
+                                            $dup_limits = array(0 => '바로 차단', 2 => '일 2회까지', 3 => '일 3회까지', 5 => '일 5회까지', 10 => '일 10회까지');
+                                            $current_dup_limit = $edit_data ? (int)$edit_data['mkc_duplicate_limit'] : 0;
+                                            foreach($dup_limits as $val => $label) {
+                                                $sel = ($current_dup_limit == $val) ? 'selected' : '';
+                                                echo "<option value=\"{$val}\" {$sel}>{$label}</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </td>
                                 </tr>
@@ -1175,7 +1195,15 @@ textarea.form-control {
                                         $time_end = substr($row['mkc_time_end'], 0, 2);
                                         ?>
                                         <span class="info-tag">취소:<b class="<?php echo $cancel_cls; ?>"><?php echo $row['mkc_cancel_yn']; ?></b></span>
-                                        <span class="info-tag">중복:<b class="<?php echo $dup_cls; ?>"><?php echo $row['mkc_duplicate_yn']; ?></b></span>
+                                        <?php
+                                        if($row['mkc_duplicate_yn'] == 'Y') {
+                                            echo '<span class="info-tag">중복:<b class="y">허용</b></span>';
+                                        } else if((int)$row['mkc_duplicate_limit'] > 0) {
+                                            echo '<span class="info-tag">중복:<b class="n">일' . (int)$row['mkc_duplicate_limit'] . '회</b></span>';
+                                        } else {
+                                            echo '<span class="info-tag">중복:<b class="n">차단</b></span>';
+                                        }
+                                        ?>
                                         <span class="info-tag">주말:<b class="<?php echo $weekend_cls; ?>"><?php echo $row['mkc_weekend_yn']; ?></b></span>
                                         <span class="info-tag">할부:<b><?php echo $row['mkc_max_installment']; ?>개월</b></span>
                                         <span class="info-tag">시간:<b><?php echo intval($time_start); ?>~<?php echo intval($time_end); ?>시</b></span>
@@ -1210,6 +1238,15 @@ textarea.form-control {
 </section>
 
 <script>
+function toggleDupLimit(el) {
+    var limitSel = document.getElementById('mkc_duplicate_limit');
+    if(el.value === 'N') {
+        limitSel.style.display = '';
+    } else {
+        limitSel.style.display = 'none';
+    }
+}
+
 function selectConfigType(type) {
     // 라디오 버튼 체크
     document.querySelectorAll('input[name="config_type"]').forEach(function(radio) {

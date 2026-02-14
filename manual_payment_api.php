@@ -249,20 +249,38 @@ function processPayment() {
         exit;
     }
 
-    // 중복결제 체크 (동일 카드번호+금액으로 5분 이내 승인된 결제가 있는지)
+    // 중복결제 체크
     if($keyin['mkc_duplicate_yn'] !== 'Y') {
         $card_no_masked_check = maskCardNumber($card_no);
-        $dup_sql = "SELECT pk_id FROM g5_payment_keyin
-                    WHERE mkc_id = '{$mkc_id}'
-                    AND pk_card_no_masked = '" . sql_escape_string($card_no_masked_check) . "'
-                    AND pk_amount = '{$amount}'
-                    AND pk_status = 'approved'
-                    AND pk_created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-                    LIMIT 1";
-        $dup_row = sql_fetch($dup_sql);
-        if($dup_row) {
-            echo json_encode(['success' => false, 'message' => '동일한 카드와 금액으로 최근 5분 이내 결제된 내역이 있습니다. 중복결제가 차단되었습니다.']);
-            exit;
+        $dup_limit = intval($keyin['mkc_duplicate_limit']);
+
+        if($dup_limit > 0) {
+            // N회까지 허용: 오늘 하루 기준 COUNT 체크
+            $dup_sql = "SELECT COUNT(*) as cnt FROM g5_payment_keyin
+                        WHERE mkc_id = '{$mkc_id}'
+                        AND pk_card_no_masked = '" . sql_escape_string($card_no_masked_check) . "'
+                        AND pk_amount = '{$amount}'
+                        AND pk_status = 'approved'
+                        AND DATE(pk_created_at) = CURDATE()";
+            $dup_row = sql_fetch($dup_sql);
+            if(intval($dup_row['cnt']) >= $dup_limit) {
+                echo json_encode(['success' => false, 'message' => '동일한 카드와 금액으로 오늘 ' . $dup_limit . '회까지만 결제 가능합니다.']);
+                exit;
+            }
+        } else {
+            // 바로 차단: 5분 이내 동일 결제 있으면 차단 (기존 로직)
+            $dup_sql = "SELECT pk_id FROM g5_payment_keyin
+                        WHERE mkc_id = '{$mkc_id}'
+                        AND pk_card_no_masked = '" . sql_escape_string($card_no_masked_check) . "'
+                        AND pk_amount = '{$amount}'
+                        AND pk_status = 'approved'
+                        AND pk_created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                        LIMIT 1";
+            $dup_row = sql_fetch($dup_sql);
+            if($dup_row) {
+                echo json_encode(['success' => false, 'message' => '동일한 카드와 금액으로 최근 5분 이내 결제된 내역이 있습니다. 중복결제가 차단되었습니다.']);
+                exit;
+            }
         }
     }
 
