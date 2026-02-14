@@ -7,8 +7,8 @@ $popup_notice = null;
 $popup_image_url = '';
 $sql_popup = "SELECT w.*, f.bf_file
 	FROM g5_write_notice w
-	INNER JOIN g5_board_file f ON f.bo_table = 'notice' AND f.wr_id = w.wr_id AND f.bf_no = 0
-	WHERE w.wr_1 = 'Y' AND f.bf_file != ''
+	LEFT JOIN g5_board_file f ON f.bo_table = 'notice' AND f.wr_id = w.wr_id AND f.bf_no = 0
+	WHERE w.wr_1 = 'Y'
 	ORDER BY w.wr_id DESC LIMIT 1";
 $popup_notice = sql_fetch($sql_popup);
 if($popup_notice && $popup_notice['bf_file']) {
@@ -536,7 +536,7 @@ if($is_van_fee_member) {
 	</div>
 </div>
 
-<?php if($popup_notice && $popup_image_url) { ?>
+<?php if($popup_notice) { ?>
 <!-- 팝업 공지사항 Lightbox -->
 <style>
 .popup-lightbox {
@@ -604,6 +604,47 @@ if($is_van_fee_member) {
 	max-height: 90vh;
 	cursor: pointer;
 }
+/* 텍스트 팝업 */
+.popup-text-wrap {
+	position: relative;
+	padding: 28px 24px 20px;
+	min-width: 320px;
+	max-width: 480px;
+}
+.popup-close-dark {
+	color: #333;
+	text-shadow: none;
+}
+.popup-close-dark:hover {
+	color: #000;
+}
+.popup-text-header {
+	font-size: 18px;
+	font-weight: 700;
+	color: #1a1a1a;
+	margin-bottom: 14px;
+	padding-right: 30px;
+	line-height: 1.4;
+}
+.popup-text-body {
+	font-size: 14px;
+	color: #444;
+	line-height: 1.7;
+	max-height: 50vh;
+	overflow-y: auto;
+	margin-bottom: 16px;
+	word-break: keep-all;
+}
+.popup-text-link {
+	display: inline-block;
+	font-size: 13px;
+	color: #00838f;
+	text-decoration: none;
+	font-weight: 500;
+}
+.popup-text-link:hover {
+	text-decoration: underline;
+}
 .popup-bottom {
 	display: flex;
 	justify-content: center;
@@ -642,18 +683,31 @@ if($is_van_fee_member) {
 	.popup-image {
 		max-height: 80vh;
 	}
+	.popup-text-wrap {
+		min-width: auto;
+		padding: 24px 16px 16px;
+	}
 }
 </style>
 
 <div class="popup-lightbox" id="popupLightbox">
 	<div class="popup-wrap">
 		<div class="popup-content">
+			<?php if($popup_image_url) { ?>
 			<div class="popup-image-wrap">
 				<button type="button" class="popup-close" onclick="closePopup()">&times;</button>
 				<a href="./?p=bbs&t=notice&v=view&id=<?php echo $popup_notice['wr_id']; ?>">
 					<img src="<?php echo $popup_image_url; ?>" alt="<?php echo htmlspecialchars($popup_notice['wr_subject']); ?>" class="popup-image">
 				</a>
 			</div>
+			<?php } else { ?>
+			<div class="popup-text-wrap">
+				<button type="button" class="popup-close popup-close-dark" onclick="closePopup()">&times;</button>
+				<div class="popup-text-header"><?php echo htmlspecialchars($popup_notice['wr_subject']); ?></div>
+				<div class="popup-text-body"><?php echo nl2br(htmlspecialchars($popup_notice['wr_content'])); ?></div>
+				<a href="./?p=bbs&t=notice&v=view&id=<?php echo $popup_notice['wr_id']; ?>" class="popup-text-link">자세히 보기 <i class="fa fa-angle-right"></i></a>
+			</div>
+			<?php } ?>
 		</div>
 		<div class="popup-bottom">
 			<label><input type="checkbox" id="popupNoShow"> 다시 보지 않기</label>
