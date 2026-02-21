@@ -125,6 +125,91 @@ if($auth_filter && in_array($auth_filter, ['nonauth', 'auth'])) {
 	$sql_search .= " AND p.pk_auth_type = '{$auth_filter}'";
 }
 
+// NOTI 상태 필터 (관리자 전용)
+$noti_filter = isset($_GET['noti_filter']) ? $_GET['noti_filter'] : '';
+if($is_admin && $noti_filter && in_array($noti_filter, ['noti_missing', 'payment_missing', 'normal'])) {
+	// 승인 건만 대상
+	$sql_search .= " AND p.pk_status = 'approved' AND p.pk_app_no IS NOT NULL AND p.pk_app_no != ''";
+
+	if($noti_filter == 'noti_missing') {
+		// PG NOTI 테이블에 레코드 없음
+		$sql_search .= " AND (
+			(p.pk_pg_code = 'paysis' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'stn' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'rootup' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount
+			))
+		)";
+	} else if($noti_filter == 'payment_missing') {
+		// PG NOTI 있지만 g5_payment에 없음
+		$sql_search .= " AND (
+			(p.pk_pg_code IN ('paysis','stn','rootup') AND (
+				(p.pk_pg_code = 'paysis' AND EXISTS (
+					SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'stn' AND EXISTS (
+					SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'rootup' AND EXISTS (
+					SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND (
+				EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('daou','korpay','danal')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+		)";
+	} else if($noti_filter == 'normal') {
+		// 정상: PG NOTI + g5_payment 모두 존재
+		$sql_search .= " AND (
+			(p.pk_pg_code IN ('paysis','stn','rootup') AND (
+				(p.pk_pg_code = 'paysis' AND EXISTS (
+					SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'stn' AND EXISTS (
+					SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'rootup' AND EXISTS (
+					SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+			) AND EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND (
+				EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
+			) AND EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('daou','korpay','danal')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+		)";
+	}
+}
+
 // 검색어
 if ($stx) {
 	$sql_search .= " AND ( ";
@@ -186,6 +271,82 @@ $sql = "SELECT p.*, k.mkc_cancel_yn
         LEFT JOIN g5_member_keyin_config k ON p.mkc_id = k.mkc_id
         {$sql_search} {$sql_order} LIMIT {$from_record}, {$rows}";
 $result = sql_query($sql);
+
+// 관리자용 NOTI 상태 배치 체크
+$rows_data = array();
+$noti_check = array();
+
+if($is_admin) {
+	// 결과를 배열로 수집
+	while($r = sql_fetch_array($result)) {
+		$rows_data[] = $r;
+	}
+
+	// 승인 건의 승인번호를 PG별로 분류
+	$pg_app_nos = array('paysis' => [], 'stn' => [], 'rootup' => [], 'winglobal' => []);
+	$all_app_nos = array();
+	foreach($rows_data as $r) {
+		if($r['pk_status'] == 'approved' && $r['pk_app_no'] && isset($pg_app_nos[$r['pk_pg_code']])) {
+			$pg_app_nos[$r['pk_pg_code']][] = "'" . sql_escape_string($r['pk_app_no']) . "'";
+			$all_app_nos[] = "'" . sql_escape_string($r['pk_app_no']) . "'";
+		}
+	}
+
+	// PG별 NOTI 존재 체크 (승인번호+금액 복합키)
+	$noti_found = array();
+	if(!empty($pg_app_nos['paysis'])) {
+		$in = implode(',', $pg_app_nos['paysis']);
+		$q = sql_query("SELECT appNo, amt FROM g5_payment_paysis WHERE connCd='0005' AND appNo IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['appNo'].'_'.$nr['amt']] = true; }
+	}
+	if(!empty($pg_app_nos['stn'])) {
+		$in = implode(',', $pg_app_nos['stn']);
+		$q = sql_query("SELECT applNo, amount FROM g5_payment_stn WHERE requestFlag='K' AND applNo IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['applNo'].'_'.$nr['amount']] = true; }
+	}
+	if(!empty($pg_app_nos['rootup'])) {
+		$in = implode(',', $pg_app_nos['rootup']);
+		$q = sql_query("SELECT appr_num, amount FROM g5_payment_routeup WHERE module_type='1' AND appr_num IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['appr_num'].'_'.$nr['amount']] = true; }
+	}
+	if(!empty($pg_app_nos['winglobal'])) {
+		$in = implode(',', $pg_app_nos['winglobal']);
+		// 다우
+		$q = sql_query("SELECT appNo, amt FROM g5_payment_daou WHERE appNo IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['appNo'].'_'.$nr['amt']] = true; }
+		// 코페이
+		$q = sql_query("SELECT appNo, amt FROM g5_payment_korpay WHERE appNo IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['appNo'].'_'.$nr['amt']] = true; }
+		// 다날
+		$q = sql_query("SELECT CARDAUTHNO, AMOUNT FROM g5_payment_danal WHERE CARDAUTHNO IN ({$in})");
+		while($nr = sql_fetch_array($q)) { $noti_found[$nr['CARDAUTHNO'].'_'.$nr['AMOUNT']] = true; }
+	}
+
+	// g5_payment 존재 체크 (승인번호+금액 복합키)
+	$payment_found = array();
+	if(!empty($all_app_nos)) {
+		$in = implode(',', array_unique($all_app_nos));
+		$q = sql_query("SELECT pay_num, pay FROM g5_payment WHERE pg_name IN ('paysis_keyin','stn_k','routeup_k','daou','korpay','danal') AND pay_num IN ({$in})");
+		while($pr = sql_fetch_array($q)) { $payment_found[$pr['pay_num'].'_'.$pr['pay']] = true; }
+	}
+
+	// 상태 맵 생성 (승인번호+금액 복합키)
+	foreach($rows_data as $r) {
+		$app = $r['pk_app_no'];
+		$key = $app . '_' . $r['pk_amount'];
+		if($r['pk_status'] == 'approved' && $app && in_array($r['pk_pg_code'], ['paysis','stn','rootup','winglobal'])) {
+			$has_noti = isset($noti_found[$key]);
+			$has_payment = isset($payment_found[$key]);
+			if($has_noti && $has_payment) {
+				$noti_check[$key] = 'normal';
+			} else if(!$has_noti) {
+				$noti_check[$key] = 'noti_missing';
+			} else {
+				$noti_check[$key] = 'payment_missing';
+			}
+		}
+	}
+}
 
 include_once('./_head.php');
 ?>
@@ -586,6 +747,27 @@ tr.row-cancelled td {
 }
 tr.row-failed {
 	background: #fff8f8 !important;
+}
+/* NOTI 상태 배지 */
+.noti-badge {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.noti-ok {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+.noti-miss {
+	background: #ffebee;
+	color: #c62828;
+}
+.noti-unreg {
+	background: #fff3e0;
+	color: #e65100;
 }
 @media (max-width: 768px) {
 	.manual-list-header-top {
@@ -1026,6 +1208,14 @@ tr.row-failed {
 					<option value="auth" <?php if($auth_filter == 'auth') echo 'selected'; ?>>구인증</option>
 				</select>
 			</div>
+			<div class="manual-list-search-group">
+				<select name="noti_filter">
+					<option value="">NOTI전체</option>
+					<option value="noti_missing" <?php if($noti_filter == 'noti_missing') echo 'selected'; ?>>NOTI미수신</option>
+					<option value="payment_missing" <?php if($noti_filter == 'payment_missing') echo 'selected'; ?>>미등록</option>
+					<option value="normal" <?php if($noti_filter == 'normal') echo 'selected'; ?>>정상</option>
+				</select>
+			</div>
 		</div>
 		<div class="search-divider"></div>
 		<div class="radio-group">
@@ -1085,6 +1275,7 @@ function downloadCsv() {
 					<th>요청일시</th>
 					<th>취소일시</th>
 					<th>PG</th>
+					<th>NOTI</th>
 					<th>인증</th>
 					<th>응답메시지</th>
 					<th>관리</th>
@@ -1095,14 +1286,14 @@ function downloadCsv() {
 				if($total_count == 0) {
 				?>
 				<tr>
-					<td colspan="17" class="center" style="padding: 40px 0; color: #999;">
+					<td colspan="18" class="center" style="padding: 40px 0; color: #999;">
 						<i class="fa fa-inbox" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>
 						조회된 내역이 없습니다.
 					</td>
 				</tr>
 				<?php
 				} else {
-					for ($i=0; $row=sql_fetch_array($result); $i++) {
+					foreach($rows_data as $i => $row) {
 						$num = number_format($total_count - ($page - 1) * $rows - $i);
 
 						// 상태 표시
@@ -1197,6 +1388,23 @@ function downloadCsv() {
 						}
 					?></td>
 					<td class="center"><?php echo $pg_name; ?></td>
+					<td class="center">
+					<?php
+					if($row['pk_status'] == 'approved' && $row['pk_app_no'] && in_array($row['pk_pg_code'], ['paysis','stn','rootup','winglobal'])) {
+						$noti_key = $row['pk_app_no'] . '_' . $row['pk_amount'];
+						$noti_st = isset($noti_check[$noti_key]) ? $noti_check[$noti_key] : '';
+						if($noti_st == 'normal') {
+							echo '<span class="noti-badge noti-ok">정상</span>';
+						} else if($noti_st == 'noti_missing') {
+							echo '<span class="noti-badge noti-miss">NOTI미수신</span>';
+						} else if($noti_st == 'payment_missing') {
+							echo '<span class="noti-badge noti-unreg">미등록</span>';
+						}
+					} else {
+						echo '-';
+					}
+					?>
+					</td>
 					<td class="center"><span class="auth-badge <?php echo $auth_class; ?>"><?php echo $auth_text; ?></span></td>
 					<td style="max-width:150px; font-size:11px; color:#666;">
 						<?php
@@ -1235,6 +1443,7 @@ $qstr .= "&to_date=".$to_date;
 $qstr .= "&status_filter=".$status_filter;
 $qstr .= "&pg_filter=".$pg_filter;
 $qstr .= "&auth_filter=".$auth_filter;
+$qstr .= "&noti_filter=".$noti_filter;
 $qstr .= "&sfl=".$sfl;
 $qstr .= "&stx=".$stx;
 echo get_paging_news(G5_IS_MOBILE ? "5" : "5", $page, $total_page, '?' . $qstr . '&amp;page=');
