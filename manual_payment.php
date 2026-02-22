@@ -257,6 +257,68 @@ $sql = "SELECT
 	FROM {$table_name} p {$sql_search}";
 $stat = sql_fetch($sql);
 
+// 관리자용 NOTI 싱크 현황 카운트
+$noti_sync_counts = array('noti_missing' => 0, 'payment_missing' => 0);
+if($is_admin) {
+	// 날짜+접근제어만 적용한 기본 조건 (세부필터 미포함)
+	if ($fr_date == "all" && $to_date == "all") {
+		$noti_base = " WHERE ".$adm_sql;
+	} else {
+		$noti_base = " WHERE ".$adm_sql." AND (p.pk_created_at BETWEEN '{$fr_dates} 00:00:00' AND '{$to_dates} 23:59:59')";
+	}
+	$noti_base .= " AND p.pk_status = 'approved' AND p.pk_app_no IS NOT NULL AND p.pk_app_no != ''";
+
+	// NOTI 미수신 카운트
+	$q = sql_fetch("SELECT COUNT(*) as cnt FROM {$table_name} p {$noti_base} AND (
+		(p.pk_pg_code = 'paysis' AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+		))
+		OR (p.pk_pg_code = 'stn' AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+		))
+		OR (p.pk_pg_code = 'rootup' AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+		))
+		OR (p.pk_pg_code = 'winglobal' AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+		) AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+		) AND NOT EXISTS (
+			SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount
+		))
+	)");
+	$noti_sync_counts['noti_missing'] = intval($q['cnt']);
+
+	// 미등록 카운트 (NOTI는 있지만 g5_payment에 없음)
+	$q = sql_fetch("SELECT COUNT(*) as cnt FROM {$table_name} p {$noti_base} AND (
+		(p.pk_pg_code IN ('paysis','stn','rootup') AND (
+			(p.pk_pg_code = 'paysis' AND EXISTS (
+				SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'stn' AND EXISTS (
+				SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'rootup' AND EXISTS (
+				SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+		) AND NOT EXISTS (
+			SELECT 1 FROM g5_payment gp
+			WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
+			AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+		))
+		OR (p.pk_pg_code = 'winglobal' AND (
+			EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+			OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+			OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
+		) AND NOT EXISTS (
+			SELECT 1 FROM g5_payment gp
+			WHERE gp.pg_name IN ('daou','korpay','danal')
+			AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+		))
+	)");
+	$noti_sync_counts['payment_missing'] = intval($q['cnt']);
+}
+
 $total_count = $stat['cnt'];
 $page_count = "30";
 $rows = $page_count ? $page_count : $config['cf_page_rows'];
@@ -769,6 +831,99 @@ tr.row-failed {
 	background: #fff3e0;
 	color: #e65100;
 }
+/* NOTI 싱크 알림 배너 */
+.noti-sync-alert {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: linear-gradient(135deg, #37222a 0%, #2d1f1f 100%);
+	border: 1px solid rgba(198,40,40,0.4);
+	border-left: 4px solid #c62828;
+	border-radius: 8px;
+	padding: 10px 16px;
+	margin-bottom: 10px;
+}
+.noti-sync-icon {
+	color: #ef5350;
+	font-size: 20px;
+	flex-shrink: 0;
+	animation: noti-pulse 2s ease-in-out infinite;
+}
+@keyframes noti-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.5; }
+}
+.noti-sync-content {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	flex: 1;
+}
+.noti-sync-title {
+	color: rgba(255,255,255,0.7);
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.noti-sync-items {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.noti-sync-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	border-radius: 4px;
+	font-size: 12px;
+	text-decoration: none;
+	transition: all 0.2s;
+	cursor: pointer;
+}
+.noti-sync-item.miss {
+	background: rgba(198,40,40,0.25);
+	color: #ef9a9a;
+	border: 1px solid rgba(198,40,40,0.3);
+}
+.noti-sync-item.miss:hover {
+	background: rgba(198,40,40,0.4);
+	color: #ffcdd2;
+}
+.noti-sync-item.unreg {
+	background: rgba(230,81,0,0.25);
+	color: #ffcc80;
+	border: 1px solid rgba(230,81,0,0.3);
+}
+.noti-sync-item.unreg:hover {
+	background: rgba(230,81,0,0.4);
+	color: #ffe0b2;
+}
+.noti-sync-item strong {
+	font-weight: 700;
+}
+.noti-sync-item i {
+	font-size: 13px;
+}
+@media (max-width: 768px) {
+	.noti-sync-alert {
+		padding: 8px 12px;
+		gap: 8px;
+	}
+	.noti-sync-icon {
+		font-size: 16px;
+	}
+	.noti-sync-content {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
+	}
+	.noti-sync-item {
+		font-size: 11px;
+		padding: 4px 10px;
+	}
+}
 @media (max-width: 768px) {
 	.manual-list-header-top {
 		flex-direction: row;
@@ -1164,6 +1319,29 @@ tr.row-failed {
 		</div>
 	</div>
 </div>
+
+<?php if($noti_sync_counts['noti_missing'] > 0 || $noti_sync_counts['payment_missing'] > 0) { ?>
+<div class="noti-sync-alert">
+	<div class="noti-sync-icon"><i class="fa fa-exclamation-triangle"></i></div>
+	<div class="noti-sync-content">
+		<span class="noti-sync-title">NOTI 싱크 현황</span>
+		<div class="noti-sync-items">
+			<?php if($noti_sync_counts['noti_missing'] > 0) { ?>
+			<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=noti_missing" class="noti-sync-item miss">
+				<i class="fa fa-times-circle"></i>
+				NOTI 미수신 <strong><?=number_format($noti_sync_counts['noti_missing'])?>건</strong>
+			</a>
+			<?php } ?>
+			<?php if($noti_sync_counts['payment_missing'] > 0) { ?>
+			<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=payment_missing" class="noti-sync-item unreg">
+				<i class="fa fa-exclamation-circle"></i>
+				미등록 <strong><?=number_format($noti_sync_counts['payment_missing'])?>건</strong>
+			</a>
+			<?php } ?>
+		</div>
+	</div>
+</div>
+<?php } ?>
 
 <form id="fsearch" name="fsearch" method="get">
 <input type="hidden" name="p" value="<?php echo $p; ?>">
