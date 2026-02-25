@@ -64,6 +64,91 @@ if($auth_filter && in_array($auth_filter, ['nonauth', 'auth'])) {
 	$sql_search .= " AND p.pk_auth_type = '{$auth_filter}'";
 }
 
+// NOTI 상태 필터 (관리자 전용)
+$noti_filter = isset($_GET['noti_filter']) ? $_GET['noti_filter'] : '';
+if($is_admin && $noti_filter && in_array($noti_filter, ['noti_missing', 'payment_missing', 'normal'])) {
+	// 승인 건만 대상
+	$sql_search .= " AND p.pk_status = 'approved' AND p.pk_app_no IS NOT NULL AND p.pk_app_no != ''";
+
+	if($noti_filter == 'noti_missing') {
+		// PG NOTI 테이블에 레코드 없음
+		$sql_search .= " AND (
+			(p.pk_pg_code = 'paysis' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'stn' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'rootup' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount
+			))
+		)";
+	} else if($noti_filter == 'payment_missing') {
+		// PG NOTI 있지만 g5_payment에 없음
+		$sql_search .= " AND (
+			(p.pk_pg_code IN ('paysis','stn','rootup') AND (
+				(p.pk_pg_code = 'paysis' AND EXISTS (
+					SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'stn' AND EXISTS (
+					SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'rootup' AND EXISTS (
+					SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND (
+				EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
+			) AND NOT EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('daou','korpay','danal')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+		)";
+	} else if($noti_filter == 'normal') {
+		// 정상: PG NOTI + g5_payment 모두 존재
+		$sql_search .= " AND (
+			(p.pk_pg_code IN ('paysis','stn','rootup') AND (
+				(p.pk_pg_code = 'paysis' AND EXISTS (
+					SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'stn' AND EXISTS (
+					SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+				OR (p.pk_pg_code = 'rootup' AND EXISTS (
+					SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
+				))
+			) AND EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+			OR (p.pk_pg_code = 'winglobal' AND (
+				EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
+				OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
+			) AND EXISTS (
+				SELECT 1 FROM g5_payment gp
+				WHERE gp.pg_name IN ('daou','korpay','danal')
+				AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
+			))
+		)";
+	}
+}
+
 // 검색어
 $sfl = isset($_GET['sfl']) ? $_GET['sfl'] : '';
 $stx = isset($_GET['stx']) ? $_GET['stx'] : '';
@@ -89,8 +174,20 @@ if ($stx) {
 	$sql_search .= " ) ";
 }
 
+// 정렬
+$sst = isset($_GET['sst']) ? $_GET['sst'] : '';
+$sod = isset($_GET['sod']) ? $_GET['sod'] : '';
+// 정렬 필드 화이트리스트 (SQL 인젝션 방지)
+$allowed_sst = ['pk_created_at', 'pk_amount', 'pk_status', 'pk_pg_code', 'pk_mb_6_name', 'pk_buyer_name', 'pk_goods_name', 'pk_app_no', 'pk_order_no', 'pk_card_issuer', 'pk_auth_type'];
+if ($sst && in_array($sst, $allowed_sst)) {
+	$sod = ($sod == 'asc') ? 'asc' : 'desc';
+	$sql_order = " ORDER BY p.{$sst} {$sod} ";
+} else {
+	$sql_order = " ORDER BY p.pk_created_at DESC ";
+}
+
 // 데이터 조회
-$sql = "SELECT p.* FROM {$table_name} p {$sql_search} ORDER BY p.pk_created_at DESC";
+$sql = "SELECT p.* FROM {$table_name} p {$sql_search}{$sql_order}";
 $result = sql_query($sql);
 
 // 파일명 생성
@@ -119,9 +216,16 @@ if($is_admin) {
 	fputcsv($output, ['번호', '주문번호', '상품명', '금액', '할부', '카드사', '카드번호', '구매자명', '구매자연락처', '상태', '승인번호', '요청일시', '취소일시', '응답메시지']);
 }
 
-// 텍스트로 강제 처리 (선행 0 보존)
-function forceText($val) {
-	return $val ? "\t" . $val : '';
+// 연락처 하이픈 포맷 (선행 0 보존)
+function formatPhone($phone) {
+	if (!$phone) return '';
+	$num = preg_replace('/[^0-9]/', '', $phone);
+	if (strlen($num) == 11) {
+		return substr($num, 0, 3) . '-' . substr($num, 3, 4) . '-' . substr($num, 7, 4);
+	} else if (strlen($num) == 10) {
+		return substr($num, 0, 3) . '-' . substr($num, 3, 3) . '-' . substr($num, 6, 4);
+	}
+	return $phone;
 }
 
 // 데이터 행
@@ -167,16 +271,16 @@ while($row = sql_fetch_array($result)) {
 		fputcsv($output, [
 			$num,
 			$row['pk_mb_6_name'],
-			forceText($row['pk_order_no']),
+			$row['pk_order_no'],
 			$row['pk_goods_name'],
 			$row['pk_amount'],
 			$installment_text,
 			str_replace('카드', '', $row['pk_card_issuer']),
-			forceText($row['pk_card_no_masked']),
+			$row['pk_card_no_masked'],
 			$row['pk_buyer_name'],
-			forceText($row['pk_buyer_phone']),
+			formatPhone($row['pk_buyer_phone']),
 			$status_text,
-			forceText($row['pk_app_no']),
+			$row['pk_app_no'],
 			$row['pk_created_at'],
 			$cancel_date,
 			$pg_name,
@@ -186,16 +290,16 @@ while($row = sql_fetch_array($result)) {
 	} else {
 		fputcsv($output, [
 			$num,
-			forceText($row['pk_order_no']),
+			$row['pk_order_no'],
 			$row['pk_goods_name'],
 			$row['pk_amount'],
 			$installment_text,
 			str_replace('카드', '', $row['pk_card_issuer']),
-			forceText($row['pk_card_no_masked']),
+			$row['pk_card_no_masked'],
 			$row['pk_buyer_name'],
-			forceText($row['pk_buyer_phone']),
+			formatPhone($row['pk_buyer_phone']),
 			$status_text,
-			forceText($row['pk_app_no']),
+			$row['pk_app_no'],
 			$row['pk_created_at'],
 			$cancel_date,
 			$row['pk_res_msg']
