@@ -57,7 +57,9 @@ define('PAYSIS_API_CANCEL', 'https://apis.paysis.co.kr:9443/dalgate/api/v1/manua
 $ALLOWED_IPS = [
     '117.52.20.162',
     '61.111.38.139',
-    '14.55.246.103'
+    '14.55.246.103',
+    '49.247.4.197',
+    '58.29.72.149'
 ];
 
 // 로그 디렉토리
