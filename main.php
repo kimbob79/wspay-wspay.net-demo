@@ -5,10 +5,15 @@ $is_van_fee_member = ($member['mb_van_fee'] > 0) ? true : false;
 // 팝업 공지사항 조회 (wr_1='Y'인 가장 최신 1개, 파일첨부 있는 것만)
 $popup_notice = null;
 $popup_image_url = '';
+$popup_level_sql = "";
+if(!$is_admin && $member['mb_level'] >= 3 && $member['mb_level'] <= 8) {
+	$wr_field = 'wr_' . (10 - $member['mb_level']);
+	$popup_level_sql = " AND (w.{$wr_field} = 'Y' OR (w.wr_2 = '' AND w.wr_3 = '' AND w.wr_4 = '' AND w.wr_5 = '' AND w.wr_6 = '' AND w.wr_7 = ''))";
+}
 $sql_popup = "SELECT w.*, f.bf_file
 	FROM g5_write_notice w
 	LEFT JOIN g5_board_file f ON f.bo_table = 'notice' AND f.wr_id = w.wr_id AND f.bf_no = 0
-	WHERE w.wr_1 = 'Y'
+	WHERE w.wr_1 = 'Y' {$popup_level_sql}
 	ORDER BY w.wr_id DESC LIMIT 1";
 $popup_notice = sql_fetch($sql_popup);
 if($popup_notice && $popup_notice['bf_file']) {

@@ -166,6 +166,30 @@
 			홈화면 팝업으로 표시
 		</label>
 	</div>
+	<div class="form-group" style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+		<label style="margin-bottom:0;"><i class="fa fa-eye"></i> 열람대상</label>
+		<div style="display:flex; gap:12px; flex-wrap:wrap;">
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_2" value="Y" <?php if($row['wr_2'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 본사
+			</label>
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_3" value="Y" <?php if($row['wr_3'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 지사
+			</label>
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_4" value="Y" <?php if($row['wr_4'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 총판
+			</label>
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_5" value="Y" <?php if($row['wr_5'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 대리점
+			</label>
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_6" value="Y" <?php if($row['wr_6'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 영업점
+			</label>
+			<label style="font-weight:400; cursor:pointer; display:flex; align-items:center; gap:4px;">
+				<input type="checkbox" name="wr_7" value="Y" <?php if($row['wr_7'] == 'Y') echo 'checked'; ?> style="width:16px; height:16px; accent-color:#00838f;"> 가맹점
+			</label>
+		</div>
+	</div>
+	<p style="color:#888; font-size:12px; margin:4px 0 0 0;">※ 미선택 시 전체 공개</p>
 	<?php } ?>
 </div>
 

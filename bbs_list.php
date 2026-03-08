@@ -18,6 +18,12 @@
 		$sql_search .= " ) ";
 	}
 	
+	// 레벨별 열람 필터 (관리자는 전체 조회)
+	if(!$is_admin && $member['mb_level'] >= 3 && $member['mb_level'] <= 8) {
+		$wr_field = 'wr_' . (10 - $member['mb_level']);
+		$sql_search .= " AND ({$wr_field} = 'Y' OR (wr_2 = '' AND wr_3 = '' AND wr_4 = '' AND wr_5 = '' AND wr_6 = '' AND wr_7 = ''))";
+	}
+
 	if(!$sst)
 		$sst  = "wr_num, wr_reply";
 

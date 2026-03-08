@@ -2,6 +2,15 @@
 	$sql = " select * from {$write_table} where wr_id = '{$id}'  ";
 	$row = sql_fetch($sql);
 //	echo $sql;
+
+	// 레벨별 열람 권한 체크 (관리자는 전체 조회)
+	if(!$is_admin && $member['mb_level'] >= 3 && $member['mb_level'] <= 8) {
+		$wr_field = 'wr_' . (10 - $member['mb_level']);
+		$is_all_empty = ($row['wr_2'] == '' && $row['wr_3'] == '' && $row['wr_4'] == '' && $row['wr_5'] == '' && $row['wr_6'] == '' && $row['wr_7'] == '');
+		if(!$is_all_empty && $row[$wr_field] != 'Y') {
+			alert("열람 권한이 없습니다.");
+		}
+	}
 ?>
 
 <style>
