@@ -124,6 +124,8 @@ $sql = "SELECT
 	SUM(IF(bill_status = 'S', pay_amount, 0)) as total_sale_amount,
 	SUM(IF(bill_status = 'C', pay_amount, 0)) as total_cancel_amount,
 	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%', pay_amount, 0)) as card_sale_amount,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%' AND g5_pay_id IS NOT NULL AND g5_pay_id != '', pay_amount, 0)) as card_pg_amount,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%' AND (g5_pay_id IS NULL OR g5_pay_id = ''), pay_amount, 0)) as card_van_amount,
 	SUM(IF(bill_status = 'S' AND (pay_method LIKE '%현금%' OR pay_method LIKE '%cash%'), pay_amount, 0)) as cash_sale_amount
 	FROM {$table_name} {$sql_where}";
 $stat = sql_fetch($sql);
@@ -166,6 +168,8 @@ $sql = "SELECT
 	COUNT(DISTINCT IF(bill_status = 'S', bill_no, NULL)) as sale_cnt,
 	COUNT(DISTINCT IF(bill_status = 'C', bill_no, NULL)) as cancel_cnt,
 	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%', pay_amount, 0)) as card_sale_amount,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%' AND g5_pay_id IS NOT NULL AND g5_pay_id != '', pay_amount, 0)) as card_pg_amount,
+	SUM(IF(bill_status = 'S' AND pay_method LIKE '%카드%' AND (g5_pay_id IS NULL OR g5_pay_id = ''), pay_amount, 0)) as card_van_amount,
 	SUM(IF(bill_status = 'S' AND (pay_method LIKE '%현금%' OR pay_method LIKE '%cash%'), pay_amount, 0)) as cash_sale_amount
 	FROM {$table_name} {$sql_where}
 	GROUP BY st_uid, st_name
@@ -425,7 +429,7 @@ include_once('./_head.php');
 }
 .summary-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 	gap: 10px;
 	margin-bottom: 15px;
 }
@@ -461,19 +465,22 @@ include_once('./_head.php');
 .summary-card-body {
 	display: flex;
 	justify-content: space-between;
-	gap: 10px;
+	gap: 6px;
 }
 .summary-card-item {
 	flex: 1;
+	min-width: 0;
 }
 .summary-card-label {
 	font-size: 10px;
 	color: #888;
 	margin-bottom: 2px;
+	white-space: nowrap;
 }
 .summary-card-value {
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 700;
+	white-space: nowrap;
 }
 .summary-card-value.sale {
 	color: #2e7d32;
@@ -900,7 +907,10 @@ tr.row-cancel td {
 				순매출 <span><?php echo number_format($stat['total_sale_amount']); ?>원</span>
 			</div>
 			<div class="metapos-pay-stat" style="background: rgba(100,181,246,0.3);">
-				카드 <span><?php echo number_format($stat['card_sale_amount']); ?>원</span>
+				카드(일반) <span><?php echo number_format($stat['card_pg_amount']); ?>원</span>
+			</div>
+			<div class="metapos-pay-stat" style="background: rgba(206,147,255,0.3);">
+				카드(기타) <span><?php echo number_format($stat['card_van_amount']); ?>원</span>
 			</div>
 			<div class="metapos-pay-stat" style="background: rgba(129,199,132,0.3);">
 				현금 <span><?php echo number_format($stat['cash_sale_amount']); ?>원</span>
@@ -1008,8 +1018,12 @@ tr.row-cancel td {
 			</div>
 			<div class="summary-card-body" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.15);">
 				<div class="summary-card-item">
-					<div class="summary-card-label">카드</div>
-					<div class="summary-card-value" style="color:#90caf9;"><?php echo number_format($stat['card_sale_amount']); ?></div>
+					<div class="summary-card-label">카드(일반)</div>
+					<div class="summary-card-value" style="color:#90caf9;"><?php echo number_format($stat['card_pg_amount']); ?></div>
+				</div>
+				<div class="summary-card-item">
+					<div class="summary-card-label">카드(기타)</div>
+					<div class="summary-card-value" style="color:#ce93d8;"><?php echo number_format($stat['card_van_amount']); ?></div>
 				</div>
 				<div class="summary-card-item">
 					<div class="summary-card-label">현금</div>
@@ -1041,8 +1055,12 @@ tr.row-cancel td {
 			</div>
 			<div class="summary-card-body" style="margin-top:6px; padding-top:6px; border-top:1px solid #eee;">
 				<div class="summary-card-item">
-					<div class="summary-card-label">카드</div>
-					<div class="summary-card-value" style="color:#1565c0;"><?php echo number_format($sum['card_sale_amount']); ?></div>
+					<div class="summary-card-label">카드(일반)</div>
+					<div class="summary-card-value" style="color:#1565c0;"><?php echo number_format($sum['card_pg_amount']); ?></div>
+				</div>
+				<div class="summary-card-item">
+					<div class="summary-card-label">카드(기타)</div>
+					<div class="summary-card-value" style="color:#7b1fa2;"><?php echo number_format($sum['card_van_amount']); ?></div>
 				</div>
 				<div class="summary-card-item">
 					<div class="summary-card-label">현금</div>
