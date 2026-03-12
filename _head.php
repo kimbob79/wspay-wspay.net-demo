@@ -450,7 +450,7 @@ jQuery(function($) {
 		// 스시이안앤 메뉴 허용 조건: mb_sushian_id가 있는 가맹점 또는 특정 허용 아이디
 		$sushian_allowed_ids = array('1766037474', '1765765095', '1757467304');
 		$is_sushian_allowed = in_array(strval($member['mb_id']), $sushian_allowed_ids);
-		$show_sushian_menu = ($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) || $is_sushian_allowed;
+		$show_sushian_menu = (($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) || $is_sushian_allowed) && $_SERVER['REMOTE_ADDR'] == '58.29.72.149';
 		if($show_sushian_menu) {
 		?>
 		<div class="gnb_side no_logo">
@@ -458,6 +458,9 @@ jQuery(function($) {
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
 					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 결제정보</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>스시이안앤 매출내역</span></a>
 				</li>
 			</ul>
 		</div>
@@ -555,6 +558,9 @@ jQuery(function($) {
 				</li>
 				<li class="gnb_1dli">
 					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 결제정보</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>스시이안앤 매출내역</span></a>
 				</li>
 				<?php } ?>
 			</ul>
