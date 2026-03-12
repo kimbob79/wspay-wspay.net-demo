@@ -450,7 +450,7 @@ jQuery(function($) {
 		// 스시이안앤 메뉴 허용 조건: mb_sushian_id가 있는 가맹점 또는 특정 허용 아이디
 		$sushian_allowed_ids = array('1766037474', '1765765095', '1757467304');
 		$is_sushian_allowed = in_array(strval($member['mb_id']), $sushian_allowed_ids);
-		$show_sushian_menu = (($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) || $is_sushian_allowed) && $_SERVER['REMOTE_ADDR'] == '58.29.72.149';
+		$show_sushian_menu = ($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) || $is_sushian_allowed;
 		if($show_sushian_menu) {
 		?>
 		<div class="gnb_side no_logo">
