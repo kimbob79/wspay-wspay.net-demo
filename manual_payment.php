@@ -243,81 +243,9 @@ if ($sst)
 else
 	$sql_order = " ORDER BY p.pk_created_at DESC ";
 
-// 통계 조회 (p 별칭 사용)
-$sql = "SELECT
-	COUNT(*) as cnt,
-	SUM(p.pk_amount) as total_amount,
-	SUM(IF(p.pk_status = 'approved', p.pk_amount, 0)) as approved_amount,
-	COUNT(IF(p.pk_status = 'approved', 1, NULL)) as approved_count,
-	SUM(IF(p.pk_status = 'failed', p.pk_amount, 0)) as failed_amount,
-	COUNT(IF(p.pk_status = 'failed', 1, NULL)) as failed_count,
-	SUM(IF(p.pk_status IN ('cancelled', 'partial_cancelled'), p.pk_cancel_amount, 0)) as cancelled_amount,
-	COUNT(IF(p.pk_status IN ('cancelled', 'partial_cancelled'), 1, NULL)) as cancelled_count,
-	COUNT(IF(p.pk_status = 'pending', 1, NULL)) as pending_count
-	FROM {$table_name} p {$sql_search}";
+// 경량 COUNT만 (통계 상세는 AJAX로 비동기 로드)
+$sql = "SELECT COUNT(*) as cnt FROM {$table_name} p {$sql_search}";
 $stat = sql_fetch($sql);
-
-// 관리자용 NOTI 싱크 현황 카운트
-$noti_sync_counts = array('noti_missing' => 0, 'payment_missing' => 0);
-if($is_admin) {
-	// 날짜+접근제어만 적용한 기본 조건 (세부필터 미포함)
-	if ($fr_date == "all" && $to_date == "all") {
-		$noti_base = " WHERE ".$adm_sql;
-	} else {
-		$noti_base = " WHERE ".$adm_sql." AND (p.pk_created_at BETWEEN '{$fr_dates} 00:00:00' AND '{$to_dates} 23:59:59')";
-	}
-	$noti_base .= " AND p.pk_status = 'approved' AND p.pk_app_no IS NOT NULL AND p.pk_app_no != ''";
-
-	// NOTI 미수신 카운트
-	$q = sql_fetch("SELECT COUNT(*) as cnt FROM {$table_name} p {$noti_base} AND (
-		(p.pk_pg_code = 'paysis' AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
-		))
-		OR (p.pk_pg_code = 'stn' AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
-		))
-		OR (p.pk_pg_code = 'rootup' AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
-		))
-		OR (p.pk_pg_code = 'winglobal' AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
-		) AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
-		) AND NOT EXISTS (
-			SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount
-		))
-	)");
-	$noti_sync_counts['noti_missing'] = intval($q['cnt']);
-
-	// 미등록 카운트 (NOTI는 있지만 g5_payment에 없음)
-	$q = sql_fetch("SELECT COUNT(*) as cnt FROM {$table_name} p {$noti_base} AND (
-		(p.pk_pg_code IN ('paysis','stn','rootup') AND (
-			(p.pk_pg_code = 'paysis' AND EXISTS (
-				SELECT 1 FROM g5_payment_paysis noti WHERE noti.connCd='0005' AND noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount
-			))
-			OR (p.pk_pg_code = 'stn' AND EXISTS (
-				SELECT 1 FROM g5_payment_stn noti WHERE noti.requestFlag='K' AND noti.applNo = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
-			))
-			OR (p.pk_pg_code = 'rootup' AND EXISTS (
-				SELECT 1 FROM g5_payment_routeup noti WHERE noti.module_type='1' AND noti.appr_num = p.pk_app_no AND CAST(noti.amount AS SIGNED) = p.pk_amount
-			))
-		) AND NOT EXISTS (
-			SELECT 1 FROM g5_payment gp
-			WHERE gp.pg_name IN ('paysis_keyin','stn_k','routeup_k')
-			AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
-		))
-		OR (p.pk_pg_code = 'winglobal' AND (
-			EXISTS (SELECT 1 FROM g5_payment_daou noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
-			OR EXISTS (SELECT 1 FROM g5_payment_korpay noti WHERE noti.appNo = p.pk_app_no AND CAST(noti.amt AS SIGNED) = p.pk_amount)
-			OR EXISTS (SELECT 1 FROM g5_payment_danal noti WHERE noti.CARDAUTHNO = p.pk_app_no AND CAST(noti.AMOUNT AS SIGNED) = p.pk_amount)
-		) AND NOT EXISTS (
-			SELECT 1 FROM g5_payment gp
-			WHERE gp.pg_name IN ('daou','korpay','danal')
-			AND gp.pay_num = p.pk_app_no AND gp.pay = p.pk_amount
-		))
-	)");
-	$noti_sync_counts['payment_missing'] = intval($q['cnt']);
-}
 
 $total_count = $stat['cnt'];
 $page_count = "30";
@@ -1298,21 +1226,10 @@ tr.row-failed {
 		</div>
 	</div>
 	<div class="manual-list-header-bottom">
-		<div class="manual-list-stats">
-			<div class="manual-list-stat approved">
-				승인 <span><?php echo number_format($stat['approved_count']); ?>건</span> / <span><?php echo number_format($stat['approved_amount']); ?>원</span>
-			</div>
-			<div class="manual-list-stat failed">
-				실패 <span><?php echo number_format($stat['failed_count']); ?>건</span>
-			</div>
-			<div class="manual-list-stat cancelled">
-				취소 <span><?php echo number_format($stat['cancelled_count']); ?>건</span> / <span><?php echo number_format($stat['cancelled_amount']); ?>원</span>
-			</div>
-			<?php if($stat['pending_count'] > 0) { ?>
+		<div class="manual-list-stats" id="stat-area">
 			<div class="manual-list-stat">
-				대기 <span><?php echo number_format($stat['pending_count']); ?>건</span>
+				<i class="fa fa-spinner fa-spin"></i> 통계 로딩중...
 			</div>
-			<?php } ?>
 			<div class="manual-list-stat total">
 				전체 <span><?php echo number_format($total_count); ?>건</span>
 			</div>
@@ -1320,28 +1237,13 @@ tr.row-failed {
 	</div>
 </div>
 
-<?php if($noti_sync_counts['noti_missing'] > 0 || $noti_sync_counts['payment_missing'] > 0) { ?>
-<div class="noti-sync-alert">
+<div class="noti-sync-alert" id="noti-sync-area" style="display:none;">
 	<div class="noti-sync-icon"><i class="fa fa-exclamation-triangle"></i></div>
 	<div class="noti-sync-content">
 		<span class="noti-sync-title">NOTI 싱크 현황</span>
-		<div class="noti-sync-items">
-			<?php if($noti_sync_counts['noti_missing'] > 0) { ?>
-			<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=noti_missing" class="noti-sync-item miss">
-				<i class="fa fa-times-circle"></i>
-				NOTI 미수신 <strong><?=number_format($noti_sync_counts['noti_missing'])?>건</strong>
-			</a>
-			<?php } ?>
-			<?php if($noti_sync_counts['payment_missing'] > 0) { ?>
-			<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=payment_missing" class="noti-sync-item unreg">
-				<i class="fa fa-exclamation-circle"></i>
-				미등록 <strong><?=number_format($noti_sync_counts['payment_missing'])?>건</strong>
-			</a>
-			<?php } ?>
-		</div>
+		<div class="noti-sync-items" id="noti-sync-items"></div>
 	</div>
 </div>
-<?php } ?>
 
 <form id="fsearch" name="fsearch" method="get">
 <input type="hidden" name="p" value="<?php echo $p; ?>">
@@ -1742,15 +1644,9 @@ function openReceipt(pk_id) {
 		</div>
 	</div>
 	<div class="manual-list-header-bottom">
-		<div class="manual-list-stats">
-			<div class="manual-list-stat approved">
-				승인 <span><?php echo number_format($stat['approved_count']); ?>건</span> / <span><?php echo number_format($stat['approved_amount']); ?>원</span>
-			</div>
-			<div class="manual-list-stat failed">
-				실패 <span><?php echo number_format($stat['failed_count']); ?>건</span>
-			</div>
-			<div class="manual-list-stat cancelled">
-				취소 <span><?php echo number_format($stat['cancelled_count']); ?>건</span> / <span><?php echo number_format($stat['cancelled_amount']); ?>원</span>
+		<div class="manual-list-stats" id="stat-area-user">
+			<div class="manual-list-stat">
+				<i class="fa fa-spinner fa-spin"></i> 통계 로딩중...
 			</div>
 			<div class="manual-list-stat total">
 				전체 <span><?php echo number_format($total_count); ?>건</span>
@@ -2091,6 +1987,63 @@ function openReceipt(pk_id) {
 	</a>
 </div>
 <?php } ?>
+
+<script>
+// 통계 + NOTI 싱크 비동기 로드
+$(document).ready(function() {
+	$.getJSON('manual_payment_stat.php', {
+		fr_date: '<?=addslashes($fr_date)?>',
+		to_date: '<?=addslashes($to_date)?>',
+		status_filter: '<?=addslashes($status_filter)?>',
+		pg_filter: '<?=addslashes($pg_filter)?>',
+		auth_filter: '<?=addslashes($auth_filter)?>',
+		sfl: '<?=addslashes($sfl)?>',
+		stx: '<?=addslashes($stx)?>'
+	}, function(data) {
+		if(data.error) return;
+
+		var s = data.stat;
+		var fmt = function(n) { return (n || 0).toLocaleString(); };
+
+		// 통계 HTML 생성
+		var html = '';
+		html += '<div class="manual-list-stat approved">승인 <span>' + fmt(s.approved_count) + '건</span> / <span>' + fmt(s.approved_amount) + '원</span></div>';
+		html += '<div class="manual-list-stat failed">실패 <span>' + fmt(s.failed_count) + '건</span></div>';
+		html += '<div class="manual-list-stat cancelled">취소 <span>' + fmt(s.cancelled_count) + '건</span> / <span>' + fmt(s.cancelled_amount) + '원</span></div>';
+		if(s.pending_count > 0) {
+			html += '<div class="manual-list-stat">대기 <span>' + fmt(s.pending_count) + '건</span></div>';
+		}
+		html += '<div class="manual-list-stat total">전체 <span>' + fmt(s.cnt) + '건</span></div>';
+
+		// 관리자 영역 업데이트
+		if($('#stat-area').length) {
+			$('#stat-area').html(html);
+		}
+		// 가맹점 영역 업데이트
+		if($('#stat-area-user').length) {
+			$('#stat-area-user').html(html);
+		}
+
+		// NOTI 싱크 영역 (관리자만)
+		if(data.noti_sync && $('#noti-sync-area').length) {
+			var ns = data.noti_sync;
+			if(ns.noti_missing > 0 || ns.payment_missing > 0) {
+				var nhtml = '';
+				if(ns.noti_missing > 0) {
+					nhtml += '<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=noti_missing" class="noti-sync-item miss">';
+					nhtml += '<i class="fa fa-times-circle"></i> NOTI 미수신 <strong>' + fmt(ns.noti_missing) + '건</strong></a>';
+				}
+				if(ns.payment_missing > 0) {
+					nhtml += '<a href="?p=<?=$p?>&fr_date=<?=$fr_date?>&to_date=<?=$to_date?>&noti_filter=payment_missing" class="noti-sync-item unreg">';
+					nhtml += '<i class="fa fa-exclamation-circle"></i> 미등록 <strong>' + fmt(ns.payment_missing) + '건</strong></a>';
+				}
+				$('#noti-sync-items').html(nhtml);
+				$('#noti-sync-area').show();
+			}
+		}
+	});
+});
+</script>
 
 <?php
 include_once('./_tail.php');
