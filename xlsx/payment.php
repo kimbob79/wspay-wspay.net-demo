@@ -7,8 +7,10 @@ if(!$member['mb_id']) {
 }
 
 // 파라미터 수신
-$fr_date = isset($_POST['fr_date']) ? preg_replace('/[^0-9]/', '', $_POST['fr_date']) : date("Ymd");
-$to_date = isset($_POST['to_date']) ? preg_replace('/[^0-9]/', '', $_POST['to_date']) : date("Ymd");
+$fr_date = isset($_POST['fr_date']) ? $_POST['fr_date'] : date("Ymd");
+$to_date = isset($_POST['to_date']) ? $_POST['to_date'] : date("Ymd");
+if($fr_date !== 'all') $fr_date = preg_replace('/[^0-9]/', '', $fr_date);
+if($to_date !== 'all') $to_date = preg_replace('/[^0-9]/', '', $to_date);
 $sfl = isset($_POST['sfl']) ? sql_escape_string($_POST['sfl']) : '';
 $stx = isset($_POST['stx']) ? sql_escape_string($_POST['stx']) : '';
 $pay_num = isset($_POST['pay_num']) ? sql_escape_string($_POST['pay_num']) : '';
