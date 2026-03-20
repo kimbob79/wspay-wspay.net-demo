@@ -167,8 +167,18 @@ foreach ($result as $field) {
 		$pg_name = "웰컴";
 	} else if($field['pg_name'] == "korpay") {
 		$pg_name = "코페이";
+	} else if($field['pg_name'] == "danal") {
+		$pg_name = "다날";
+	} else if($field['pg_name'] == "paysis" || $field['pg_name'] == "paysis_keyin") {
+		$pg_name = "페이시스";
+	} else if($field['pg_name'] == "stn" || $field['pg_name'] == "stn_k") {
+		$pg_name = "섹타나인";
+	} else if($field['pg_name'] == "daou") {
+		$pg_name = "다우";
+	} else if($field['pg_name'] == "routeup" || $field['pg_name'] == "routeup_k" || $field['pg_name'] == "routeup_ke") {
+		$pg_name = "루트업";
 	} else {
-		$pg_name = "웰컴";
+		$pg_name = $field['pg_name'];
 	}
 
 	$x++;
