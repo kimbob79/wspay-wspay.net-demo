@@ -108,6 +108,42 @@ if(sql_num_rows($check_dup_limit) == 0) {
     sql_query("ALTER TABLE `{$table_name}` ADD COLUMN `mkc_duplicate_limit` int(11) NOT NULL DEFAULT 0 COMMENT '중복결제 허용횟수 (0=바로차단, N=일N회까지)' AFTER `mkc_duplicate_yn`");
 }
 
+// g5_keyin_api_keys 테이블 생성 (마이그레이션)
+$check_api_keys = sql_query("SHOW TABLES LIKE 'g5_keyin_api_keys'");
+if(sql_num_rows($check_api_keys) == 0) {
+    sql_query("CREATE TABLE `g5_keyin_api_keys` (
+        `kak_id` int(11) NOT NULL AUTO_INCREMENT,
+        `mb_id` varchar(50) NOT NULL COMMENT '가맹점 아이디',
+        `mkc_id` int(11) NOT NULL COMMENT '연결된 keyin 설정 ID',
+        `kak_key` varchar(64) NOT NULL COMMENT 'API 키 (64자 hex)',
+        `kak_name` varchar(100) DEFAULT NULL COMMENT '키 설명',
+        `kak_status` enum('active','revoked') NOT NULL DEFAULT 'active',
+        `kak_issued_at` datetime NOT NULL,
+        `kak_revoked_at` datetime DEFAULT NULL,
+        `kak_last_used_at` datetime DEFAULT NULL,
+        `kak_use_count` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`kak_id`),
+        UNIQUE KEY `uidx_kak_key` (`kak_key`),
+        KEY `idx_mb_id` (`mb_id`),
+        KEY `idx_mkc_id` (`mkc_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='수기결제 공개 API 키'");
+}
+
+// g5_keyin_api_rate_limit 테이블 생성 (마이그레이션)
+$check_rate_limit = sql_query("SHOW TABLES LIKE 'g5_keyin_api_rate_limit'");
+if(sql_num_rows($check_rate_limit) == 0) {
+    sql_query("CREATE TABLE `g5_keyin_api_rate_limit` (
+        `rl_id` int(11) NOT NULL AUTO_INCREMENT,
+        `kak_id` int(11) NOT NULL COMMENT 'API 키 ID',
+        `rl_minute` varchar(12) NOT NULL COMMENT '분 단위 버킷 (YmdHi)',
+        `rl_count` int(11) NOT NULL DEFAULT 0,
+        `rl_updated_at` datetime NOT NULL,
+        PRIMARY KEY (`rl_id`),
+        UNIQUE KEY `uidx_kak_minute` (`kak_id`, `rl_minute`),
+        KEY `idx_minute` (`rl_minute`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Keyin API Rate Limit'");
+}
+
 // OID가 NULL인 기존 레코드에 OID 자동 부여 (마이그레이션)
 $null_oid_records = sql_query("SELECT mkc_id FROM `{$table_name}` WHERE mkc_oid IS NULL OR mkc_oid = ''");
 if(sql_num_rows($null_oid_records) > 0) {
@@ -815,6 +851,140 @@ textarea.form-control {
     color: #1565c0;
 }
 
+/* API 연동 영역 */
+.api-integration-area {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+}
+
+.api-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #393E46;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #FFD369;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.api-section-title i {
+    color: #FFD369;
+}
+
+.api-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.api-row + .api-row {
+    border-top: 1px solid #e8e8e8;
+}
+
+.api-label {
+    flex: 0 0 80px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    padding-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.api-label i {
+    color: #FFD369;
+    font-size: 14px;
+}
+
+.api-value {
+    flex: 1;
+    min-width: 0;
+}
+
+/* API 키 표시 */
+.api-key-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.api-key-code {
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    color: #333;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.api-key-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.api-key-stats {
+    margin-top: 6px;
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #888;
+}
+
+.api-key-stats i {
+    color: #bbb;
+    margin-right: 2px;
+}
+
+.api-key-stats b {
+    color: #555;
+    font-weight: 600;
+}
+
+.api-key-empty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+@media (max-width: 768px) {
+    .api-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .api-label {
+        flex: none;
+        padding-top: 0;
+    }
+
+    .api-key-code {
+        max-width: 100%;
+        font-size: 11px;
+    }
+
+    .api-key-display {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
 @media (max-width: 768px) {
     .config-type-selector {
         flex-direction: column;
@@ -1220,6 +1390,71 @@ textarea.form-control {
                                         <span class="info-tag memo" title="<?php echo htmlspecialchars($row['mkc_memo']); ?>"><i class="fa fa-comment"></i></span>
                                         <?php } ?>
                                     </div>
+                                    <!-- API 연동 관리 영역 -->
+                                    <?php
+                                    $api_key_row = sql_fetch("SELECT * FROM g5_keyin_api_keys WHERE mkc_id = '{$row['mkc_id']}' AND kak_status = 'active'");
+                                    ?>
+                                    <div class="api-integration-area">
+                                        <div class="api-section-title"><i class="fa fa-plug"></i> API 연동</div>
+                                        <!-- API 키 -->
+                                        <div class="api-row">
+                                            <div class="api-label"><i class="fa fa-key"></i> API 키</div>
+                                            <div class="api-value">
+                                                <?php if($api_key_row['kak_id']) { ?>
+                                                <div class="api-key-display">
+                                                    <code class="api-key-code" id="apikey_<?php echo $row['mkc_id']; ?>"><?php echo $api_key_row['kak_key']; ?></code>
+                                                    <div class="api-key-actions">
+                                                        <button type="button" class="keyin-btn keyin-btn-sm keyin-btn-secondary" onclick="copyApiKey('<?php echo $api_key_row['kak_key']; ?>')"><i class="fa fa-copy"></i> 복사</button>
+                                                        <button type="button" class="keyin-btn keyin-btn-sm keyin-btn-danger" onclick="regenApiKey(<?php echo $row['mkc_id']; ?>)"><i class="fa fa-refresh"></i> 재발급</button>
+                                                    </div>
+                                                </div>
+                                                <div class="api-key-stats">
+                                                    <span><i class="fa fa-bar-chart"></i> 사용: <b><?php echo number_format($api_key_row['kak_use_count']); ?>회</b></span>
+                                                    <?php if($api_key_row['kak_last_used_at']) { ?>
+                                                    <span><i class="fa fa-clock-o"></i> 마지막: <b><?php echo substr($api_key_row['kak_last_used_at'], 5, 11); ?></b></span>
+                                                    <?php } ?>
+                                                </div>
+                                                <?php } else { ?>
+                                                <div class="api-key-empty">
+                                                    <span class="badge badge-danger">미발급</span>
+                                                    <button type="button" class="keyin-btn keyin-btn-sm keyin-btn-primary" onclick="issueApiKey(<?php echo $row['mkc_id']; ?>)"><i class="fa fa-plus"></i> API 키 발급</button>
+                                                </div>
+                                                <?php } ?>
+                                            </div>
+                                        </div>
+                                        <!-- TID -->
+                                        <div class="api-row">
+                                            <div class="api-label"><i class="fa fa-terminal"></i> TID</div>
+                                            <div class="api-value">
+                                                <?php
+                                                // PG사별 TID 값 (API 인증 시 X-TID 헤더에 넣을 값)
+                                                $pg_code_for_tid = $is_master ? $master_data['mpc_pg_code'] : $row['mkc_pg_code'];
+                                                if($pg_code_for_tid == 'rootup') {
+                                                    $display_tid = $is_master ? $master_data['mpc_rootup_tid'] : $row['mkc_mkey'];
+                                                } else if($pg_code_for_tid == 'winglobal') {
+                                                    $display_tid = $is_master ? $master_data['mpc_winglobal_tid'] : $row['mkc_mid'];
+                                                } else if($pg_code_for_tid == 'stn') {
+                                                    $display_tid = $is_master ? $master_data['mpc_stn_mbrno'] : $row['mkc_mid'];
+                                                } else {
+                                                    $display_tid = $is_master ? $master_data['mpc_mid'] : $row['mkc_mid'];
+                                                }
+                                                ?>
+                                                <div class="api-key-display">
+                                                    <code class="api-key-code" style="max-width:240px;"><?php echo htmlspecialchars($display_tid); ?></code>
+                                                    <div class="api-key-actions">
+                                                        <button type="button" class="keyin-btn keyin-btn-sm keyin-btn-secondary" onclick="copyApiKey('<?php echo htmlspecialchars($display_tid); ?>')"><i class="fa fa-copy"></i> 복사</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- 웹훅 안내 -->
+                                        <div class="api-row">
+                                            <div class="api-label"><i class="fa fa-bell"></i> 웹훅</div>
+                                            <div class="api-value">
+                                                <span style="font-size:12px; color:#888;">결제통보 설정에서 관리 (<a href="?p=webhook_config" style="color:#7b1fa2; text-decoration:underline;">결제통보 설정 바로가기</a>)</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <?php } ?>
@@ -1382,6 +1617,48 @@ document.addEventListener('DOMContentLoaded', function() {
         setPgFields(pgSelect);
     }
 });
+
+// API 키 발급
+function issueApiKey(mkcId) {
+    if(!confirm('이 Keyin 설정에 대한 공개 API 키를 발급하시겠습니까?')) return;
+    $.post('./member_keyin_config_ajax.php', { mb_id: '<?php echo $mb_id; ?>', mode: 'api_key_issue', mkc_id: mkcId }, function(res) {
+        if(res.success) {
+            alert('API 키가 발급되었습니다.\n\n' + res.api_key + '\n\n이 키는 다시 표시되지 않으니 안전하게 보관하세요.');
+            location.reload();
+        } else {
+            alert(res.message || '발급 실패');
+        }
+    }, 'json');
+}
+
+// API 키 재발급
+function regenApiKey(mkcId) {
+    if(!confirm('기존 API 키가 즉시 무효화됩니다.\n정말 재발급하시겠습니까?')) return;
+    $.post('./member_keyin_config_ajax.php', { mb_id: '<?php echo $mb_id; ?>', mode: 'api_key_regen', mkc_id: mkcId }, function(res) {
+        if(res.success) {
+            alert('새 API 키가 발급되었습니다.\n\n' + res.api_key + '\n\n기존 키는 무효화되었습니다.');
+            location.reload();
+        } else {
+            alert(res.message || '재발급 실패');
+        }
+    }, 'json');
+}
+
+// API 키 복사
+function copyApiKey(key) {
+    if(navigator.clipboard) {
+        navigator.clipboard.writeText(key).then(function() { alert('API 키가 복사되었습니다.'); });
+    } else {
+        var t = document.createElement('textarea');
+        t.value = key;
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand('copy');
+        document.body.removeChild(t);
+        alert('API 키가 복사되었습니다.');
+    }
+}
+
 </script>
 
 <?php

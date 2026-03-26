@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>결제통보 연동 가이드 - 원성페이먼츠</title>
+    <title>결제통보 연동 가이드 - 선샤인페이</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -78,7 +78,7 @@
 <body>
 
 <div class="mobile-header">
-    <h1>원성페이먼츠</h1>
+    <h1>선샤인페이</h1>
     <button onclick="toggleMenu()">☰</button>
 </div>
 <div class="overlay" onclick="toggleMenu()"></div>
@@ -86,8 +86,13 @@
 <div class="wrap">
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h1>원성페이먼츠</h1>
+            <h1>선샤인페이</h1>
             <p>결제통보 연동 가이드</p>
+        </div>
+        <div style="padding:12px 0; border-bottom:1px solid #ddd;">
+            <div style="padding:4px 20px; font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.5px;">문서 목록</div>
+            <a href="keyin-api-guide.html" style="display:block; padding:7px 20px; color:#333; font-size:13px; border-left:3px solid transparent;">수기결제 API</a>
+            <a href="webhook-guide.html" style="display:block; padding:7px 20px; color:#333; font-size:13px; border-left:3px solid #5a2d82; background:#fff; font-weight:600;">결제통보 (Webhook)</a>
         </div>
         <nav class="sidebar-nav">
             <a href="#overview">1. 개요</a>
@@ -102,7 +107,7 @@
         </nav>
         <div class="sidebar-footer">
             <strong>고객센터 1555-0985</strong>
-            © 2026 원성페이먼츠
+            &copy; 2026 주식회사 원성페이먼츠
         </div>
     </aside>
 
@@ -123,7 +128,7 @@
                     <tr>
                         <td>결제 발생</td>
                         <td class="arrow">→</td>
-                        <td>원성페이먼츠</td>
+                        <td>선샤인페이</td>
                         <td class="arrow">→</td>
                         <td>결제통보 발송</td>
                         <td class="arrow">→</td>
@@ -497,7 +502,7 @@ public class PaymentNotifyController {
                 <p>아래 사항을 확인해 주세요.</p>
                 <ul>
                     <li>수신 URL이 외부에서 접근 가능한지 확인</li>
-                    <li>방화벽에서 원성페이먼츠 서버 IP 허용 여부</li>
+                    <li>방화벽에서 선샤인페이 서버 IP 허용 여부</li>
                     <li>HTTPS 인증서가 유효한지 확인</li>
                     <li>관리자 페이지에서 결제통보 설정이 '활성' 상태인지 확인</li>
                 </ul>

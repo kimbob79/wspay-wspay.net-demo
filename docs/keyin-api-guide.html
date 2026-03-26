@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수기결제 API 연동 가이드 - 선샤인페이</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', sans-serif; font-size: 14px; line-height: 1.6; color: #333; background: #fff; }
+        a { color: #1565c0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { font-family: Consolas, 'Courier New', monospace; background: #f5f5f5; padding: 2px 5px; font-size: 13px; border-radius: 3px; }
+        pre { background: #282c34; border: none; padding: 15px; overflow-x: auto; font-size: 13px; line-height: 1.5; font-family: Consolas, 'Courier New', monospace; border-radius: 6px; }
+        pre code { background: none; padding: 0; color: #abb2bf; }
+        pre code.hljs { padding: 15px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; vertical-align: top; }
+        th { background: #f9f9f9; font-weight: 600; }
+
+        /* Layout */
+        .wrap { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 240px; border-right: 1px solid #ddd; background: #fafafa; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #ddd; background: #393E46; color: #fff; }
+        .sidebar-header h1 { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+        .sidebar-header p { font-size: 12px; opacity: 0.9; }
+        .sidebar-docs { padding: 12px 0; border-bottom: 1px solid #ddd; }
+        .sidebar-docs-title { padding: 4px 20px; font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-docs a { display: block; padding: 7px 20px; color: #333; font-size: 13px; border-left: 3px solid transparent; }
+        .sidebar-docs a:hover { background: #f0f0f0; text-decoration: none; }
+        .sidebar-docs a.current { border-left-color: #FFD369; background: #FFF8E1; font-weight: 600; color: #393E46; }
+        .sidebar-nav { padding: 12px 0; }
+        .sidebar-nav-title { padding: 4px 20px; font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-nav a { display: block; padding: 6px 20px 6px 28px; color: #555; font-size: 13px; border-left: 3px solid transparent; }
+        .sidebar-nav a:hover { background: #f0f0f0; text-decoration: none; }
+        .sidebar-nav a.active { border-left-color: #393E46; background: #fff; font-weight: 600; color: #333; }
+        .sidebar-footer { padding: 15px 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        .sidebar-footer strong { display: block; color: #333; }
+
+        /* Main */
+        .main { flex: 1; margin-left: 240px; }
+        .header { height: 90px; background: linear-gradient(135deg, #393E46 0%, #4a5058 100%); color: #fff; padding: 0 40px; display: flex; flex-direction: column; justify-content: center; }
+        .header h2 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+        .header h2 span { color: #FFD369; }
+        .header p { font-size: 13px; opacity: 0.9; }
+        .content { padding: 30px 40px; max-width: 900px; }
+
+        /* Section */
+        .section { margin-bottom: 40px; }
+        .section h3 { font-size: 18px; font-weight: 600; color: #393E46; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #FFD369; }
+        .section h4 { font-size: 15px; font-weight: 600; margin: 20px 0 10px; color: #333; }
+        .section p { margin-bottom: 12px; }
+        .section ul, .section ol { margin: 10px 0 10px 25px; }
+        .section li { margin-bottom: 5px; }
+
+        /* Note */
+        .note { background: #FFF8E1; border: 1px solid #FFD369; padding: 12px 15px; margin: 15px 0; font-size: 13px; border-radius: 4px; }
+        .note strong { color: #393E46; }
+        .note-danger { background: #ffebee; border-color: #ef9a9a; }
+        .note-danger strong { color: #c62828; }
+
+        /* Flow */
+        .flow-table td { text-align: center; background: #fff; }
+        .flow-table .arrow { background: #f9f9f9; font-size: 18px; color: #999; padding: 5px; }
+
+        /* Badge */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .badge-required { background: #ffebee; color: #c62828; }
+        .badge-optional { background: #f5f5f5; color: #666; }
+        .badge-get { background: #e3f2fd; color: #1565c0; }
+        .badge-post { background: #e8f5e9; color: #2e7d32; }
+
+        /* HTTP method */
+        .endpoint { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 16px; margin: 15px 0; display: flex; align-items: center; gap: 12px; }
+        .endpoint .method { padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 700; color: #fff; }
+        .endpoint .method.post { background: #2e7d32; }
+        .endpoint .method.get { background: #1565c0; }
+        .endpoint .url { font-family: Consolas, monospace; font-size: 14px; color: #333; }
+
+        /* Mobile */
+        .mobile-header { display: none; background: #393E46; color: #fff; padding: 12px 15px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .mobile-header h1 { font-size: 15px; display: inline; }
+        .mobile-header button { float: right; background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 99; }
+
+        @media (max-width: 800px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.2s; z-index: 100; }
+            .sidebar.open { transform: translateX(0); }
+            .overlay.open { display: block; }
+            .mobile-header { display: block; }
+            .main { margin-left: 0; padding-top: 50px; }
+            .header, .content { padding: 20px; }
+            .header h2 { font-size: 18px; }
+            .endpoint { flex-direction: column; align-items: flex-start; gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-header">
+    <h1>선샤인페이</h1>
+    <button onclick="toggleMenu()">&#9776;</button>
+</div>
+<div class="overlay" onclick="toggleMenu()"></div>
+
+<div class="wrap">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>선샤인페이</h1>
+            <p>API 연동 가이드</p>
+        </div>
+        <div class="sidebar-docs">
+            <div class="sidebar-docs-title">문서 목록</div>
+            <a href="keyin-api-guide.html" class="current">수기결제 API</a>
+            <a href="webhook-guide.html">결제통보 (Webhook)</a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-title">수기결제 API</div>
+            <a href="#overview">1. 개요</a>
+            <a href="#auth">2. 인증</a>
+            <a href="#rate-limit">3. 요청 제한</a>
+            <a href="#pay">4. 결제 요청</a>
+            <a href="#pay-response">5. 결제 응답</a>
+            <a href="#list">6. 내역 조회</a>
+            <a href="#errors">7. 에러 코드</a>
+            <a href="#example">8. 연동 예제</a>
+            <a href="#test">9. 테스트</a>
+            <a href="#faq">10. FAQ</a>
+        </nav>
+        <div class="sidebar-footer">
+            <strong>고객센터 1555-0985</strong>
+            &copy; 2026 주식회사 원성페이먼츠
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <h2>수기결제 <span>API</span> 연동 가이드</h2>
+            <p>가맹점 서버에서 직접 카드 키인(Keyin) 결제를 요청하는 API</p>
+        </div>
+
+        <div class="content">
+
+            <!-- 1. 개요 -->
+            <section class="section" id="overview">
+                <h3>1. 개요</h3>
+                <p>수기결제 API는 가맹점 서버에서 카드 정보를 직접 전송하여 비대면 결제를 처리하는 서버 간(Server-to-Server) API입니다.</p>
+
+                <h4>지원 기능</h4>
+                <table>
+                    <tr><th style="width:120px;">기능</th><th>설명</th><th style="width:80px;">Method</th></tr>
+                    <tr><td>결제</td><td>카드 키인 결제 요청</td><td><span class="badge badge-post">POST</span></td></tr>
+                    <tr><td>내역 조회</td><td>결제 내역 목록 조회</td><td><span class="badge badge-get">GET</span></td></tr>
+                </table>
+
+                <h4>처리 흐름</h4>
+                <table class="flow-table">
+                    <tr>
+                        <td>가맹점 서버</td>
+                        <td class="arrow">&rarr;</td>
+                        <td>선샤인페이 API</td>
+                        <td class="arrow">&rarr;</td>
+                        <td>PG사 결제 처리</td>
+                        <td class="arrow">&rarr;</td>
+                        <td>결과 반환</td>
+                    </tr>
+                </table>
+
+                <div class="note">
+                    <strong>결제통보 연동:</strong> 결제 성공 시 가맹점 서버로 실시간 웹훅 알림을 받으려면 <a href="webhook-guide.html">결제통보 연동 가이드</a>를 참고하세요.
+                </div>
+            </section>
+
+            <!-- 2. 인증 -->
+            <section class="section" id="auth">
+                <h3>2. 인증</h3>
+                <p>모든 API 요청에는 아래 2개의 HTTP 헤더가 필요합니다.</p>
+
+                <table>
+                    <tr><th style="width:150px;">Header</th><th>설명</th><th style="width:200px;">예시</th></tr>
+                    <tr>
+                        <td><code>X-API-Key</code></td>
+                        <td>발급받은 API 키 (64자)</td>
+                        <td><code>ssp-a3f8c91b2d4e...</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>X-TID</code></td>
+                        <td>터미널 ID (PG사별 상이)</td>
+                        <td><code>wspay001</code></td>
+                    </tr>
+                </table>
+
+                <h4>API 키 발급</h4>
+                <p>관리자 페이지 > 가맹점관리 > Keyin 설정 화면에서 <strong>"API 키 발급"</strong> 버튼을 통해 발급받습니다.</p>
+
+                <div class="note note-danger">
+                    <strong>보안 주의:</strong> API 키는 서버 측에서만 사용하세요. 클라이언트(브라우저, 앱)에 노출하면 안 됩니다.<br>
+                    API 키가 노출된 경우 즉시 <strong>재발급</strong>하세요. 기존 키는 즉시 무효화됩니다.
+                </div>
+            </section>
+
+            <!-- 3. 요청 제한 -->
+            <section class="section" id="rate-limit">
+                <h3>3. 요청 제한</h3>
+                <table>
+                    <tr><th style="width:150px;">항목</th><th>제한</th></tr>
+                    <tr><td>분당 요청 수</td><td>10건 (결제 + 조회 합산)</td></tr>
+                    <tr><td>1회 결제 한도</td><td>Keyin 설정에 따라 상이</td></tr>
+                    <tr><td>일일 결제 한도</td><td>Keyin 설정에 따라 상이</td></tr>
+                    <tr><td>월 결제 한도</td><td>Keyin 설정에 따라 상이</td></tr>
+                    <tr><td>결제 가능 시간</td><td>Keyin 설정에 따라 상이</td></tr>
+                    <tr><td>주말/공휴일</td><td>Keyin 설정에 따라 허용/차단</td></tr>
+                </table>
+                <p>분당 요청 수 초과 시 HTTP <code>429</code> 응답이 반환됩니다.</p>
+            </section>
+
+            <!-- 4. 결제 요청 -->
+            <section class="section" id="pay">
+                <h3>4. 결제 요청</h3>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="url">/api/v1/keyin/pay.php</span>
+                </div>
+
+                <h4>Request Headers</h4>
+                <table>
+                    <tr><th style="width:180px;">Header</th><th>값</th></tr>
+                    <tr><td><code>Content-Type</code></td><td><code>application/json</code></td></tr>
+                    <tr><td><code>X-API-Key</code></td><td>발급받은 API 키</td></tr>
+                    <tr><td><code>X-TID</code></td><td>터미널 ID</td></tr>
+                </table>
+
+                <h4>Request Body (JSON)</h4>
+                <table>
+                    <tr><th style="width:150px;">파라미터</th><th style="width:80px;">타입</th><th style="width:60px;">필수</th><th>설명</th></tr>
+                    <tr><td><code>amount</code></td><td>number</td><td><span class="badge badge-required">필수</span></td><td>결제금액 (100원 이상)</td></tr>
+                    <tr><td><code>goods_name</code></td><td>string</td><td><span class="badge badge-required">필수</span></td><td>상품명</td></tr>
+                    <tr><td><code>buyer_name</code></td><td>string</td><td><span class="badge badge-required">필수</span></td><td>구매자명</td></tr>
+                    <tr><td><code>card_no</code></td><td>string</td><td><span class="badge badge-required">필수</span></td><td>카드번호 (15~16자리 숫자)</td></tr>
+                    <tr><td><code>expire_yymm</code></td><td>string</td><td><span class="badge badge-required">필수</span></td><td>유효기간 (YYMM, 예: 2612)</td></tr>
+                    <tr><td><code>installment</code></td><td>string</td><td><span class="badge badge-required">필수</span></td><td>할부개월 ("00"=일시불, "02"~"12")</td></tr>
+                    <tr><td><code>buyer_phone</code></td><td>string</td><td><span class="badge badge-optional">선택</span></td><td>구매자 전화번호 (루트업/섹타나인/윈글로벌 필수)</td></tr>
+                    <tr><td><code>buyer_email</code></td><td>string</td><td><span class="badge badge-optional">선택</span></td><td>구매자 이메일 (윈글로벌 필수)</td></tr>
+                    <tr><td><code>cert_pw</code></td><td>string</td><td><span class="badge badge-optional">선택</span></td><td>카드 비밀번호 앞 2자리 (구인증 시 필수)</td></tr>
+                    <tr><td><code>cert_no</code></td><td>string</td><td><span class="badge badge-optional">선택</span></td><td>주민번호 앞6자리 또는 사업자번호 10자리 (구인증 시 필수)</td></tr>
+                </table>
+
+                <h4>요청 예시</h4>
+<pre><code class="language-bash">curl -X POST https://wspay.net/api/v1/keyin/pay.php \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: ssp-a3f8c91b2d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c" \
+  -H "X-TID: wspay001" \
+  -d '{
+    "amount": 50000,
+    "goods_name": "테스트상품",
+    "buyer_name": "홍길동",
+    "buyer_phone": "01012345678",
+    "card_no": "1234567890123456",
+    "expire_yymm": "2612",
+    "installment": "00"
+  }'</code></pre>
+            </section>
+
+            <!-- 5. 결제 응답 -->
+            <section class="section" id="pay-response">
+                <h3>5. 결제 응답</h3>
+
+                <h4>성공 응답 (HTTP 200)</h4>
+<pre><code class="language-json">{
+  "success": true,
+  "message": "결제가 완료되었습니다.",
+  "data": {
+    "order_no": "A7K3202603261430527B3D4E",
+    "approval_number": "12345678",
+    "approved_at": "20260326143052",
+    "amount": 50000,
+    "goods_name": "테스트상품",
+    "buyer_name": "홍길동",
+    "card_no_masked": "123456****3456",
+    "installment": "00",
+    "card_issuer": "신한",
+    "pg": "paysis",
+    "pg_name": "페이시스",
+    "receipt_url": "https://wspay.net/receipt_keyin.php?pk_id=1234"
+  }
+}</code></pre>
+
+                <h4>응답 필드 설명</h4>
+                <table>
+                    <tr><th style="width:200px;">필드</th><th style="width:80px;">타입</th><th>설명</th></tr>
+                    <tr><td><code>success</code></td><td>boolean</td><td>성공 여부</td></tr>
+                    <tr><td><code>message</code></td><td>string</td><td>결과 메시지</td></tr>
+                    <tr><td><code>data.order_no</code></td><td>string</td><td>주문번호 (자동 생성)</td></tr>
+                    <tr><td><code>data.approval_number</code></td><td>string</td><td>승인번호</td></tr>
+                    <tr><td><code>data.approved_at</code></td><td>string</td><td>승인 일시</td></tr>
+                    <tr><td><code>data.amount</code></td><td>number</td><td>결제금액</td></tr>
+                    <tr><td><code>data.card_no_masked</code></td><td>string</td><td>카드번호 (마스킹)</td></tr>
+                    <tr><td><code>data.card_issuer</code></td><td>string</td><td>카드 발급사</td></tr>
+                    <tr><td><code>data.pg</code></td><td>string</td><td>PG사 코드</td></tr>
+                    <tr><td><code>data.receipt_url</code></td><td>string</td><td>영수증 URL</td></tr>
+                </table>
+
+                <h4>실패 응답 - PG 거절 (HTTP 200)</h4>
+<pre><code class="language-json">{
+  "success": false,
+  "error_code": "PG_DECLINED",
+  "message": "결제에 실패했습니다: 카드 한도 초과",
+  "pg_error_code": "9999"
+}</code></pre>
+
+                <h4>실패 응답 - 검증 오류 (HTTP 400)</h4>
+<pre><code class="language-json">{
+  "success": false,
+  "error_code": "LIMIT_EXCEEDED",
+  "message": "1회 결제한도를 초과했습니다. (한도: 500,000원)"
+}</code></pre>
+
+                <div class="note">
+                    <strong>참고:</strong> PG 거절은 HTTP 200으로 반환됩니다. <code>success</code> 필드로 성공/실패를 판별하세요.<br>
+                    인증 오류(401), 요청 제한(429) 등만 4xx HTTP 코드를 사용합니다.
+                </div>
+            </section>
+
+            <!-- 6. 내역 조회 -->
+            <section class="section" id="list">
+                <h3>6. 내역 조회</h3>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">/api/v1/keyin/list.php</span>
+                </div>
+
+                <h4>Query Parameters</h4>
+                <table>
+                    <tr><th style="width:120px;">파라미터</th><th style="width:80px;">타입</th><th style="width:100px;">기본값</th><th>설명</th></tr>
+                    <tr><td><code>fr_date</code></td><td>string</td><td>오늘</td><td>시작일 (YYYYMMDD)</td></tr>
+                    <tr><td><code>to_date</code></td><td>string</td><td>오늘</td><td>종료일 (YYYYMMDD)</td></tr>
+                    <tr><td><code>status</code></td><td>string</td><td>전체</td><td>상태 필터 (approved, failed, pending, cancelled)</td></tr>
+                    <tr><td><code>page</code></td><td>number</td><td>1</td><td>페이지 번호</td></tr>
+                    <tr><td><code>limit</code></td><td>number</td><td>20</td><td>페이지당 건수 (최대 100)</td></tr>
+                </table>
+
+                <h4>요청 예시</h4>
+<pre><code class="language-bash">curl -X GET "https://wspay.net/api/v1/keyin/list.php?fr_date=20260301&to_date=20260326&status=approved&page=1&limit=20" \
+  -H "X-API-Key: ssp-a3f8c91b2d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c" \
+  -H "X-TID: wspay001"</code></pre>
+
+                <h4>응답 예시</h4>
+<pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "total": 156,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 8,
+    "items": [
+      {
+        "order_no": "A7K3202603261430527B3D",
+        "amount": 50000,
+        "status": "approved",
+        "approval_number": "12345678",
+        "approved_at": "20260326143052",
+        "goods_name": "테스트상품",
+        "buyer_name": "홍길동",
+        "buyer_phone": "01012345678",
+        "card_no_masked": "123456****3456",
+        "installment": "00",
+        "pg": "paysis",
+        "pg_name": "페이시스",
+        "card_issuer": "신한",
+        "cancel_amount": 0,
+        "cancel_date": null,
+        "created_at": "2026-03-26 14:30:52"
+      }
+    ]
+  }
+}</code></pre>
+            </section>
+
+            <!-- 7. 에러 코드 -->
+            <section class="section" id="errors">
+                <h3>7. 에러 코드</h3>
+                <table>
+                    <tr><th style="width:80px;">HTTP</th><th style="width:200px;">error_code</th><th>설명</th></tr>
+                    <tr><td>401</td><td><code>AUTH_MISSING_KEY</code></td><td>X-API-Key 헤더 누락</td></tr>
+                    <tr><td>401</td><td><code>AUTH_MISSING_TID</code></td><td>X-TID 헤더 누락</td></tr>
+                    <tr><td>401</td><td><code>AUTH_INVALID_KEY</code></td><td>유효하지 않은 API 키</td></tr>
+                    <tr><td>401</td><td><code>AUTH_INVALID_TID</code></td><td>유효하지 않은 TID</td></tr>
+                    <tr><td>401</td><td><code>AUTH_CONFIG_INACTIVE</code></td><td>Keyin 설정이 비활성화됨</td></tr>
+                    <tr><td>429</td><td><code>RATE_LIMIT_EXCEEDED</code></td><td>분당 요청 수 초과 (10건)</td></tr>
+                    <tr><td>400</td><td><code>INVALID_JSON</code></td><td>요청 데이터가 올바른 JSON이 아님</td></tr>
+                    <tr><td>400</td><td><code>MISSING_PARAM</code></td><td>필수 파라미터 누락</td></tr>
+                    <tr><td>400</td><td><code>INVALID_AMOUNT</code></td><td>결제금액 오류 (100원 미만)</td></tr>
+                    <tr><td>400</td><td><code>INVALID_CARD</code></td><td>카드번호 오류</td></tr>
+                    <tr><td>400</td><td><code>INVALID_EXPIRE</code></td><td>유효기간 오류</td></tr>
+                    <tr><td>400</td><td><code>VALIDATION_ERROR</code></td><td>구인증 필드 오류 / 이메일 오류</td></tr>
+                    <tr><td>400</td><td><code>LIMIT_EXCEEDED</code></td><td>결제 한도 초과 (1회/일/월/할부)</td></tr>
+                    <tr><td>400</td><td><code>TIME_RESTRICTED</code></td><td>결제 가능 시간 아님</td></tr>
+                    <tr><td>400</td><td><code>WEEKEND_RESTRICTED</code></td><td>주말 결제 불가</td></tr>
+                    <tr><td>400</td><td><code>DUPLICATE_PAYMENT</code></td><td>중복결제 차단</td></tr>
+                    <tr><td>200</td><td><code>PG_DECLINED</code></td><td>PG사에서 결제 거절</td></tr>
+                    <tr><td>200</td><td><code>PG_ERROR</code></td><td>PG 통신 오류</td></tr>
+                    <tr><td>500</td><td><code>SYSTEM_ERROR</code></td><td>내부 시스템 오류</td></tr>
+                </table>
+            </section>
+
+            <!-- 8. 연동 예제 -->
+            <section class="section" id="example">
+                <h3>8. 연동 예제</h3>
+
+                <h4>PHP</h4>
+<pre><code class="language-php">&lt;?php
+$api_key = 'ssp-your-api-key-here';
+$tid     = 'your-tid-here';
+$api_url = 'https://wspay.net/api/v1/keyin/pay.php';
+
+$data = [
+    'amount'       => 50000,
+    'goods_name'   => '테스트상품',
+    'buyer_name'   => '홍길동',
+    'buyer_phone'  => '01012345678',
+    'card_no'      => '1234567890123456',
+    'expire_yymm'  => '2612',
+    'installment'  => '00'
+];
+
+$ch = curl_init($api_url);
+curl_setopt_array($ch, [
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => json_encode($data),
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT        => 30,
+    CURLOPT_HTTPHEADER     => [
+        'Content-Type: application/json',
+        'X-API-Key: ' . $api_key,
+        'X-TID: ' . $tid
+    ]
+]);
+
+$response = curl_exec($ch);
+$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$result = json_decode($response, true);
+
+if ($result['success']) {
+    echo '결제 성공! 승인번호: ' . $result['data']['approval_number'];
+    echo ' 주문번호: ' . $result['data']['order_no'];
+} else {
+    echo '결제 실패: ' . $result['message'];
+    echo ' 에러코드: ' . ($result['error_code'] ?? '');
+}
+?&gt;</code></pre>
+
+                <h4>Node.js</h4>
+<pre><code class="language-javascript">const API_KEY = 'ssp-your-api-key-here';
+const TID     = 'your-tid-here';
+const API_URL = 'https://wspay.net/api/v1/keyin/pay.php';
+
+const response = await fetch(API_URL, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': API_KEY,
+    'X-TID': TID
+  },
+  body: JSON.stringify({
+    amount: 50000,
+    goods_name: '테스트상품',
+    buyer_name: '홍길동',
+    buyer_phone: '01012345678',
+    card_no: '1234567890123456',
+    expire_yymm: '2612',
+    installment: '00'
+  })
+});
+
+const result = await response.json();
+
+if (result.success) {
+  console.log('결제 성공:', result.data.approval_number);
+} else {
+  console.log('결제 실패:', result.message);
+}</code></pre>
+
+                <h4>Python</h4>
+<pre><code class="language-python">import requests
+
+API_KEY = 'ssp-your-api-key-here'
+TID     = 'your-tid-here'
+API_URL = 'https://wspay.net/api/v1/keyin/pay.php'
+
+response = requests.post(API_URL,
+    json={
+        'amount': 50000,
+        'goods_name': '테스트상품',
+        'buyer_name': '홍길동',
+        'buyer_phone': '01012345678',
+        'card_no': '1234567890123456',
+        'expire_yymm': '2612',
+        'installment': '00'
+    },
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY,
+        'X-TID': TID
+    },
+    timeout=30
+)
+
+result = response.json()
+
+if result['success']:
+    print(f"결제 성공: {result['data']['approval_number']}")
+else:
+    print(f"결제 실패: {result['message']}")</code></pre>
+            </section>
+
+            <!-- 9. 테스트 -->
+            <section class="section" id="test">
+                <h3>9. 테스트</h3>
+                <p>API 테스트 페이지를 통해 실제 결제 요청을 테스트할 수 있습니다.</p>
+                <p><a href="/api/v1/keyin/sample.php" target="_blank" style="display:inline-block; padding:8px 16px; background:#393E46; color:#FFD369; border-radius:4px; font-weight:600;">API 테스트 페이지 열기</a></p>
+
+                <h4>curl 테스트</h4>
+<pre><code class="language-bash"># 결제 테스트
+curl -X POST https://wspay.net/api/v1/keyin/pay.php \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "X-TID: YOUR_TID" \
+  -d '{"amount":1000,"goods_name":"테스트","buyer_name":"테스트","card_no":"1234567890123456","expire_yymm":"2612","installment":"00"}'
+
+# 내역 조회 테스트
+curl -X GET "https://wspay.net/api/v1/keyin/list.php?fr_date=20260326&to_date=20260326" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "X-TID: YOUR_TID"</code></pre>
+            </section>
+
+            <!-- 10. FAQ -->
+            <section class="section" id="faq">
+                <h3>10. FAQ</h3>
+
+                <h4>Q. 비인증과 구인증의 차이는?</h4>
+                <p><strong>비인증:</strong> 카드번호 + 유효기간만으로 결제. <code>cert_pw</code>, <code>cert_no</code> 불필요.<br>
+                <strong>구인증:</strong> 카드번호 + 유효기간 + 비밀번호 앞2자리 + 주민번호 앞6자리(또는 사업자번호 10자리) 필요.</p>
+
+                <h4>Q. PG사별로 필수 파라미터가 다른가요?</h4>
+                <table>
+                    <tr><th>PG사</th><th>buyer_phone</th><th>buyer_email</th></tr>
+                    <tr><td>페이시스</td><td>선택</td><td>불필요</td></tr>
+                    <tr><td>루트업</td><td><span class="badge badge-required">필수</span></td><td>불필요</td></tr>
+                    <tr><td>섹타나인</td><td><span class="badge badge-required">필수</span></td><td>불필요</td></tr>
+                    <tr><td>윈글로벌</td><td><span class="badge badge-required">필수</span></td><td><span class="badge badge-required">필수</span></td></tr>
+                </table>
+
+                <h4>Q. API 키가 노출되었습니다.</h4>
+                <p>즉시 관리자에게 연락하여 <strong>재발급</strong>을 요청하세요. 기존 키는 즉시 무효화됩니다.</p>
+
+                <h4>Q. 결제 결과 알림(웹훅)을 받고 싶습니다.</h4>
+                <p>관리자에게 <a href="webhook-guide.html">결제통보 설정</a>을 요청하세요. API 결제와 일반 결제 모두 동일한 웹훅으로 알림이 전송됩니다.</p>
+
+                <h4>Q. 취소는 어떻게 하나요?</h4>
+                <p>현재 API를 통한 취소는 지원하지 않습니다. 판매자센터에서 직접 취소하거나 관리자에게 요청하세요.</p>
+
+                <h4>Q. 테스트 카드번호가 있나요?</h4>
+                <p>PG사별 테스트 카드번호는 담당자에게 별도 문의해 주세요.</p>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+hljs.highlightAll();
+
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.querySelector('.overlay').classList.toggle('open');
+}
+
+// Active nav
+document.addEventListener('scroll', function() {
+    var sections = document.querySelectorAll('.section');
+    var links = document.querySelectorAll('.sidebar-nav a');
+    var current = '';
+
+    sections.forEach(function(section) {
+        if (window.scrollY >= section.offsetTop - 100) {
+            current = section.id;
+        }
+    });
+
+    links.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+        }
+    });
+});
+
+// Mobile nav close
+document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+    link.addEventListener('click', function() {
+        if (window.innerWidth <= 800) {
+            toggleMenu();
+        }
+    });
+});
+</script>
+
+</body>
+</html>
