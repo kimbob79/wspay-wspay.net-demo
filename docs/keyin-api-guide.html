@@ -25,7 +25,7 @@
 
         /* Sidebar */
         .sidebar { width: 240px; border-right: 1px solid #ddd; background: #fafafa; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #ddd; background: #393E46; color: #fff; }
+        .sidebar-header { height: 90px; padding: 0 20px; border-bottom: 1px solid #ddd; background: #393E46; color: #fff; display: flex; flex-direction: column; justify-content: center; }
         .sidebar-header h1 { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
         .sidebar-header p { font-size: 12px; opacity: 0.9; }
         .sidebar-docs { padding: 12px 0; border-bottom: 1px solid #ddd; }
@@ -195,7 +195,7 @@
                 </table>
 
                 <h4>API 키 발급</h4>
-                <p>관리자 페이지 > 가맹점관리 > Keyin 설정 화면에서 <strong>"API 키 발급"</strong> 버튼을 통해 발급받습니다.</p>
+                <p>담당 관리자에게 API 키 발급을 요청하세요. 발급된 API 키와 TID를 전달받아 연동에 사용합니다.</p>
 
                 <div class="note note-danger">
                     <strong>보안 주의:</strong> API 키는 서버 측에서만 사용하세요. 클라이언트(브라우저, 앱)에 노출하면 안 됩니다.<br>
