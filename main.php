@@ -17,7 +17,7 @@ $sql_popup = "SELECT w.*, f.bf_file
 	ORDER BY w.wr_id DESC LIMIT 1";
 $popup_notice = sql_fetch($sql_popup);
 if($popup_notice && $popup_notice['bf_file']) {
-	$popup_image_url = G5_DATA_URL . '/file/notice/' . $popup_notice['bf_file'];
+	$popup_image_url = './bbs_image.php?bo_table=notice&wr_id=' . $popup_notice['wr_id'] . '&no=0';
 }
 
 if($is_admin) {
