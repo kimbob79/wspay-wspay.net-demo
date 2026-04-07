@@ -403,6 +403,9 @@ jQuery(function($) {
 					<a href="/?p=payment_korpay" target="_self" class="gnb_1da <?php if($p == "payment_korpay") { echo "on"; } ?>"><span>윈(코페이)</span></a>
 				</li>
 				<li class="gnb_1dli">
+					<a href="/?p=payment_korpay_v2" target="_self" class="gnb_1da <?php if($p == "payment_korpay_v2") { echo "on"; } ?>"><span>코페이</span></a>
+				</li>
+				<li class="gnb_1dli">
 					<a href="/?p=payment_danal" target="_self" class="gnb_1da <?php if($p == "payment_danal") { echo "on"; } ?>"><span>윈(다날)</span></a>
 				</li>
 				<li class="gnb_1dli">
@@ -423,6 +426,9 @@ jQuery(function($) {
 				</li>
 				<li class="gnb_1dli">
 					<a href="/?p=payment_korpay" target="_self" class="gnb_1da <?php if($p == "payment_korpay") { echo "on"; } ?>"><span>윈(코페이)</span></a>
+				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=payment_korpay_v2" target="_self" class="gnb_1da <?php if($p == "payment_korpay_v2") { echo "on"; } ?>"><span>코페이</span></a>
 				</li>
 				<li class="gnb_1dli">
 					<a href="/?p=payment_danal" target="_self" class="gnb_1da <?php if($p == "payment_danal") { echo "on"; } ?>"><span>윈(다날)</span></a>
