@@ -611,6 +611,9 @@ jQuery(function($) {
 				<li class="gnb_1dli">
 					<a href="/?p=webhook_history" target="_self" class="gnb_1da <?php if($p == "webhook_history") { echo "on"; } ?>"><span>결제통보 이력</span></a>
 				</li>
+				<li class="gnb_1dli">
+					<a href="/?p=payment_monthly" target="_self" class="gnb_1da <?php if($p == "payment_monthly") { echo "on"; } ?>"><span>월 결제내역</span></a>
+				</li>
 			</ul>
 		</div>
 		<?php } ?>
