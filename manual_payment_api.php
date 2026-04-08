@@ -50,10 +50,14 @@ writeErrorLog('DEBUG_API_START', 'API 요청 시작', [
 
 switch($action) {
     case 'pay':
-        processPayment();
+        // 데모 버전: 실제 PG 결제 차단
+        echo json_encode(['success' => false, 'message' => '[데모] 데모 버전에서는 실제 결제가 불가합니다.']);
+        exit;
         break;
     case 'cancel':
-        processCancel();
+        // 데모 버전: 실제 PG 취소 차단
+        echo json_encode(['success' => false, 'message' => '[데모] 데모 버전에서는 실제 취소가 불가합니다.']);
+        exit;
         break;
     default:
         echo json_encode(['success' => false, 'message' => '올바른 action을 지정하세요. (pay, cancel)']);

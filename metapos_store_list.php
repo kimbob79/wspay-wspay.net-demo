@@ -1,11 +1,11 @@
 <?php
 /**
- * 스시이안앤 매장정보 목록 페이지
+ * POS매장 매장정보 목록 페이지
  * - metapos_store 테이블 조회
  * - 관리자 전용
  */
 
-$title1 = "스시이안앤";
+$title1 = "POS매장";
 $title2 = "매장정보";
 
 include_once('./_common.php');
@@ -583,7 +583,7 @@ tr.row-close td {
 	<div class="metapos-header-top">
 		<div class="metapos-title">
 			<i class="fa fa-building"></i>
-			스시이안앤 매장정보
+			POS매장 매장정보
 		</div>
 		<button type="button" class="btn-sync" id="btnSync" onclick="syncMetapos()">
 			<i class="fa fa-refresh"></i> API 동기화

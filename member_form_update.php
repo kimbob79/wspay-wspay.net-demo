@@ -98,7 +98,7 @@
 	$mb_8        = isset($_POST['mb_8']) ? trim($_POST['mb_8']) : ''; // 은행명
 	$mb_9        = isset($_POST['mb_9']) ? trim($_POST['mb_9']) : ''; // 계좌번호
 	$mb_10        = isset($_POST['mb_10']) ? trim($_POST['mb_10']) : ''; // 예금주명
-	$mb_sushian_id = isset($_POST['mb_sushian_id']) ? trim($_POST['mb_sushian_id']) : ''; // 스시이안앤 매장ID
+	$mb_sushian_id = isset($_POST['mb_sushian_id']) ? trim($_POST['mb_sushian_id']) : ''; // POS매장 매장ID
 	$mb_keyin_popup = isset($_POST['mb_keyin_popup']) ? trim($_POST['mb_keyin_popup']) : '1'; // 수기결제창 사용여부
 
 

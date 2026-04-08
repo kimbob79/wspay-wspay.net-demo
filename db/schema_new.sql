@@ -56,7 +56,7 @@ CREATE TABLE members (
     settle_type     CHAR(1) DEFAULT 'N' COMMENT '재정산 구분 (기존 mb_settle_gbn)',
 
     -- 외부 연동
-    sushian_store_id VARCHAR(50) DEFAULT NULL COMMENT '스시이안앤 매장 ID (기존 mb_sushian_id)',
+    sushian_store_id VARCHAR(50) DEFAULT NULL COMMENT 'POS매장 매장 ID (기존 mb_sushian_id)',
 
     -- 상태/감사
     status          ENUM('active','suspended','deleted') DEFAULT 'active',
@@ -1118,7 +1118,7 @@ CREATE TABLE qna (
 
 
 -- ============================================================================
--- 도메인 J: MetaPOS (스시이안앤)
+-- 도메인 J: MetaPOS (POS매장)
 -- ============================================================================
 
 -- J1. metapos_stores - 매장

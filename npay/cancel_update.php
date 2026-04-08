@@ -4,6 +4,10 @@
 
 	include_once('./_common.php');
 
+	// 데모 버전: 실제 PG 취소 차단
+	echo "[데모] 데모 버전에서는 실제 취소가 불가합니다.";
+	exit;
+
 //	print "<pre>"; print_r($_POST); print "</pre>";
 //	exit;
 

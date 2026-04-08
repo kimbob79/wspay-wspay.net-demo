@@ -392,9 +392,6 @@ jQuery(function($) {
 		<div class="gnb_side no_logo drop_box">
 			<h2>NOTI <div class="arrow_box"><span class="arrow"></span></div></h2>
 			<ul id="gnb_1dul" class="drop_ul">
-				<li class="gnb_1dli">
-					<a href="/?p=noti_list" target="_self" class="gnb_1da <?php if($p == "noti_list") { echo "on"; } ?>"><span>NOTI외부전송</span></a>
-				</li>
 				<?php /*
 				<li class="gnb_1dli">
 					<a href="/?p=payment_k1" target="_self" class="gnb_1da <?php if($p == "payment_k1") { echo "on"; } ?>"><span>광원</span></a>
@@ -453,20 +450,20 @@ jQuery(function($) {
 			</ul>
 		</div>
 		<?php
-		// 스시이안앤 메뉴 허용 조건: mb_sushian_id가 있는 가맹점 또는 특정 허용 아이디
+		// POS매장 메뉴 허용 조건: mb_sushian_id가 있는 가맹점 또는 특정 허용 아이디
 		$sushian_allowed_ids = array('1766037474', '1765765095', '1757467304');
 		$is_sushian_allowed = in_array(strval($member['mb_id']), $sushian_allowed_ids);
 		$show_sushian_menu = ($member['mb_level'] == 3 && !empty($member['mb_sushian_id'])) || $is_sushian_allowed;
 		if($show_sushian_menu) {
 		?>
 		<div class="gnb_side no_logo">
-			<h2>스시이안앤</h2>
+			<h2>POS매장</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 결제정보</span></a>
+					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>POS매장 결제정보</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>스시이안앤 매출내역</span></a>
+					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>POS매장 매출내역</span></a>
 				</li>
 			</ul>
 		</div>
@@ -560,13 +557,13 @@ jQuery(function($) {
 				<?php } ?>
 				<?php if($is_admin) { ?>
 				<li class="gnb_1dli">
-					<a href="/?p=metapos_store_list" target="_self" class="gnb_1da <?php if($p == "metapos_store_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 매장정보</span></a>
+					<a href="/?p=metapos_store_list" target="_self" class="gnb_1da <?php if($p == "metapos_store_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>POS매장 매장정보</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>스시이안앤 결제정보</span></a>
+					<a href="/?p=metapos_payment_list" target="_self" class="gnb_1da <?php if($p == "metapos_payment_list") { echo "on"; } ?>"><i class="fa fa-th-large"></i> <span>POS매장 결제정보</span></a>
 				</li>
 				<li class="gnb_1dli">
-					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>스시이안앤 매출내역</span></a>
+					<a href="/?p=metapos_sales_list" target="_self" class="gnb_1da <?php if($p == "metapos_sales_list") { echo "on"; } ?>"><i class="fa fa-bar-chart"></i> <span>POS매장 매출내역</span></a>
 				</li>
 				<?php } ?>
 			</ul>

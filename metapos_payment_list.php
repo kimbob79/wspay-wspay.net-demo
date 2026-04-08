@@ -1,12 +1,12 @@
 <?php
 /**
- * 스시이안앤 결제정보 목록 페이지
+ * POS매장 결제정보 목록 페이지
  * - metapos_payment 테이블 조회
- * - 관리자 또는 스시이안앤 매장ID가 등록된 가맹점 접근 가능
+ * - 관리자 또는 POS매장 매장ID가 등록된 가맹점 접근 가능
  * - 가맹점별 결제내역 + 총합계
  */
 
-$title1 = "스시이안앤";
+$title1 = "POS매장";
 $title2 = "결제정보";
 
 // 특정 허용 아이디 목록 (본사처럼 전체 조회 가능)
@@ -887,7 +887,7 @@ tr.row-cancel td {
 	<div class="metapos-pay-header-top">
 		<div class="metapos-pay-title">
 			<i class="fa fa-money"></i>
-			스시이안앤 결제정보
+			POS매장 결제정보
 		</div>
 		<?php if($member['mb_level'] >= 10) { ?>
 		<div style="display:flex; align-items:center; gap:6px;">

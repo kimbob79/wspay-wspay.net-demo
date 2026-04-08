@@ -1,11 +1,11 @@
 <?php
 /**
- * 스시이안앤 매출내역 페이지
+ * POS매장 매출내역 페이지
  * - 일자별 매출 요약 (영수건수, 영수단가, 총매출)
- * - 관리자 또는 스시이안앤 매장ID가 등록된 가맹점 접근 가능
+ * - 관리자 또는 POS매장 매장ID가 등록된 가맹점 접근 가능
  */
 
-$title1 = "스시이안앤";
+$title1 = "POS매장";
 $title2 = "매출내역";
 
 // 특정 허용 아이디 목록 (본사처럼 전체 조회 가능)
@@ -579,7 +579,7 @@ td.amount {
 	<div class="metapos-pay-header-top">
 		<div class="metapos-pay-title">
 			<i class="fa fa-bar-chart"></i>
-			스시이안앤 매출내역
+			POS매장 매출내역
 		</div>
 	</div>
 	<div class="metapos-pay-header-bottom">
