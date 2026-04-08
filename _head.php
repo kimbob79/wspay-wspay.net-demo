@@ -600,9 +600,6 @@ jQuery(function($) {
 			<h2>ADMIN</h2>
 			<ul id="gnb_1dul">
 				<li class="gnb_1dli">
-					<a href="/manage/tid" target="_self" class="gnb_1da <?php if($p == "adm_tid") { echo "on"; } ?>"><span>TID 분리관리</span></a>
-				</li>
-				<li class="gnb_1dli">
 					<a href="/?p=manual_payment_config" target="_self" class="gnb_1da <?php if($p == "manual_payment_config") { echo "on"; } ?>"><span>수기 대표가맹점 설정</span></a>
 				</li>
 				<li class="gnb_1dli">
