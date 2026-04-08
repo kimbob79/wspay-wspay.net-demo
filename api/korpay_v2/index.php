@@ -16,7 +16,7 @@ $logFile = $logDir . '/error_' . $today . '.log';
 ini_set('error_log', $logFile);
 
 	error_reporting( E_ALL );
-	ini_set( "display_errors", 1 );
+	ini_set( "display_errors", 0 );
 	date_default_timezone_set('Asia/Seoul');
 
 	// ========================================

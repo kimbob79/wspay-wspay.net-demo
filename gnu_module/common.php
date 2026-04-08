@@ -3,6 +3,8 @@
 ** 공통 변수, 상수, 코드
 *******************************************************************************/
 error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING );
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 // 보안설정이나 프레임이 달라도 쿠키가 통하도록 설정
 header('P3P: CP="ALL CURa ADMa DEVa TAIa OUR BUS IND PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE LOC OTC"');
@@ -226,8 +228,12 @@ ini_set("session.gc_maxlifetime", 10800); // session data의 garbage collection 
 ini_set("session.gc_probability", 1); // session.gc_probability는 session.gc_divisor와 연계하여 gc(쓰레기 수거) 루틴의 시작 확률을 관리합니다. 기본값은 1입니다. 자세한 내용은 session.gc_divisor를 참고하십시오.
 ini_set("session.gc_divisor", 100); // session.gc_divisor는 session.gc_probability와 결합하여 각 세션 초기화 시에 gc(쓰레기 수거) 프로세스를 시작할 확률을 정의합니다. 확률은 gc_probability/gc_divisor를 사용하여 계산합니다. 즉, 1/100은 각 요청시에 GC 프로세스를 시작할 확률이 1%입니다. session.gc_divisor의 기본값은 100입니다.
 
-session_set_cookie_params(0, '/');
+session_set_cookie_params(0, '/', G5_COOKIE_DOMAIN, true, true); // lifetime, path, domain, secure, httponly
 ini_set("session.cookie_domain", G5_COOKIE_DOMAIN);
+ini_set("session.cookie_httponly", 1);
+ini_set("session.cookie_secure", 1);
+ini_set("session.cookie_samesite", "Lax");
+ini_set("session.use_strict_mode", 1);
 
 function chrome_domain_session_name(){
     // 크롬90버전대부터 아래 도메인을 포함된 주소로 접속시 특정조건에서 세션이 생성 안되는 문제가 있을수 있다.
