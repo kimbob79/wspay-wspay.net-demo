@@ -19,3 +19,9 @@ if(!isset($_SERVER["HTTPS"]) || $_SERVER["HTTPS"] != "on")
     //exit;
 }
 //$redpay = "Y";
+
+// 데모 사이트: 오늘 결제 데이터가 없으면 자동 생성
+if ($member['mb_id'] && !defined('DEMO_DATA_CHECKED')) {
+    define('DEMO_DATA_CHECKED', true);
+    @include_once(__DIR__ . '/demo_data_generator.php');
+}
